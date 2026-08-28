@@ -1011,12 +1011,15 @@ window.addEventListener('beforeunload', ()=>{
     const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
     const scale=Math.SQRT2; // 面积×2 = 边长×√2
     const fw=curW*scale, fh=curH*scale;
-    // 起点：标题右侧（absolute 于 detail 内）
+    // 起点：随机位置（absolute 于 detail 内，避免贴着右/下边）
+    const pad=16;
+    const sx=pad + Math.random()*(dW-curW-pad*2);
+    const sy=pad + Math.random()*(Math.max(120, Math.min(dH-curH, window.innerHeight*0.8)-pad*2));
     gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
     gif.style.position='absolute';
     gif.style.right='auto';
-    gif.style.top='4px';
-    gif.style.left=(dW-curW-4)+'px';
+    gif.style.top=sy+'px';
+    gif.style.left=sx+'px';
     gif.style.width=curW+'px'; gif.style.height=curH+'px';
     gif.style.transform='scale(1)';
     gif.style.opacity='0.92';
