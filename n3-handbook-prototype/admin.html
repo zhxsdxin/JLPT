@@ -29,6 +29,13 @@
   .btn.danger{color:#c0392b;border-color:#ffcccc}
   .muted{font-size:12px;color:var(--muted)}
   pre{white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px;max-height:240px;overflow:auto}
+  @media (max-width:600px){
+    table{font-size:11px}
+    th,td{padding:4px 6px}
+    /* 窄屏精简：头像与 token 列隐藏，时间仅 hh:mm 已由 JS 处理 */
+    #pane-users th:nth-child(3), #pane-users td:nth-child(3){display:none}
+    #pane-sessions th:last-child, #pane-sessions td:last-child{display:none}
+  }
 </style>
 </head>
 <body>
@@ -83,6 +90,7 @@ const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorizatio
 const $=id=>document.getElementById(id);
 // 浏览器本地时区展示（最合理：存 UTC，显本地）- 兼容 SQLite "YYYY-MM-DD HH:MM:SS" UTC
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const tzDisplay = tz === "Asia/Tokyo" ? "JST" : tz;
 const parseUTC = s=>{
   if(!s) return null;
   if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return new Date(s.replace(" ","T")+"Z");
@@ -90,7 +98,11 @@ const parseUTC = s=>{
 };
 const fmt = s=> {
   const d=parseUTC(s); if(!d||isNaN(d)) return "-";
-  return d.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tz})`;
+  const isNarrow = window.innerWidth < 600;
+  if(isNarrow){
+    return d.toLocaleString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz});
+  }
+  return d.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tzDisplay})`;
 };
 const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), sec2=sec%60; if(h) return `${h}h ${m}m`; if(m) return `${m}m ${sec2}s`; return `${sec2}s`; };
 
@@ -125,10 +137,18 @@ window.addEventListener('beforeunload', ()=>{
   try{ navigator.sendBeacon(apiBase+"/api/close", JSON.stringify({token:t})); }catch(e){}
 });
 
+const savedTab = localStorage.getItem("admin_tab") || "users";
+document.querySelectorAll(".tab").forEach(b=>{
+  b.classList.toggle("active", b.dataset.t===savedTab);
+});
+$("pane-users").style.display=savedTab==="users"?"block":"none";
+$("pane-sessions").style.display=savedTab==="sessions"?"block":"none";
+$("pane-cards").style.display=savedTab==="cards"?"block":"none";
 document.querySelectorAll(".tab").forEach(b=>{
   b.onclick=()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active")); b.classList.add("active");
     const t=b.dataset.t;
+    localStorage.setItem("admin_tab", t);
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active")); b.classList.add("active");
     $("pane-users").style.display=t==="users"?"block":"none";
     $("pane-sessions").style.display=t==="sessions"?"block":"none";
     $("pane-cards").style.display=t==="cards"?"block":"none";
