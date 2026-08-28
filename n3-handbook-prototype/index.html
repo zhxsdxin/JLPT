@@ -173,9 +173,16 @@
   /* ===== 隐藏假名标注 ===== */
   .hide-ruby rt{display:none!important}
 
-  /* ruby 注音样式 */
-  ruby rt{font-size:.58em;color:var(--muted);font-weight:400;letter-spacing:0}
-  .detail h2 ruby rt{font-size:.4em}
+  /* ruby 注音样式 - 修复手机标题汉字被假名往下压 */
+  ruby{ ruby-position:over; -webkit-ruby-position:over; }
+  ruby rt{font-size:.58em;color:var(--muted);font-weight:400;letter-spacing:0;line-height:1}
+  .detail h2{line-height:1.35}
+  .detail h2 ruby{display:inline-block;line-height:1;vertical-align:top}
+  .detail h2 ruby rt{font-size:.38em;line-height:1;transform:translateY(1px)}
+  @media (max-width:600px){
+    .detail h2{font-size:22px}
+    .detail h2 ruby rt{font-size:.36em}
+  }
   .ex .ja{font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px}
   .ex .ja > span{flex:0 1 auto}   /* 不撑满：喇叭紧跟句子文字，不靠最右 */
   .ex .ja .speak{margin-top:2px;width:22px;height:22px;flex:none}
@@ -886,6 +893,28 @@ window.addEventListener('popstate', ()=>{
 window.addEventListener('beforeunload', ()=>{
   try{ sessionStorage.setItem('n3.scrollY', String(window.scrollY)); }catch(e){}
 });
+
+// 详情左右滑：左滑下一条、右滑上一条
+(() => {
+  const el = document.getElementById('detail');
+  if(!el) return;
+  let sx=0, sy=0, st=0;
+  el.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1) return;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now();
+  }, {passive:true});
+  el.addEventListener('touchend', e=>{
+    if(!sx) return;
+    const dx=e.changedTouches[0].clientX - sx;
+    const dy=e.changedTouches[0].clientY - sy;
+    const dt=Date.now()-st;
+    sx=0;
+    if(Math.abs(dx) < 60 || dt > 600) return;
+    if(Math.abs(dx) < Math.abs(dy)*1.5) return;
+    if(dx < 0) document.getElementById('nextBtn')?.click();
+    else document.getElementById('prevBtn')?.click();
+  }, {passive:true});
+})();
 
 /* ========== 强制登录 ========== */
 const REQUIRE_LOGIN = true; // 设 false 即关闭强制登录
