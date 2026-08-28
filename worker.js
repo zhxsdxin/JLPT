@@ -34,6 +34,19 @@ export default {
       `).run();
       // 头像列（已存在则忽略）
       await env.DB.prepare("ALTER TABLE users ADD COLUMN avatar TEXT").run().catch(()=>{});
+      // 旧库 sessions 缺 token 列则重建
+      try{ await env.DB.prepare("SELECT token FROM sessions LIMIT 1").run(); }catch(e){
+        await env.DB.prepare("DROP TABLE IF EXISTS sessions").run();
+        await env.DB.prepare(`
+          CREATE TABLE sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at DATETIME NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+          )
+        `).run();
+      }
 
       // 你给的查询：列出全部
       if (pathname === "/api/users" && request.method === "GET") {
