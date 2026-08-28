@@ -69,18 +69,27 @@
   </div>
 
   <div class="card">
-    <h3>调试 / Worker</h3>
-    <input id="api" class="inp" placeholder="Worker 域名，如 https://xxx.workers.dev"/>
-    <pre id="out">就绪</pre>
+    <button id="logoutBtn" class="btn" style="color:#c0392b;border-color:#ffcccc;background:#fff">登出，需重新登录</button>
   </div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
-const api=()=>$("api").value.trim().replace(/\/$/,"")||location.origin;
+const out=v=>{
+  const msg=typeof v==="string"?v:JSON.stringify(v,null,2);
+  console.log(msg);
+  let el=document.getElementById("out");
+  if(!el){
+    el=document.createElement("div");
+    el.id="toast"; el.style.cssText="position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:12px;box-shadow:var(--shadow);z-index:99";
+    document.body.appendChild(el);
+  }
+  el.style.display="block"; el.textContent=msg;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.style.display="none",2500);
+};
+const DEFAULT_API = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : location.origin;
+const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"") || location.origin;
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
-$("api").value=localStorage.getItem("jlpt_api")||""; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
 
 function setAvatar(url){
   const el=$("avatar");
@@ -152,6 +161,19 @@ $("pwdBtn").onclick=async()=>{
     u.password_hash=hNew; localStorage.setItem("mock_users", JSON.stringify(users));
     out({ok:true, mock:true}); $("old").value=$("nw").value=$("nw2").value="";
   }catch(e){ out(String(e)); }
+};
+$("logoutBtn").onclick=async()=>{
+  const token=localStorage.getItem(tokenKey);
+  try{ await fetch(api()+"/api/logout",{method:"POST",headers:headers()}); }catch(e){}
+  if(token){
+    try{
+      const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+      const filtered=sessions.filter(x=>x.token!==token);
+      localStorage.setItem("mock_sessions", JSON.stringify(filtered));
+    }catch(e){}
+  }
+  localStorage.removeItem(tokenKey);
+  out("已登出，需重新登录"); setTimeout(()=>location.href="./login.html", 600);
 };
 </script>
 </body>

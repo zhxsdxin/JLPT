@@ -52,10 +52,6 @@
     <input id="p" class="inp" type="password" placeholder="密码" autocomplete="current-password"/>
     <button id="reg" class="btn">注册</button>
     <button id="login" class="btn primary">登录</button>
-    <div class="row">
-      <button id="me" class="btn">当前 /api/me</button>
-      <button id="logout" class="btn">登出</button>
-    </div>
   </div>
 
   <div class="card">
@@ -64,15 +60,14 @@
       <button id="listU" class="btn">SELECT * FROM users</button>
       <button id="listS" class="btn">SELECT * FROM sessions</button>
     </div>
-    <pre id="out">就绪。Worker 域名留空即同域，本地 wrangler dev 填 http://localhost:8787</pre>
-    <input id="api" class="inp" placeholder="Worker 域名，如 https://xxx.workers.dev"/>
-    <div class="muted">token 存 localStorage <code>jlpt_token</code>，自动带 <code>Authorization: Bearer</code></div>
+    <pre id="out">就绪</pre>
   </div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
 const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
-const api=()=>$("api").value.trim().replace(/\/$/,"")||location.origin;
+const DEFAULT_API = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : location.origin;
+const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"") || location.origin;
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 const redirect = new URLSearchParams(location.search).get("redirect");
@@ -144,27 +139,7 @@ $("login").onclick=async()=>{
   out({ok:true, token, user:{id:u.id, username:u.username}, mock:true, tip:"Worker 未部署，已用本地 mock 登录"});
   setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400);
 };
-$("me").onclick=async()=>{
-  const res = await safeFetch("/api/me",{headers:headers()});
-  if(res.ok){ out(res.data); return; }
-  // mock
-  const token = localStorage.getItem(tokenKey);
-  const sessions = mockSessions(); const users = mockUsers();
-  const s = sessions.find(x=>x.token===token);
-  const u = s ? users.find(x=>x.id===s.user_id) : null;
-  if(u && s && new Date(s.expires_at) > new Date()) out({user:{id:u.id, username:u.username}, mock:true});
-  else out({user:null, mock:true, fetchError:res.error||res.data});
-};
-$("logout").onclick=async()=>{
-  const res = await safeFetch("/api/logout",{method:"POST",headers:headers()});
-  const token = localStorage.getItem(tokenKey);
-  if(token){
-    const sessions = mockSessions().filter(x=>x.token!==token);
-    saveMock("mock_sessions", sessions);
-    localStorage.removeItem(tokenKey);
-  }
-  out(res.ok?res.data:{ok:true, mock:true, fetchError:res.error||res.data});
-};
+
 $("listU").onclick=async()=>{
   const res = await safeFetch("/api/users",{headers:headers()});
   if(res.ok) return out(res.data);
@@ -175,9 +150,6 @@ $("listS").onclick=async()=>{
   if(res.ok) return out(res.data);
   out({mock_sessions: mockSessions(), tip:"Worker 未部署，显示本地 mock", fetchError:res.error||res.data});
 };
-const DEFAULT_API = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : "";
-$("api").value=localStorage.getItem("jlpt_api")||DEFAULT_API; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
-if(!$("api").value && DEFAULT_API) $("out").textContent += "\n提示：已自动填 Worker 域名 "+DEFAULT_API+"，若仍显示 mock:true 请 wrangler deploy 后重试；本地 mock 已存 "+mockUsers().length+" 用户，换用户名或点登出清 token 可重测。";
 </script>
 </body>
 </html>
