@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#1f3a5f"/>
+<title>登录 - N3 文法 小手册</title>
+<style>
+  :root{
+    --bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;
+    --line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+  a{color:var(--accent);text-decoration:none}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+  @media (prefers-color-scheme: dark){.topbar{background:rgba(16,21,33,.78)}}
+  .topbar-inner{display:flex;align-items:center;gap:8px;padding:10px 14px;max-width:520px;margin:0 auto}
+  .topbar h1{font-size:15px;margin:0;font-weight:600;flex:1}
+  .icon-btn{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .icon-btn:hover{background:var(--accent-soft);color:var(--accent)}
+  .wrap{max-width:520px;margin:0 auto;padding:12px 14px 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-top:12px}
+  .card h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;color:var(--muted)}
+  .inp{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);outline:0;font-size:15px;margin:6px 0}
+  .inp:focus{border-color:var(--accent);background:var(--card)}
+  .inp::placeholder{color:var(--muted)}
+  .btn{width:100%;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:active{transform:scale(.98)}
+  .row{display:flex;gap:8px}
+  .row .btn{flex:1}
+  pre{margin:8px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto}
+  .muted{font-size:12px;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="icon-btn" href="./index.html" aria-label="返回">‹</a>
+    <h1>登录</h1>
+    <a class="icon-btn" href="./index.html" aria-label="手册">⌂</a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="card">
+    <h3>账号</h3>
+    <input id="u" class="inp" placeholder="用户名" autocomplete="username"/>
+    <input id="p" class="inp" type="password" placeholder="密码" autocomplete="current-password"/>
+    <button id="reg" class="btn">注册</button>
+    <button id="login" class="btn primary">登录</button>
+    <div class="row">
+      <button id="me" class="btn">当前 /api/me</button>
+      <button id="logout" class="btn">登出</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>调试</h3>
+    <div class="row">
+      <button id="listU" class="btn">SELECT * FROM users</button>
+      <button id="listS" class="btn">SELECT * FROM sessions</button>
+    </div>
+    <pre id="out">就绪。Worker 域名留空即同域，本地 wrangler dev 填 http://localhost:8787</pre>
+    <input id="api" class="inp" placeholder="Worker 域名，如 https://xxx.workers.dev"/>
+    <div class="muted">token 存 localStorage <code>jlpt_token</code>，自动带 <code>Authorization: Bearer</code></div>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
+const api=()=>$("api").value.trim().replace(/\/$/,"")||location.origin;
+const tokenKey="jlpt_token";
+const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
+$("reg").onclick=async()=>{ const r=await fetch(api()+"/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); out(await r.json()); };
+$("login").onclick=async()=>{ const r=await fetch(api()+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); const j=await r.json(); if(j.token) localStorage.setItem(tokenKey,j.token); out(j); };
+$("me").onclick=async()=>{ const r=await fetch(api()+"/api/me",{headers:headers()}); out(await r.json()); };
+$("logout").onclick=async()=>{ const r=await fetch(api()+"/api/logout",{method:"POST",headers:headers()}); localStorage.removeItem(tokenKey); out(await r.json()); };
+$("listU").onclick=async()=>{ const r=await fetch(api()+"/api/users",{headers:headers()}); out(await r.json()); };
+$("listS").onclick=async()=>{ const r=await fetch(api()+"/api/sessions",{headers:headers()}); out(await r.json()); };
+$("api").value=localStorage.getItem("jlpt_api")||""; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
+</script>
+</body>
+</html>

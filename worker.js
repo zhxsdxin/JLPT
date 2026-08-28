@@ -1,0 +1,110 @@
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const { pathname } = url;
+
+    // CORS
+    const cors = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    };
+    if (request.method === "OPTIONS") return new Response(null, { headers: cors });
+
+    try {
+      // 初始化表（首次访问自动建表）
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          token TEXT UNIQUE NOT NULL,
+          expires_at DATETIME NOT NULL,
+          FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+      `).run();
+
+      // 你给的查询：列出全部
+      if (pathname === "/api/users" && request.method === "GET") {
+        const result = await env.DB.prepare("SELECT * FROM users").all();
+        return json(result.results, cors);
+      }
+      if (pathname === "/api/sessions" && request.method === "GET") {
+        const result = await env.DB.prepare("SELECT * FROM sessions").all();
+        return json(result.results, cors);
+      }
+
+      // 注册
+      if (pathname === "/api/register" && request.method === "POST") {
+        const { username, password } = await request.json();
+        if (!username || !password) return json({ error: "username/password 必填" }, cors, 400);
+        const hash = await sha256(password);
+        try {
+          const r = await env.DB.prepare("INSERT INTO users (username, password_hash) VALUES (?,?)").bind(username, hash).run();
+          return json({ ok: true, id: r.meta.last_row_id }, cors);
+        } catch (e) {
+          return json({ error: "用户名已存在" }, cors, 409);
+        }
+      }
+
+      // 登录 -> 建 session
+      if (pathname === "/api/login" && request.method === "POST") {
+        const { username, password } = await request.json();
+        const hash = await sha256(password);
+        const user = await env.DB.prepare("SELECT * FROM users WHERE username=? AND password_hash=?").bind(username, hash).first();
+        if (!user) return json({ error: "账号或密码错误" }, cors, 401);
+        const token = crypto.randomUUID();
+        const expires = new Date(Date.now() + 7 * 86400000).toISOString(); // 7天
+        await env.DB.prepare("INSERT INTO sessions (user_id, token, expires_at) VALUES (?,?,?)").bind(user.id, token, expires).run();
+        return json({ ok: true, token, user: { id: user.id, username: user.username } }, cors, 200, {
+          "Set-Cookie": `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`,
+        });
+      }
+
+      // 校验登录态
+      if (pathname === "/api/me" && request.method === "GET") {
+        const token = getToken(request);
+        if (!token) return json({ user: null }, cors);
+        const row = await env.DB.prepare("SELECT u.id, u.username, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
+        return json({ user: { id: row.id, username: row.username } }, cors);
+      }
+
+      // 登出
+      if (pathname === "/api/logout" && request.method === "POST") {
+        const token = getToken(request);
+        if (token) await env.DB.prepare("DELETE FROM sessions WHERE token=?").bind(token).run();
+        return json({ ok: true }, cors, 200, { "Set-Cookie": `token=; Path=/; Max-Age=0` });
+      }
+
+      return json({ error: "not found" }, cors, 404);
+    } catch (e) {
+      return json({ error: String(e) }, cors, 500);
+    }
+  },
+};
+
+function getToken(req) {
+  const auth = req.headers.get("Authorization");
+  if (auth?.startsWith("Bearer ")) return auth.slice(7);
+  const cookie = req.headers.get("Cookie") || "";
+  const m = cookie.match(/token=([^;]+)/);
+  return m ? m[1] : null;
+}
+async function sha256(s) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function json(data, cors, status = 200, extra = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", ...cors, ...extra },
+  });
+}
