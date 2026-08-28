@@ -307,6 +307,13 @@
     <label class="sw"><input type="checkbox" id="hideZh" checked /> 中文</label>
     <label class="sw"><input type="checkbox" id="hideJa" checked /> 日文</label>
     <label class="sw"><input type="checkbox" id="hideRuby" checked /> 假名</label>
+    <label class="sw">倍速<select id="rateSel" style="background:transparent;color:inherit;border:0;outline:0;font-size:12px">
+      <option value="0.5">0.5x</option>
+      <option value="0.75">0.75x</option>
+      <option value="1">1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select></label>
   </div>
 </header>
 <script>
@@ -794,8 +801,10 @@ if('speechSynthesis' in window){
   // 预热：Chrome 首次需用户手势前就加载
   waitForVoices(2000).then(pickJaVoice);
 }
+function getRate(){ return parseFloat(localStorage.getItem('n3.rate')||'1')||1; }
 function fallbackAudio(text){
   if(!text) return;
+  const rate=getRate();
   // 多源回退：谷歌（可能被墙）→ 百度翻译（国内可达）
   const sources = [
     'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text),
@@ -810,6 +819,7 @@ function fallbackAudio(text){
       return;
     }
     ttsAudio = new Audio(sources[i++]);
+    ttsAudio.playbackRate = rate;
     ttsAudio.onerror = ()=>{ try{ttsAudio.pause();}catch(e){} tryPlay(); };
     ttsAudio.play().catch(()=>{ tryPlay(); });
   }
@@ -850,7 +860,7 @@ async function speak(raw){
   setTimeout(()=>{
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ja-JP';
-    u.rate = 0.95;
+    u.rate = getRate();
     u.pitch = 1.0;
     u.volume = 1.0;
     u.voice = jaVoice;
@@ -928,6 +938,12 @@ document.getElementById('hideRuby').addEventListener('change',e=>{
 document.getElementById('hideZh').checked = !state.hideZh;
 document.getElementById('hideJa').checked = !state.hideJa;
 document.getElementById('hideRuby').checked = !document.body.classList.contains('hide-ruby');
+// 倍速
+const rateSel=document.getElementById('rateSel');
+if(rateSel){
+  rateSel.value = localStorage.getItem('n3.rate')||'1';
+  rateSel.addEventListener('change', ()=>{ try{ localStorage.setItem('n3.rate', rateSel.value); }catch(e){} });
+}
 document.getElementById('onlyFav').addEventListener('change',e=>{ state.onlyFav = e.target.checked; renderList(); syncNav(); });
 
 // 明暗切换
