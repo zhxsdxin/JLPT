@@ -210,8 +210,8 @@
   :root.dark .ex .ja .target{background:rgba(255,138,128,.18)}
   .ex .zh{font-size:13px;color:var(--ink-soft);margin-top:4px}
   .ex.hide-zh .zh{display:none}
-  .ex.hide-ja .ja{filter:blur(4px);user-select:none;pointer-events:none}
-  .ex.reveal-ja .ja{filter:none}
+  .ex.hide-ja .ja > span{filter:blur(4px);user-select:none;pointer-events:none}
+  .ex.reveal-ja .ja > span{filter:none}
 
   .note{
     background:var(--warn-bg);color:var(--warn);
