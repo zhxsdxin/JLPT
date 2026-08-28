@@ -8,7 +8,8 @@
 <style>
   :root{--bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;--line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--radius:14px}
   @media (prefers-color-scheme: dark){:root{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
-  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65}
+  *{box-sizing:border-box} html{visibility:hidden} html.ready{visibility:visible}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65}
   a{color:var(--accent);text-decoration:none}
   .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
   @media (prefers-color-scheme: dark){.topbar{background:rgba(16,21,33,.78)}}
@@ -126,7 +127,8 @@ async function loadProfile(){
     } else { location.href="./login.html?redirect="+encodeURIComponent(location.href); }
   }catch(e){ location.href="./login.html?redirect="+encodeURIComponent(location.href); }
 }
-loadProfile();
+loadProfile().then(()=>{ if(!location.href.includes("login.html")) document.documentElement.classList.add('ready'); });
+setTimeout(()=>document.documentElement.classList.add('ready'), 3000);
 
 $("file").onchange=async()=>{
   const f=$("file").files[0]; if(!f) return;

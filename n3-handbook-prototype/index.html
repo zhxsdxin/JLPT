@@ -43,6 +43,8 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}   /* 防止 display:flex 等样式覆盖 hidden 属性 */
+  html{visibility:hidden} /* 首屏不闪默认标题/头像，加载完成后显示 */
+  html.ready{visibility:visible}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
   body{padding-bottom:env(safe-area-inset-bottom)}
   a{color:var(--accent);text-decoration:none}
@@ -282,7 +284,7 @@
   </div>
   <div class="switches" id="switchesDetail" hidden>
     <label class="sw"><input type="checkbox" id="hideZh" /> 隐藏中文</label>
-    <label class="sw"><input type="checkbox" id="hideJa" /> 隐藏日文（点击显示）</label>
+    <label class="sw"><input type="checkbox" id="hideJa" /> 隐藏日文</label>
     <label class="sw"><input type="checkbox" id="hideRuby" /> 隐藏假名</label>
   </div>
 </header>
@@ -984,7 +986,7 @@ window.addEventListener('beforeunload', ()=>{
 (async ()=>{
   await loadCardOverrides();
   if(REQUIRE_LOGIN && !(await requireLogin())) return;
-  refreshProfileAvatar();
+  await refreshProfileAvatar();
   // 管理员显示入口
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+getToken()}});
@@ -992,7 +994,9 @@ window.addEventListener('beforeunload', ()=>{
     if(j.user && j.user.username==="admin") document.getElementById("adminBtn").hidden=false;
   }catch(e){}
   if(!restoreFromHash(false)) showList(false);
+  document.documentElement.classList.add('ready');
 })();
+setTimeout(()=>document.documentElement.classList.add('ready'), 3000);
 </script>
 </body>
 </html>
