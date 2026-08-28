@@ -537,7 +537,7 @@ function renderDetail(){
       <span>${UNIT_NAMES[item.unit-1]}</span>
     </div>
     <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
-    <img src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:5;pointer-events:none;opacity:.92;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18))">
+    <img id="stalkingGif" src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:5;opacity:0;pointer-events:none;transition:opacity .6s, transform .6s;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18));touch-action:none;cursor:grab">
     ${sensesHtml}
   `;
 
@@ -942,6 +942,95 @@ window.addEventListener('beforeunload', ()=>{
     if(dx < 0) document.getElementById('nextBtn')?.click();
     else document.getElementById('prevBtn')?.click();
   }, {passive:true});
+})();
+
+/* ========== stalking.gif 随机出现、可拖动、占空隙90%正方体 ========== */
+(() => {
+  const gif=document.getElementById('stalkingGif');
+  if(!gif) return;
+  let isDragging=false, startX=0, startY=0, origX=0, origY=0, hasMoved=false;
+  function positionStalking(){
+    const h2=document.querySelector('.detail h2');
+    const detail=document.querySelector('.detail');
+    if(!h2||!detail) return;
+    const dRect=detail.getBoundingClientRect();
+    const span=h2.querySelector('span');
+    const btn=h2.querySelector('.speak');
+    const spanW=span?span.offsetWidth:0;
+    const btnW=btn?btn.offsetWidth:0;
+    const gap=8;
+    const blankW = Math.max(0, dRect.width - spanW - btnW - gap*3 - 32);
+    const blankH = h2.offsetHeight + 60;
+    void dRect; void blankW;
+    const maxSquare = Math.min(blankW>0?blankW:120, blankH>0?blankH:120, 192);
+    const size = Math.max(48, Math.min(maxSquare*0.9, 192));
+    const finalSize = window.innerWidth<600 ? Math.min(size, 120) : size;
+    if(!isDragging){
+      gif.style.width=finalSize+'px';
+      gif.style.height=finalSize+'px';
+    }
+  }
+  function onStart(e){
+    isDragging=true; hasMoved=false;
+    const p=e.touches ? e.touches[0] : e;
+    startX=p.clientX; startY=p.clientY;
+    const rect=gif.getBoundingClientRect();
+    origX=rect.left; origY=rect.top;
+    gif.style.cursor='grabbing'; gif.style.transition='none';
+    gif.style.pointerEvents='auto';
+  }
+  function onMove(e){
+    if(!isDragging) return;
+    const p=e.touches ? e.touches[0] : e;
+    const dx=p.clientX-startX, dy=p.clientY-startY;
+    if(Math.abs(dx)>3||Math.abs(dy)>3) hasMoved=true;
+    gif.style.left=(origX+dx)+'px';
+    gif.style.top=(origY+dy)+'px';
+    gif.style.right='auto'; gif.style.bottom='auto';
+    gif.style.position='fixed';
+    e.preventDefault();
+  }
+  function onEnd(){
+    if(!isDragging) return;
+    isDragging=false;
+    gif.style.cursor='grab'; gif.style.transition='opacity .6s, transform .6s';
+  }
+  gif.addEventListener('mousedown', onStart);
+  gif.addEventListener('touchstart', onStart, {passive:false});
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+  gif.addEventListener('click', e=>{ if(hasMoved) e.stopPropagation(); });
+  function showGif(){
+    positionStalking();
+    gif.style.opacity='0.92';
+    gif.style.pointerEvents='auto';
+    gif.style.transform='scale(1)';
+  }
+  function hideGif(){
+    gif.style.opacity='0';
+    gif.style.pointerEvents='none';
+    gif.style.transform='scale(0.9)';
+  }
+  hideGif();
+  function schedule(){
+    const count = Math.random()<0.5 ? 1 : 2;
+    for(let i=0;i<count;i++){
+      const delay = Math.random()* 4.5*60*1000 + 5000;
+      setTimeout(()=>{
+        if(document.visibilityState!=='visible') return;
+        if(!document.getElementById('detailView')?.classList.contains('active')) return;
+        showGif();
+        setTimeout(hideGif, 4000 + Math.random()*4000);
+      }, delay);
+    }
+  }
+  schedule();
+  setInterval(schedule, 5*60*1000);
+  window.addEventListener('resize', positionStalking);
+  const detail=document.getElementById('detail');
+  if(detail) new MutationObserver(positionStalking).observe(detail, {childList:true, subtree:true});
 })();
 
 /* ========== 强制登录 ========== */
