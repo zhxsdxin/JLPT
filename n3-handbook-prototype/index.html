@@ -944,12 +944,14 @@ window.addEventListener('beforeunload', ()=>{
   }, {passive:true});
 })();
 
-/* ========== stalking.gif 随机出现、可拖动、占空隙90%正方体 ========== */
+/* ========== stalking.gif 前台不活跃出现、可拖动、占空隙90%正方体 ==========
+   注意：#stalkingGif 由 renderDetail() 动态注入，必须用 getElementById 每次取，不能启动时缓存 */
 (() => {
-  const gif=document.getElementById('stalkingGif');
-  if(!gif) return;
+  let gifVisible=false, inactivityTimer=null;
   let isDragging=false, startX=0, startY=0, origX=0, origY=0, hasMoved=false;
+  const getGif=()=>document.getElementById('stalkingGif');
   function positionStalking(){
+    const gif=getGif(); if(!gif) return;
     const h2=document.querySelector('.detail h2');
     const detail=document.querySelector('.detail');
     if(!h2||!detail) return;
@@ -971,6 +973,8 @@ window.addEventListener('beforeunload', ()=>{
     }
   }
   function onStart(e){
+    const gif=getGif(); if(!gif) return;
+    if(!e.target || !(e.target.closest && e.target.closest('#stalkingGif'))) return;
     isDragging=true; hasMoved=false;
     const p=e.touches ? e.touches[0] : e;
     startX=p.clientX; startY=p.clientY;
@@ -978,9 +982,11 @@ window.addEventListener('beforeunload', ()=>{
     origX=rect.left; origY=rect.top;
     gif.style.cursor='grabbing'; gif.style.transition='none';
     gif.style.pointerEvents='auto';
+    gif._dragging=true;
   }
   function onMove(e){
     if(!isDragging) return;
+    const gif=getGif(); if(!gif) return;
     const p=e.touches ? e.touches[0] : e;
     const dx=p.clientX-startX, dy=p.clientY-startY;
     if(Math.abs(dx)>3||Math.abs(dy)>3) hasMoved=true;
@@ -988,21 +994,17 @@ window.addEventListener('beforeunload', ()=>{
     gif.style.top=(origY+dy)+'px';
     gif.style.right='auto'; gif.style.bottom='auto';
     gif.style.position='fixed';
-    e.preventDefault();
+    try{ e.preventDefault(); }catch(err){}
   }
   function onEnd(){
     if(!isDragging) return;
+    const gif=getGif(); if(gif){
+      gif.style.cursor='grab'; gif.style.transition='opacity .6s, transform .6s';
+    }
     isDragging=false;
-    gif.style.cursor='grab'; gif.style.transition='opacity .6s, transform .6s';
   }
-  gif.addEventListener('mousedown', onStart);
-  gif.addEventListener('touchstart', onStart, {passive:false});
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove, {passive:false});
-  window.addEventListener('mouseup', onEnd);
-  window.addEventListener('touchend', onEnd);
-  let gifVisible=false, inactivityTimer=null;
   function showGif(){
+    const gif=getGif(); if(!gif) return;
     positionStalking();
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
@@ -1011,9 +1013,11 @@ window.addEventListener('beforeunload', ()=>{
     clearTimeout(inactivityTimer);
   }
   function hideGif(){
-    gif.style.opacity='0';
-    gif.style.pointerEvents='none';
-    gif.style.transform='scale(0.9)';
+    const gif=getGif(); if(gif){
+      gif.style.opacity='0';
+      gif.style.pointerEvents='none';
+      gif.style.transform='scale(0.9)';
+    }
     gifVisible=false;
     startInactivityTimer();
   }
@@ -1045,10 +1049,19 @@ window.addEventListener('beforeunload', ()=>{
       clearTimeout(inactivityTimer);
     }
   });
-  // 点击 GIF 才消失并重计 1 分钟
-  gif.addEventListener('click', e=>{
-    if(hasMoved){ e.stopPropagation(); return; }
-    hideGif();
+  // 拖动（事件委托，因 gif 动态重建）
+  document.addEventListener('mousedown', onStart);
+  document.addEventListener('touchstart', onStart, {passive:false});
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+  // 点击 GIF 才消失并重计
+  document.addEventListener('click', e=>{
+    if(hasMoved){ hasMoved=false; return; }
+    if(e.target && e.target.closest && e.target.closest('#stalkingGif')){
+      hideGif();
+    }
   });
   // 详情显隐联动：切到详情重计，切走隐藏
   const detailView=document.getElementById('detailView');
