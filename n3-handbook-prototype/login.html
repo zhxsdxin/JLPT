@@ -5,19 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#1f3a5f"/>
 <title>登录 - N3 文法 小手册</title>
+<script>
+(function(){ try{ var t=localStorage.getItem('n3.theme'); var dark=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.classList.add(dark?'dark':'light'); }catch(e){} })();
+</script>
 <style>
   :root{
     --bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;
     --line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--radius:14px;
+    --topbar-bg:rgba(255,255,255,.85);
   }
   @media (prefers-color-scheme: dark){
-    :root{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}
+    :root:not(.light){--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--topbar-bg:rgba(16,21,33,.78)}
   }
+  :root.dark{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--topbar-bg:rgba(16,21,33,.78)}
+  :root.light{--bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;--line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--topbar-bg:rgba(255,255,255,.85)}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
   a{color:var(--accent);text-decoration:none}
-  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
-  @media (prefers-color-scheme: dark){.topbar{background:rgba(16,21,33,.78)}}
+  .topbar{position:sticky;top:0;z-index:20;background:var(--topbar-bg);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
   .topbar-inner{display:flex;align-items:center;gap:8px;padding:10px 14px;max-width:520px;margin:0 auto}
   .topbar h1{font-size:15px;margin:0;font-weight:600;flex:1}
   .icon-btn{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
@@ -42,6 +47,7 @@
   <div class="topbar-inner">
     <a class="icon-btn" href="./index.html" aria-label="返回">‹</a>
     <h1>登录</h1>
+    <button class="icon-btn" id="themeBtn" aria-label="切换明暗" title="切换明暗" style="font-size:15px">🌙</button>
     <a class="icon-btn" href="./index.html" aria-label="手册">⌂</a>
   </div>
 </header>
@@ -65,6 +71,12 @@
 </main>
 <script>
 const $=id=>document.getElementById(id);
+(function(){
+  const btn=document.getElementById('themeBtn'); if(!btn) return;
+  function apply(dark){ document.documentElement.classList.toggle('dark',dark); document.documentElement.classList.toggle('light',!dark); try{ localStorage.setItem('n3.theme', dark?'dark':'light'); }catch(e){} btn.textContent=dark?'☀️':'🌙'; }
+  apply(document.documentElement.classList.contains('dark'));
+  btn.addEventListener('click', ()=>apply(!document.documentElement.classList.contains('dark')));
+})();
 const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
 const DEFAULT_API = "https://jlpt.zhxsdxin.workers.dev";
 const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"") || DEFAULT_API;
