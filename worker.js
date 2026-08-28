@@ -1,7 +1,8 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const { pathname } = url;
+    let { pathname } = url;
+    pathname = pathname.replace(/\/+$/, "") || "/";
 
     // CORS
     const cors = {
@@ -132,7 +133,10 @@ export default {
         return json({ ok: true }, cors, 200, { "Set-Cookie": `token=; Path=/; Max-Age=0` });
       }
 
-      return json({ error: "not found" }, cors, 404);
+      if (pathname === "/" ) {
+        return json({ ok: true, msg: "JLPT API", routes: ["/api/register POST","/api/login POST","/api/me GET","/api/profile GET","/api/profile/password POST","/api/profile/avatar POST","/api/users GET","/api/sessions GET","/api/logout POST"] }, cors);
+      }
+      return json({ error: "not found", path: pathname, hint: "可用 /api/register 等，见 /" }, cors, 404);
     } catch (e) {
       return json({ error: String(e) }, cors, 500);
     }
