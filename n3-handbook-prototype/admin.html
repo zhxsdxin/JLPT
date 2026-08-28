@@ -104,6 +104,14 @@ const fmt = s=> {
   }
   return d.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tzDisplay})`;
 };
+const fmtDate = s=> {
+  const d=parseUTC(s); if(!d||isNaN(d)) return "-";
+  return d.toLocaleDateString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",timeZone:tz});
+};
+const fmtTime = s=> {
+  const d=parseUTC(s); if(!d||isNaN(d)) return "-";
+  return d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:tz});
+};
 const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), sec2=sec%60; if(h) return `${h}h ${m}m`; if(m) return `${m}m ${sec2}s`; return `${sec2}s`; };
 
 async function checkAdmin(){
@@ -162,18 +170,27 @@ async function loadUsers(){
   const j=await r.json();
   if(j.error){ $("uBody").innerHTML=`<tr><td colspan=6>${j.error}</td></tr>`; return; }
   $("uCount").textContent=`共 ${j.length} 人 (上限 5)`;
-  $("uBody").innerHTML=j.map(u=>`<tr><td>${u.id}</td><td>${u.username}</td><td>${u.avatar?`<img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`:"🐱"}</td><td>${fmt(u.created_at)}</td><td>${u.session_count}</td><td>${fmt(u.last_login)}</td></tr>`).join("");
+  const isNarrow = window.innerWidth < 600;
+  $("uBody").innerHTML=j.map(u=>{
+    const avatar = u.username==="admin"
+      ? `<img src="./avatar-mouse.svg" style="width:28px;height:28px;border-radius:50%;object-fit:cover" alt="🐭">`
+      : (u.avatar?`<img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`:"🐱");
+    const reg = isNarrow ? fmtDate(u.created_at) : fmt(u.created_at);
+    const last = isNarrow ? fmtDate(u.last_login) : fmt(u.last_login);
+    return `<tr><td>${u.id}</td><td>${u.username}</td><td>${avatar}</td><td>${reg}</td><td>${u.session_count}</td><td>${last}</td></tr>`;
+  }).join("");
 }
 async function loadSessions(){
-  $("tzShow").textContent = tz;
+  $("tzShow").textContent = tzDisplay;
   const r=await fetch(apiBase+"/api/admin/sessions",{headers:headers()});
   const j=await r.json();
   if(j.error){ $("sBody").innerHTML=`<tr><td colspan=6>${j.error}</td></tr>`; return; }
+  const isNarrow = window.innerWidth < 600;
   $("sBody").innerHTML=j.map(s=>{
-    const closed = s.closed_at ? fmt(s.closed_at) : "-";
-    const status = s.closed_at ? "已关闭" : (new Date(s.expires_at) < new Date() ? "已过期(24h)" : "进行中");
-    const closeOrExp = s.closed_at ? closed : `${fmt(s.expires_at)} 到期`;
-    return `<tr><td>${s.username}</td><td>${fmt(s.created_at)}</td><td>${closeOrExp}</td><td>${dur(s.duration_sec)}</td><td>${status}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`;
+    const login = isNarrow ? fmtDate(s.created_at) : fmt(s.created_at);
+    const closeOrExp = s.closed_at ? (isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at)) : (isNarrow ? fmtTime(s.expires_at) : `${fmt(s.expires_at)} 到期`);
+    const status = s.closed_at ? "已关闭" : (parseUTC(s.expires_at) < new Date() ? "已过期(24h)" : "进行中");
+    return `<tr><td>${s.username}</td><td>${login}</td><td>${closeOrExp}</td><td>${dur(s.duration_sec)}</td><td>${status}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`;
   }).join("") || `<tr><td colspan=6>无会话</td></tr>`;
 }
 
