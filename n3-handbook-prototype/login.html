@@ -75,8 +75,10 @@ const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2)
 const api=()=>$("api").value.trim().replace(/\/$/,"")||location.origin;
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
+const redirect = new URLSearchParams(location.search).get("redirect");
+if(redirect) $("out").textContent = "需登录后访问："+redirect;
 $("reg").onclick=async()=>{ const r=await fetch(api()+"/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); out(await r.json()); };
-$("login").onclick=async()=>{ const r=await fetch(api()+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); const j=await r.json(); if(j.token) localStorage.setItem(tokenKey,j.token); out(j); };
+$("login").onclick=async()=>{ const r=await fetch(api()+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); const j=await r.json(); if(j.token){ localStorage.setItem(tokenKey,j.token); out(j); setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400); } else out(j); };
 $("me").onclick=async()=>{ const r=await fetch(api()+"/api/me",{headers:headers()}); out(await r.json()); };
 $("logout").onclick=async()=>{ const r=await fetch(api()+"/api/logout",{method:"POST",headers:headers()}); localStorage.removeItem(tokenKey); out(await r.json()); };
 $("listU").onclick=async()=>{ const r=await fetch(api()+"/api/users",{headers:headers()}); out(await r.json()); };

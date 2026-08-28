@@ -872,8 +872,31 @@ window.addEventListener('beforeunload', ()=>{
   try{ sessionStorage.setItem('n3.scrollY', String(window.scrollY)); }catch(e){}
 });
 
+/* ========== 强制登录 ========== */
+const REQUIRE_LOGIN = true; // 设 false 即关闭强制登录
+const LOGIN_URL = "./login.html";
+function getApiBase(){ try{ return (localStorage.getItem("jlpt_api")||"").replace(/\/$/,"") || location.origin; }catch(e){ return location.origin; } }
+function getToken(){ try{ return localStorage.getItem("jlpt_token")||""; }catch(e){ return ""; } }
+async function requireLogin(){
+  if(!REQUIRE_LOGIN) return true;
+  const token = getToken();
+  if(!token){ location.href = LOGIN_URL + "?redirect=" + encodeURIComponent(location.href); return false; }
+  try{
+    const r = await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
+    const j = await r.json();
+    if(!j.user){ localStorage.removeItem("jlpt_token"); location.href = LOGIN_URL + "?redirect=" + encodeURIComponent(location.href); return false; }
+    return true;
+  }catch(e){
+    // worker 未部署/离线时，退化为本地 token 存在即放行，避免首屏卡死
+    return !!token;
+  }
+}
+
 /* ========== 启动（刷新停留当前卡片） ========== */
-if(!restoreFromHash(false)) showList(false);
+(async ()=>{
+  if(REQUIRE_LOGIN && !(await requireLogin())) return;
+  if(!restoreFromHash(false)) showList(false);
+})();
 </script>
 </body>
 </html>
