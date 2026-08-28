@@ -109,7 +109,9 @@ $("reg").onclick=async()=>{
   const e=validInput(username,password); if(e) return out(e);
   const res = await safeFetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
   if(res.ok){ out({...res.data, tip:"注册成功，请点登录"}); return; }
-  // 回退 mock（同 worker 限 5）
+  // 真实业务错误（如 409 已存在/403 满员）直接展示，不走 mock
+  if(res.data && res.data.error && !res.data.mock) return out(res.data);
+  // 仅网络/404 回退 mock（同 worker 限 5）
   const MAX_USERS = 5;
   const users = mockUsers();
   if(users.length >= MAX_USERS) return out({error:`注册已满（上限 ${MAX_USERS}），请通知🐴✨ (本地 mock)`, mock:true});
@@ -128,7 +130,8 @@ $("login").onclick=async()=>{
     setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400); return;
   }
   if(res.ok){ out(res.data); return; }
-  // mock 登录
+  if(res.data && res.data.error && !res.data.mock) return out(res.data);
+  // 仅网络/404 回退 mock 登录
   const h = await sha256s(password);
   const users = mockUsers();
   const u = users.find(x=>x.username===username && x.password_hash===h);
@@ -172,7 +175,9 @@ $("listS").onclick=async()=>{
   if(res.ok) return out(res.data);
   out({mock_sessions: mockSessions(), tip:"Worker 未部署，显示本地 mock", fetchError:res.error||res.data});
 };
-$("api").value=localStorage.getItem("jlpt_api")||""; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
+const DEFAULT_API = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : "";
+$("api").value=localStorage.getItem("jlpt_api")||DEFAULT_API; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
+if(!$("api").value && DEFAULT_API) $("out").textContent += "\n提示：已自动填 Worker 域名 "+DEFAULT_API+"，若仍显示 mock:true 请 wrangler deploy 后重试；本地 mock 已存 "+mockUsers().length+" 用户，换用户名或点登出清 token 可重测。";
 </script>
 </body>
 </html>
