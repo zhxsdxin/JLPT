@@ -1005,10 +1005,29 @@ window.addEventListener('beforeunload', ()=>{
   }
   function showGif(){
     const gif=getGif(); if(!gif) return;
-    positionStalking();
+    const detail=document.querySelector('.detail');
+    if(!detail){ positionStalking(); return; }
+    const dW=detail.clientWidth, dH=detail.clientHeight;
+    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
+    const scale=Math.SQRT2; // 面积×2 = 边长×√2
+    const fw=curW*scale, fh=curH*scale;
+    // 起点：标题右侧（absolute 于 detail 内）
+    gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
+    gif.style.position='absolute';
+    gif.style.right='auto';
+    gif.style.top='4px';
+    gif.style.left=(dW-curW-4)+'px';
+    gif.style.width=curW+'px'; gif.style.height=curH+'px';
+    gif.style.transform='scale(1)';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
-    gif.style.transform='scale(1)';
+    void gif.offsetWidth; // 强制 reflow 让起点生效
+    // 终点：视口中心（detail 内坐标），同时放大到面积2倍
+    const rect=detail.getBoundingClientRect();
+    const cy=Math.max(40, window.innerHeight/2 - rect.top - fh/2);
+    gif.style.left=(dW-fw)/2+'px';
+    gif.style.top=cy+'px';
+    gif.style.transform='scale('+scale+')';
     gifVisible=true;
     clearTimeout(inactivityTimer);
   }
