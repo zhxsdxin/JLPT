@@ -177,7 +177,7 @@
   ruby{ ruby-position:over; -webkit-ruby-position:over; }
   ruby rt{font-size:.58em;color:var(--muted);font-weight:400;letter-spacing:0;line-height:1}
   .detail h2{line-height:1.35}
-  .detail h2 ruby{display:inline-block;line-height:1;vertical-align:top}
+  .detail h2 ruby{display:inline;line-height:1;word-break:break-word}
   .detail h2 ruby rt{font-size:.38em;line-height:1;transform:translateY(1px)}
   @media (max-width:600px){
     .detail h2{font-size:24px;line-height:1.35}
@@ -510,7 +510,7 @@ function renderDetail(){
       <span class="chip">No.${String(item.id).padStart(3,'0')}</span>
       <span>${UNIT_NAMES[item.unit-1]}</span>
     </div>
-    <h2 style="display:flex;align-items:flex-start;gap:10px">${item.patternHtml || esc(item.pattern)}<button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="margin-top:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
+    <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:1 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
     ${sensesHtml}
   `;
 
