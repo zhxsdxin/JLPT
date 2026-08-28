@@ -126,6 +126,9 @@
 
   /* ===== Detail view ===== */
   .detail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 16px 16px;margin-top:8px;position:relative}
+  @media (max-width:600px){
+    .detail > img[src*="stalking.gif"]{width:120px!important;height:120px!important;top:2px!important;right:2px!important}
+  }
   .detail .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:6px}
   .detail .meta .chip{background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px;font-weight:500}
   .detail h2{margin:0 0 4px;font-size:26px;letter-spacing:.01em;word-break:break-all}
@@ -534,7 +537,7 @@ function renderDetail(){
       <span>${UNIT_NAMES[item.unit-1]}</span>
     </div>
     <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
-    <img src="./stalking.gif" alt="" style="position:absolute;top:12px;right:12px;width:96px;height:96px;object-fit:contain;z-index:5;pointer-events:none;opacity:.92">
+    <img src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:5;pointer-events:none;opacity:.92;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18))">
     ${sensesHtml}
   `;
 
