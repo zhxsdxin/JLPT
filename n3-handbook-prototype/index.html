@@ -301,9 +301,9 @@
     <label class="sw"><input type="checkbox" id="onlyFav" /> 仅收藏</label>
   </div>
   <div class="switches" id="switchesDetail" hidden>
-    <label class="sw"><input type="checkbox" id="hideZh" /> 隐藏中文</label>
-    <label class="sw"><input type="checkbox" id="hideJa" /> 隐藏日文</label>
-    <label class="sw"><input type="checkbox" id="hideRuby" /> 隐藏假名</label>
+    <label class="sw"><input type="checkbox" id="hideZh" checked /> 中文</label>
+    <label class="sw"><input type="checkbox" id="hideJa" checked /> 日文</label>
+    <label class="sw"><input type="checkbox" id="hideRuby" checked /> 假名</label>
   </div>
 </header>
 <script>
@@ -909,11 +909,15 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
   const i = N3_DATA.findIndex(x=>x.id===state.current);
   if(i<N3_DATA.length-1) openDetail(N3_DATA[i+1].id);
 });
-document.getElementById('hideZh').addEventListener('change',e=>{ state.hideZh = e.target.checked; renderDetail(); });
-document.getElementById('hideJa').addEventListener('change',e=>{ state.hideJa = e.target.checked; renderDetail(); });
+document.getElementById('hideZh').addEventListener('change',e=>{ state.hideZh = !e.target.checked; renderDetail(); });
+document.getElementById('hideJa').addEventListener('change',e=>{ state.hideJa = !e.target.checked; renderDetail(); });
 document.getElementById('hideRuby').addEventListener('change',e=>{
-  document.body.classList.toggle('hide-ruby', e.target.checked);
+  document.body.classList.toggle('hide-ruby', !e.target.checked);
 });
+// 勾选=显示，去勾=隐藏；同步控件状态
+document.getElementById('hideZh').checked = !state.hideZh;
+document.getElementById('hideJa').checked = !state.hideJa;
+document.getElementById('hideRuby').checked = !document.body.classList.contains('hide-ruby');
 document.getElementById('onlyFav').addEventListener('change',e=>{ state.onlyFav = e.target.checked; renderList(); syncNav(); });
 
 // 明暗切换
@@ -1044,6 +1048,7 @@ window.addEventListener('beforeunload', ()=>{
     const pad=16;
     const sx=pad + Math.random()*Math.max(10, vw-curW-pad*2);
     const sy=pad + Math.random()*Math.max(10, vh-curH-pad*2);
+    const cx=(vw-fw)/2, cy=(vh-fh)/2;
     gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
     gif.style.position='fixed';
     gif.style.right='auto';
@@ -1053,11 +1058,14 @@ window.addEventListener('beforeunload', ()=>{
     gif.style.transform='scale(1)';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
-    void gif.offsetWidth; // 强制 reflow 让起点生效
-    // 终点：浏览器窗口正中心（fixed），同时放大到面积2倍
-    gif.style.left=(vw-fw)/2+'px';
-    gif.style.top=(vh-fh)/2+'px';
-    gif.style.transform='scale('+scale+')';
+    // 双 rAF 确保起点渲染后 transition 生效（Safari/移动端单 reflow 不可靠）
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        gif.style.left=cx+'px';
+        gif.style.top=cy+'px';
+        gif.style.transform='scale('+scale+')';
+      });
+    });
     gifVisible=true;
     clearTimeout(inactivityTimer);
   }
