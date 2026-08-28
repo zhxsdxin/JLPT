@@ -173,15 +173,16 @@
   /* ===== 隐藏假名标注 ===== */
   .hide-ruby rt{display:none!important}
 
-  /* ruby 注音样式 - 修复手机标题汉字被假名往下压 */
+  /* ruby 注音样式 - 修复手机标题汉字被假名往下压，小标题保持正常 */
   ruby{ ruby-position:over; -webkit-ruby-position:over; }
   ruby rt{font-size:.58em;color:var(--muted);font-weight:400;letter-spacing:0;line-height:1}
   .detail h2{line-height:1.35}
   .detail h2 ruby{display:inline-block;line-height:1;vertical-align:top}
   .detail h2 ruby rt{font-size:.38em;line-height:1;transform:translateY(1px)}
   @media (max-width:600px){
-    .detail h2{font-size:22px}
-    .detail h2 ruby rt{font-size:.36em}
+    .detail h2{font-size:24px;line-height:1.35}
+    .detail h2 ruby rt{font-size:.38em}
+    .topbar h1{font-size:15px}
   }
   .ex .ja{font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px}
   .ex .ja > span{flex:0 1 auto}   /* 不撑满：喇叭紧跟句子文字，不靠最右 */
