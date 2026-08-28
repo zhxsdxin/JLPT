@@ -1046,23 +1046,34 @@ window.addEventListener('beforeunload', ()=>{
     const fw=curW*scale, fh=curH*scale;
     // 起点：随机位置（浏览器窗口坐标系 fixed，避免贴边）
     const pad=16;
-    const sx=pad + Math.random()*Math.max(10, vw-curW-pad*2);
-    const sy=pad + Math.random()*Math.max(10, vh-curH-pad*2);
     const cx=(vw-fw)/2, cy=(vh-fh)/2;
-    gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
+    const isMobile = vw < 600;
+    const startScale = isMobile ? 0.3 : 1;
+    let startX, startY;
+    if(isMobile){
+      // 移动端：固定从画面中心出现并放大，不做位移
+      startX=cx; startY=cy;
+      gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
+    } else {
+      startX=pad + Math.random()*Math.max(10, vw-curW-pad*2);
+      startY=pad + Math.random()*Math.max(10, vh-curH-pad*2);
+      gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
+    }
     gif.style.position='fixed';
     gif.style.right='auto';
-    gif.style.top=sy+'px';
-    gif.style.left=sx+'px';
+    gif.style.top=startY+'px';
+    gif.style.left=startX+'px';
     gif.style.width=curW+'px'; gif.style.height=curH+'px';
-    gif.style.transform='scale(1)';
+    gif.style.transform='scale('+startScale+')';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
     // 双 rAF 确保起点渲染后 transition 生效（Safari/移动端单 reflow 不可靠）
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
-        gif.style.left=cx+'px';
-        gif.style.top=cy+'px';
+        if(!isMobile){
+          gif.style.left=cx+'px';
+          gif.style.top=cy+'px';
+        }
         gif.style.transform='scale('+scale+')';
       });
     });
