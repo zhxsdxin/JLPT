@@ -56,8 +56,8 @@ export default {
         if (cnt && cnt.c >= MAX_USERS) return json({ error: `注册已满（上限 ${MAX_USERS}），请通知🐴✨` }, cors, 403);
         const hash = await sha256(password);
         try {
-          // prepare+bind 已参数化，杜绝 SQL 注入
-          const r = await env.DB.prepare("INSERT INTO users (username, password_hash) VALUES (?,?)").bind(username, hash).run();
+          // 显式带 created_at 兼容旧表 NOT NULL 无默认值的情况
+          const r = await env.DB.prepare("INSERT INTO users (username, password_hash, created_at) VALUES (?,?, datetime('now'))").bind(username, hash).run();
           return json({ ok: true, id: r.meta.last_row_id }, cors);
         } catch (e) {
           const msg = String(e && e.message ? e.message : e);
