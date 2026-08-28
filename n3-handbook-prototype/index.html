@@ -971,11 +971,12 @@ window.addEventListener('beforeunload', ()=>{
   }, {passive:true});
 })();
 
-/* ========== stalking.gif 前台不活跃出现、可拖动、占空隙90%正方体 ==========
-   注意：#stalkingGif 由 renderDetail() 动态注入，必须用 getElementById 每次取，不能启动时缓存 */
+/* ========== stalking.gif 前台不活跃出现、可拖动、视口中心 ==========
+   注意：#stalkingGif 由 renderDetail() 动态注入，必须用 getElementById 每次取，不能启动时缓存
+   定位一律用 transform: translate() 驱动（GPU 合成，移动端 left/top transition 不可靠） */
 (() => {
   let gifVisible=false, inactivityTimer=null;
-  let isDragging=false, startX=0, startY=0, origX=0, origY=0, hasMoved=false, userMoved=false;
+  let isDragging=false, dragSX=0, dragSY=0, dragTX=0, dragTY=0, hasMoved=false, userMoved=false;
   const getGif=()=>document.getElementById('stalkingGif');
   // 获取当前可视区域（visualViewport 优先，适配 iOS/Android 地址栏）
   function getViewport(){
@@ -985,14 +986,19 @@ window.addEventListener('beforeunload', ()=>{
     }
     return { w:window.innerWidth, h:window.innerHeight, left:0, top:0 };
   }
-  // GIF 固定定位到当前可视区域视觉中心
-  function placeCenter(gif){
+  function curSize(gif){ return { w:gif.offsetWidth||120, h:gif.offsetHeight||120 }; }
+  // 视口中心 transform（面积×2）
+  function centerTransform(gif, scale){
     const vp=getViewport();
-    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
-    const scale=Math.SQRT2, fw=curW*scale, fh=curH*scale;
-    gif.style.position='fixed'; gif.style.right='auto';
-    gif.style.left=(vp.left+vp.w/2-fw/2)+'px';
-    gif.style.top=(vp.top+vp.h/2-fh/2)+'px';
+    const s=curSize(gif);
+    const fw=s.w*scale, fh=s.h*scale;
+    const x=(vp.left+vp.w/2-fw/2), y=(vp.top+vp.h/2-fh/2);
+    return { x, y, str:'translate('+x+'px,'+y+'px) scale('+scale+')' };
+  }
+  function placeCenter(gif){
+    const ct=centerTransform(gif, Math.SQRT2);
+    gif._tx=ct.x; gif._ty=ct.y;
+    gif.style.transform=ct.str;
   }
   // 滚动/地址栏变化时保持可视区中心（未拖动时）
   function keepCentered(){
@@ -1000,6 +1006,7 @@ window.addEventListener('beforeunload', ()=>{
     gif.style.transition='none';
     placeCenter(gif);
   }
+  // 重算尺寸（仅非拖动时），配合 keepCentered 重新居中
   function positionStalking(){
     const gif=getGif(); if(!gif) return;
     const h2=document.querySelector('.detail h2');
@@ -1021,90 +1028,73 @@ window.addEventListener('beforeunload', ()=>{
       gif.style.width=finalSize+'px';
       gif.style.height=finalSize+'px';
     }
+    if(gifVisible) keepCentered();
   }
   function onStart(e){
     const gif=getGif(); if(!gif) return;
     if(!e.target || !(e.target.closest && e.target.closest('#stalkingGif'))) return;
     isDragging=true; hasMoved=false;
     const p=e.touches ? e.touches[0] : e;
-    startX=p.clientX; startY=p.clientY;
-    const rect=gif.getBoundingClientRect();
-    origX=rect.left; origY=rect.top;
+    dragSX=p.clientX; dragSY=p.clientY;
+    dragTX=gif._tx||0; dragTY=gif._ty||0;
     gif.style.cursor='grabbing'; gif.style.transition='none';
     gif.style.pointerEvents='auto';
-    gif._dragging=true;
   }
   function onMove(e){
     if(!isDragging) return;
     const gif=getGif(); if(!gif) return;
     const p=e.touches ? e.touches[0] : e;
-    const dx=p.clientX-startX, dy=p.clientY-startY;
-    if(Math.abs(dx)>3||Math.abs(dy)>3) hasMoved=true;
-    gif.style.left=(origX+dx)+'px';
-    gif.style.top=(origY+dy)+'px';
-    gif.style.right='auto'; gif.style.bottom='auto';
-    gif.style.position='fixed';
+    const dx=p.clientX-dragSX, dy=p.clientY-dragSY;
+    if(Math.abs(dx)>3||Math.abs(dy)>3){ hasMoved=true; userMoved=true; }
+    gif._tx=dragTX+dx; gif._ty=dragTY+dy;
+    gif.style.transform='translate('+gif._tx+'px,'+gif._ty+'px) scale('+Math.SQRT2+')';
     try{ e.preventDefault(); }catch(err){}
   }
   function onEnd(){
     if(!isDragging) return;
-    const gif=getGif(); if(gif){
-      gif.style.cursor='grab'; gif.style.transition='opacity .6s, transform .6s';
-    }
+    const gif=getGif(); if(gif){ gif.style.cursor='grab'; gif.style.transition='opacity .6s, transform .6s'; }
     isDragging=false;
   }
   function showGif(){
     const gif=getGif(); if(!gif) return;
     userMoved=false;
     const vw=window.innerWidth, vh=window.innerHeight;
-    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
-    const scale=Math.SQRT2; // 面积×2 = 边长×√2
-    const fw=curW*scale, fh=curH*scale;
     const vp=getViewport();
-    // 终点：当前可视区域视觉中心
-    const cx=(vp.left+vp.w/2-fw/2), cy=(vp.top+vp.h/2-fh/2);
+    const s=curSize(gif);
+    const scale=Math.SQRT2; // 面积×2 = 边长×√2
+    const ct=centerTransform(gif, scale);
     const isMobile = vw < 600;
     const isPortrait = vw <= vh;
     const startScale = isMobile ? 0.3 : 1;
     const pad=16;
     let startX, startY;
-    // 是否需要位移到中心
-    let moveToCenter = true;
     if(isMobile && isPortrait){
       // 移动端竖屏：从「接续」处出现，随后移向可视区中心并放大
       const conn=document.querySelector('.sense .section');
       if(conn){
         const r=conn.getBoundingClientRect();
-        startX = r.left + r.width/2 - curW/2;
-        startY = r.top + r.height/2 - curH/2;
-      } else { startX=cx; startY=cy; }
-      gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
+        startX = r.left + r.width/2 - s.w/2;
+        startY = r.top + r.height/2 - s.h/2;
+      } else { startX=ct.x; startY=ct.y; }
     } else if(isMobile){
       // 移动端横屏：固定从可视区中心出现并放大，不位移
-      startX=cx; startY=cy;
-      moveToCenter=false;
-      gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
+      startX=ct.x; startY=ct.y;
     } else {
-      startX=vp.left+pad + Math.random()*Math.max(10, vp.w-curW-pad*2);
-      startY=vp.top+pad + Math.random()*Math.max(10, vp.h-curH-pad*2);
-      gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
+      startX=vp.left+pad + Math.random()*Math.max(10, vp.w-s.w-pad*2);
+      startY=vp.top+pad + Math.random()*Math.max(10, vp.h-s.h-pad*2);
     }
-    gif.style.position='fixed';
-    gif.style.right='auto';
-    gif.style.top=startY+'px';
-    gif.style.left=startX+'px';
-    gif.style.width=curW+'px'; gif.style.height=curH+'px';
-    gif.style.transform='scale('+startScale+')';
+    gif.style.position='fixed'; gif.style.left='0'; gif.style.top='0'; gif.style.right='auto';
+    gif.style.width=s.w+'px'; gif.style.height=s.h+'px';
+    gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
+    gif._tx=startX; gif._ty=startY;
+    gif.style.transform='translate('+startX+'px,'+startY+'px) scale('+startScale+')';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
     // 双 rAF 确保起点渲染后 transition 生效（Safari/移动端单 reflow 不可靠）
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
-        if(moveToCenter){
-          gif.style.left=cx+'px';
-          gif.style.top=cy+'px';
-        }
-        gif.style.transform='scale('+scale+')';
+        gif._tx=ct.x; gif._ty=ct.y;
+        gif.style.transform=ct.str;
       });
     });
     gifVisible=true;
@@ -1114,7 +1104,7 @@ window.addEventListener('beforeunload', ()=>{
     const gif=getGif(); if(gif){
       gif.style.opacity='0';
       gif.style.pointerEvents='none';
-      gif.style.transform='scale(0.9)';
+      gif.style.transform='translate('+(gif._tx||0)+'px,'+(gif._ty||0)+'px) scale(0.9)';
     }
     gifVisible=false;
     startInactivityTimer();
@@ -1172,7 +1162,7 @@ window.addEventListener('beforeunload', ()=>{
     }
   }).observe(detailView, {attributes:true, attributeFilter:['class']});
   window.addEventListener('resize', positionStalking);
-  // 滚动 / 地址栏 / 可视区变化时保持可视区中心（fixed 不随内容滚动）
+  // 滚动 / 地址栏 / 可视区变化时保持可视区中心（fixed+transform 不随内容滚动）
   window.addEventListener('scroll', keepCentered, {passive:true});
   window.addEventListener('resize', keepCentered);
   const vv=window.visualViewport;
@@ -1191,9 +1181,6 @@ window.addEventListener('beforeunload', ()=>{
     const gif=getGif(); if(!gif) return;
     gif.style.transition='none';
     placeCenter(gif);
-    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
-    gif.style.width=curW+'px'; gif.style.height=curH+'px';
-    gif.style.transform='scale('+Math.SQRT2+')';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
   }
