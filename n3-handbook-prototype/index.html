@@ -313,7 +313,6 @@
       <option value="0.5">0.5x</option>
       <option value="0.75">0.75x</option>
       <option value="1">1x</option>
-      <option value="1.5">1.5x</option>
     </select></label>
   </div>
 </header>
@@ -821,8 +820,9 @@ function fallbackAudio(text, rate){
     }
     ttsAudio = new Audio(sources[i++]);
     ttsAudio.playbackRate = rate;
-    ttsAudio.onerror = ()=>{ try{ttsAudio.pause();}catch(e){} tryPlay(); };
-    ttsAudio.play().catch(()=>{ tryPlay(); });
+    let failed=false;
+    ttsAudio.onerror = ()=>{ if(!failed){ failed=true; try{ttsAudio.pause();}catch(e){} tryPlay(); } };
+    ttsAudio.play().then(()=>{ failed=true; }).catch(()=>{ if(!failed){ failed=true; tryPlay(); } });
   }
   tryPlay();
 }
@@ -868,7 +868,13 @@ async function speak(raw, fixedRate){
     u.volume = 1.0;
     u.voice = jaVoice;
     u.onstart = ()=>console.log('[tts] start', text.slice(0,20), 'voice', jaVoice.name);
-    u.onerror = (e)=>{ console.error('[tts] error', e); fallbackAudio(text, rate); };
+    u.onerror = (e)=>{
+      const code = e && e.error ? String(e.error) : '';
+      console.warn('[tts] error', code || e);
+      // 可恢复错误忽略，避免误报"无可用语音"（慢速/取消/切卡常见）
+      if(/interrupted|canceled|audio-busy|suspended|not-allowed/i.test(code)) return;
+      fallbackAudio(text, rate);
+    };
     u.onend = ()=>console.log('[tts] end');
     if(speechSynthesis.paused) try{speechSynthesis.resume();}catch(e){}
     speechSynthesis.speak(u);
