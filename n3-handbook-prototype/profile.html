@@ -46,12 +46,12 @@
     <div class="hero-title">🐱 默认猫猫头像</div>
     <div class="hero-sub">登录后自动同步到手册右上角</div>
   </div>
-  <div class="card" style="text-align:center">
+  <div class="card" style="text-align:center" id="profileCard" hidden>
     <div id="avatar" class="avatar" style="cursor:pointer" title="点击下载头像">🐱</div>
-    <div id="uname" style="margin-top:10px;font-weight:700;font-size:16px">未登录</div>
-    <div id="uid" class="muted"></div>
+    <div id="uname" style="margin-top:10px;font-weight:700;font-size:16px">加载中…</div>
     <label class="btn primary" style="margin-top:14px">📷 更换头像<input id="file" type="file" accept="image/*" hidden></label>
   </div>
+  <div id="profileLoading" class="card" style="text-align:center">加载中…</div>
 
   <div class="card">
     <h3>🔒 改密码</h3>
@@ -102,19 +102,29 @@ async function loadProfile(){
   try{
     const r=await fetch(api()+"/api/profile",{headers:headers()});
     const j=await r.json();
-    if(j.user){ _isAdmin=j.user.username==="admin"; $("uname").textContent=j.user.username; $("uid").textContent="ID "+j.user.id; setAvatar(j.user.avatar); out(j); return; }
-    else { out(j); if(r.status===401) setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); return; }
+    if(j.user){
+      _isAdmin=j.user.username==="admin";
+      $("uname").textContent=j.user.username; setAvatar(j.user.avatar);
+      $("profileCard").hidden=false; $("profileLoading").hidden=true;
+      return;
+    } else {
+      if(r.status===401) location.href="./login.html?redirect="+encodeURIComponent(location.href);
+      return;
+    }
   }catch(e){}
   // mock 兜底（无 worker 时）
   const token=localStorage.getItem(tokenKey);
-  if(!token){ _isAdmin=false; $("uname").textContent="未登录 · 默认🐱"; out({user:null, mock:true, tip:"Worker 未部署，本地 mock"}); return; }
+  if(!token){ location.href="./login.html?redirect="+encodeURIComponent(location.href); return; }
   try{
     const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
     const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
     const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
-    if(u){ _isAdmin=u.username==="admin"; $("uname").textContent=u.username; $("uid").textContent="ID "+u.id; setAvatar(u.avatar||null); out({user:{id:u.id, username:u.username, avatar:u.avatar||null}, mock:true}); }
-    else { out({user:null, mock:true}); setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); }
-  }catch(e){ out({user:null, mock:true}); }
+    if(u){
+      _isAdmin=u.username==="admin";
+      $("uname").textContent=u.username; setAvatar(u.avatar||null);
+      $("profileCard").hidden=false; $("profileLoading").hidden=true;
+    } else { location.href="./login.html?redirect="+encodeURIComponent(location.href); }
+  }catch(e){ location.href="./login.html?redirect="+encodeURIComponent(location.href); }
 }
 loadProfile();
 
