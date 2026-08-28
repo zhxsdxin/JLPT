@@ -86,8 +86,8 @@ const out=v=>{
   el.style.display="block"; el.textContent=msg;
   clearTimeout(el._t); el._t=setTimeout(()=>el.style.display="none",2500);
 };
-const DEFAULT_API = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : location.origin;
-const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"") || location.origin;
+const DEFAULT_API = "https://jlpt.zhxsdxin.workers.dev";
+const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"") || DEFAULT_API;
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 

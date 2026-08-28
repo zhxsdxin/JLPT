@@ -890,7 +890,7 @@ window.addEventListener('beforeunload', ()=>{
 /* ========== 强制登录 ========== */
 const REQUIRE_LOGIN = true; // 设 false 即关闭强制登录
 const LOGIN_URL = "./login.html";
-function getApiBase(){ try{ return (localStorage.getItem("jlpt_api")||"").replace(/\/$/,"") || location.origin; }catch(e){ return location.origin; } }
+function getApiBase(){ try{ return (localStorage.getItem("jlpt_api")||"https://jlpt.zhxsdxin.workers.dev").replace(/\/$/,"") || "https://jlpt.zhxsdxin.workers.dev"; }catch(e){ return "https://jlpt.zhxsdxin.workers.dev"; } }
 function getToken(){ try{ return localStorage.getItem("jlpt_token")||""; }catch(e){ return ""; } }
 async function requireLogin(){
   if(!REQUIRE_LOGIN) return true;
