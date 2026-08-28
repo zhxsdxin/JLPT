@@ -308,10 +308,11 @@
     <label class="sw"><input type="checkbox" id="hideJa" checked /> 日文</label>
     <label class="sw"><input type="checkbox" id="hideRuby" checked /> 假名</label>
     <label class="sw">倍速<select id="rateSel" style="background:transparent;color:inherit;border:0;outline:0;font-size:12px">
+      <option value="0.1">0.1x</option>
+      <option value="0.2">0.2x</option>
       <option value="0.5">0.5x</option>
       <option value="0.75">0.75x</option>
       <option value="1">1x</option>
-      <option value="1.25">1.25x</option>
       <option value="1.5">1.5x</option>
     </select></label>
   </div>
@@ -562,7 +563,7 @@ function renderDetail(){
   const _oldGif=document.getElementById('stalkingGif');
   if(_oldGif) window._stkPos={x:_oldGif._tx||0, y:_oldGif._ty||0};
   document.getElementById('detail').innerHTML = `
-    <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
+    <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" data-rate="1" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
     <img id="stalkingGif" src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:40;opacity:0;pointer-events:none;transition:opacity .6s, transform .6s;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18));touch-action:none;cursor:grab">
     ${sensesHtml}
   `;
@@ -802,9 +803,9 @@ if('speechSynthesis' in window){
   waitForVoices(2000).then(pickJaVoice);
 }
 function getRate(){ return parseFloat(localStorage.getItem('n3.rate')||'1')||1; }
-function fallbackAudio(text){
+function fallbackAudio(text, rate){
   if(!text) return;
-  const rate=getRate();
+  rate = rate || getRate();
   // 多源回退：谷歌（可能被墙）→ 百度翻译（国内可达）
   const sources = [
     'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text),
@@ -825,12 +826,14 @@ function fallbackAudio(text){
   }
   tryPlay();
 }
-async function speak(raw){
+async function speak(raw, fixedRate){
   if(!raw) return;
   let text = cleanForTTS(raw);
   if(!text) return;
+  // 固定倍速（小标题 1x）优先，否则取下拉倍速
+  const rate = fixedRate ? parseFloat(fixedRate) : getRate();
   if(!('speechSynthesis' in window)){
-    fallbackAudio(text);
+    fallbackAudio(text, rate);
     return;
   }
   // 确保 voices 已加载（Chrome 异步）
@@ -852,7 +855,7 @@ async function speak(raw){
       return;
     }
     toast('未检测到本机日语语音，已用网络语音（若无声请安装系统日语语音后刷新）');
-    fallbackAudio(text);
+    fallbackAudio(text, rate);
     return;
   }
   try{ speechSynthesis.cancel(); }catch(e){}
@@ -860,12 +863,12 @@ async function speak(raw){
   setTimeout(()=>{
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ja-JP';
-    u.rate = getRate();
+    u.rate = rate;
     u.pitch = 1.0;
     u.volume = 1.0;
     u.voice = jaVoice;
     u.onstart = ()=>console.log('[tts] start', text.slice(0,20), 'voice', jaVoice.name);
-    u.onerror = (e)=>{ console.error('[tts] error', e); fallbackAudio(text); };
+    u.onerror = (e)=>{ console.error('[tts] error', e); fallbackAudio(text, rate); };
     u.onend = ()=>console.log('[tts] end');
     if(speechSynthesis.paused) try{speechSynthesis.resume();}catch(e){}
     speechSynthesis.speak(u);
@@ -893,7 +896,7 @@ function toast(msg){
 /* ========== 事件绑定 ========== */
 document.addEventListener('click', e=>{
   const btn = e.target.closest('.speak');
-  if(btn) speak(btn.dataset.jp);
+  if(btn) speak(btn.dataset.jp, btn.dataset.rate);
 });
 document.getElementById('backBtn').addEventListener('click', showList);
 document.getElementById('searchBtn').addEventListener('click', ()=>{
