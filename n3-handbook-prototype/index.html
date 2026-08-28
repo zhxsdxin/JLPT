@@ -554,7 +554,7 @@ function renderDetail(){
       <span>${UNIT_NAMES[item.unit-1]}</span>
     </div>
     <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
-    <img id="stalkingGif" src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:5;opacity:0;pointer-events:none;transition:opacity .6s, transform .6s;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18));touch-action:none;cursor:grab">
+    <img id="stalkingGif" src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:40;opacity:0;pointer-events:none;transition:opacity .6s, transform .6s;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18));touch-action:none;cursor:grab">
     ${sensesHtml}
   `;
 
@@ -1048,10 +1048,20 @@ window.addEventListener('beforeunload', ()=>{
     const pad=16;
     const cx=(vw-fw)/2, cy=(vh-fh)/2;
     const isMobile = vw < 600;
+    const isPortrait = vw <= vh;
     const startScale = isMobile ? 0.3 : 1;
     let startX, startY;
-    if(isMobile){
-      // 移动端：固定从画面中心出现并放大，不做位移
+    if(isMobile && isPortrait){
+      // 移动端竖屏：从「接续」处浮在最前出现并放大
+      const conn=document.querySelector('.sense .section');
+      if(conn){
+        const r=conn.getBoundingClientRect();
+        startX = r.left + r.width/2 - curW/2;
+        startY = r.top + r.height/2 - curH/2;
+      } else { startX=cx; startY=cy; }
+      gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
+    } else if(isMobile){
+      // 移动端横屏：从画面中心出现并放大
       startX=cx; startY=cy;
       gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
     } else {
@@ -1143,7 +1153,25 @@ window.addEventListener('beforeunload', ()=>{
   }).observe(detailView, {attributes:true, attributeFilter:['class']});
   window.addEventListener('resize', positionStalking);
   const detail=document.getElementById('detail');
-  if(detail) new MutationObserver(positionStalking).observe(detail, {childList:true, subtree:true});
+  if(detail) new MutationObserver(()=>{
+    positionStalking();
+    // 切换卡片重建 DOM 后保持 GIF 可见
+    if(gifVisible) restoreGif();
+  }).observe(detail, {childList:true, subtree:true});
+  // 切卡后恢复显示到中心
+  function restoreGif(){
+    const gif=getGif(); if(!gif) return;
+    const vw=window.innerWidth, vh=window.innerHeight;
+    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
+    const scale=Math.SQRT2, fw=curW*scale, fh=curH*scale;
+    gif.style.transition='none';
+    gif.style.position='fixed'; gif.style.right='auto';
+    gif.style.left=((vw-fw)/2)+'px'; gif.style.top=((vh-fh)/2)+'px';
+    gif.style.width=curW+'px'; gif.style.height=curH+'px';
+    gif.style.transform='scale('+scale+')';
+    gif.style.opacity='0.92';
+    gif.style.pointerEvents='auto';
+  }
 })();
 
 /* ========== 强制登录 ========== */
