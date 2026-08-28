@@ -8,7 +8,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "jlpt-db"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "e90c7cf9-688d-4cec-b544-52baf88f6503"
 
 [vars]
 MAX_USERS = "5"
