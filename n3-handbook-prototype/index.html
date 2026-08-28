@@ -1001,33 +1001,65 @@ window.addEventListener('beforeunload', ()=>{
   window.addEventListener('touchmove', onMove, {passive:false});
   window.addEventListener('mouseup', onEnd);
   window.addEventListener('touchend', onEnd);
-  gif.addEventListener('click', e=>{ if(hasMoved) e.stopPropagation(); });
+  let gifVisible=false, inactivityTimer=null;
   function showGif(){
     positionStalking();
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
     gif.style.transform='scale(1)';
+    gifVisible=true;
+    clearTimeout(inactivityTimer);
   }
   function hideGif(){
     gif.style.opacity='0';
     gif.style.pointerEvents='none';
     gif.style.transform='scale(0.9)';
+    gifVisible=false;
+    startInactivityTimer();
+  }
+  function startInactivityTimer(){
+    clearTimeout(inactivityTimer);
+    if(gifVisible) return;
+    if(document.visibilityState!=='visible') return;
+    if(!document.getElementById('detailView')?.classList.contains('active')) return;
+    inactivityTimer=setTimeout(()=>{
+      if(document.visibilityState!=='visible') return;
+      if(!document.getElementById('detailView')?.classList.contains('active')) return;
+      showGif();
+    }, 60000);
+  }
+  function resetInactivityTimer(){
+    if(gifVisible) return;
+    startInactivityTimer();
   }
   hideGif();
-  function schedule(){
-    const count = Math.random()<0.5 ? 1 : 2;
-    for(let i=0;i<count;i++){
-      const delay = Math.random()* 4.5*60*1000 + 5000;
-      setTimeout(()=>{
-        if(document.visibilityState!=='visible') return;
-        if(!document.getElementById('detailView')?.classList.contains('active')) return;
-        showGif();
-        setTimeout(hideGif, 4000 + Math.random()*4000);
-      }, delay);
+  startInactivityTimer();
+  // 不活跃：前台可见且 1 分钟无 mousemove/click/scroll/keydown/touch
+  ["mousemove","click","scroll","keydown","touchstart"].forEach(ev=>{
+    window.addEventListener(ev, resetInactivityTimer, {passive:true});
+  });
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState==='visible'){
+      if(!gifVisible) startInactivityTimer();
+    } else {
+      clearTimeout(inactivityTimer);
     }
-  }
-  schedule();
-  setInterval(schedule, 5*60*1000);
+  });
+  // 点击 GIF 才消失并重计 1 分钟
+  gif.addEventListener('click', e=>{
+    if(hasMoved){ e.stopPropagation(); return; }
+    hideGif();
+  });
+  // 详情显隐联动：切到详情重计，切走隐藏
+  const detailView=document.getElementById('detailView');
+  if(detailView) new MutationObserver(()=>{
+    if(detailView.classList.contains('active')){
+      if(!gifVisible) startInactivityTimer();
+    } else {
+      hideGif();
+      clearTimeout(inactivityTimer);
+    }
+  }).observe(detailView, {attributes:true, attributeFilter:['class']});
   window.addEventListener('resize', positionStalking);
   const detail=document.getElementById('detail');
   if(detail) new MutationObserver(positionStalking).observe(detail, {childList:true, subtree:true});
