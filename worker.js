@@ -60,7 +60,9 @@ export default {
           const r = await env.DB.prepare("INSERT INTO users (username, password_hash) VALUES (?,?)").bind(username, hash).run();
           return json({ ok: true, id: r.meta.last_row_id }, cors);
         } catch (e) {
-          return json({ error: "用户名已存在" }, cors, 409);
+          const msg = String(e && e.message ? e.message : e);
+          if(msg.includes("UNIQUE") || msg.includes("unique") ) return json({ error: "用户名已存在" }, cors, 409);
+          return json({ error: "写入失败: "+msg }, cors, 500);
         }
       }
 
