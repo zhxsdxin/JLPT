@@ -318,18 +318,26 @@
  * ============================================================ */
 const UNIT_NAMES = Array.from({length:19}, (_,i)=>`第${i+1}単元`);
 const KEIGO_ID = 'keigo';   // 敬語特殊条目 id
-// 卡片覆盖：从 D1 拉取 admin 修改
+// 卡片覆盖：SWR 旧数据保持，后台拉新后平滑更新
 async function loadCardOverrides(){
   try{
-    const base=(localStorage.getItem("jlpt_api")||(location.hostname.includes("github.io")?"https://jlpt.zhxsdxin.workers.dev":location.origin)).replace(/\/$/,"");
-    const r=await fetch(base+"/api/cards"); if(!r.ok) return;
+    const base=(localStorage.getItem("jlpt_api")||"https://jlpt.zhxsdxin.workers.dev").replace(/\/$/,"");
+    const r=await fetch(base+"/api/cards",{cache:"no-store"}); if(!r.ok) return false;
     const list=await r.json();
-    if(Array.isArray(list)) list.forEach(o=>{
+    if(!Array.isArray(list) || !list.length) return false;
+    let updated=false;
+    list.forEach(o=>{
       const idx=N3_DATA.findIndex(x=>x.id===o.id);
-      if(idx>=0) N3_DATA[idx]={...N3_DATA[idx], ...o.data};
-      else N3_DATA.push(o.data);
+      const merged = idx>=0 ? {...N3_DATA[idx], ...o.data} : o.data;
+      const oldStr = idx>=0 ? JSON.stringify(N3_DATA[idx]) : "";
+      const newStr = JSON.stringify(merged);
+      if(oldStr !== newStr){
+        if(idx>=0) N3_DATA[idx]=merged; else N3_DATA.push(merged);
+        updated=true;
+      }
     });
-  }catch(e){}
+    return updated;
+  }catch(e){ return false; }
 }
 
 /* ========== 状态 ========== */
@@ -939,33 +947,39 @@ async function requireLogin(){
 
 async function refreshProfileAvatar(){
   const btn=document.getElementById("profileBtn"); if(!btn) return;
-  const token=getToken(); 
+  const token=getToken();
   const isAdminUser=(u)=>u && u.username==="admin";
-  if(!token){ btn.textContent="🐱"; return; }
+  // SWR 先显旧（mock/localStorage）避免闪白
+  let stale = null;
+  try{
+    if(!token){ btn.textContent="🐱"; stale="cat"; }
+    else {
+      const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
+      const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+      const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
+      if(u){
+        if(u.username==="admin"){ btn.textContent="🐭"; stale="mouse"; }
+        else if(u.avatar){ btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; stale="custom"; }
+        else { btn.textContent="🐱"; stale="cat"; }
+      }
+    }
+  }catch(e){}
+  // 后台再验真库，平滑更新
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
     const j=await r.json();
     if(j.user){
       const isAdmin=isAdminUser(j.user);
-      if(isAdmin){ btn.textContent="🐭"; return; }
-      if(j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
-      btn.textContent="🐱"; return;
-    }
-  }catch(e){}
-  // mock 兜底
-  try{
-    const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
-    const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
-    const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
-    if(u){
-      const isAdmin=isAdminUser(u);
-      if(isAdmin){ btn.textContent="🐭"; return; }
-      if(u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      else btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      const next = isAdmin ? "mouse" : (j.user.avatar ? "custom" : "cat");
+      if(next !== stale){
+        if(isAdmin) btn.textContent="🐭";
+        else if(j.user.avatar) btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        else btn.textContent="🐱";
+      }
       return;
     }
-    btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-  }catch(e){ btn.textContent="🐱"; }
+    if(!stale) btn.textContent="🐱";
+  }catch(e){ if(!stale) btn.textContent="🐱"; }
 }
 
 // 关闭上报：登录时长按 关闭时间-登录时间（24h 过期）
@@ -980,18 +994,25 @@ window.addEventListener('beforeunload', ()=>{
   try{ navigator.sendBeacon(getApiBase()+"/api/close", JSON.stringify({token:t})); }catch(e){}
 });
 
-/* ========== 启动（刷新停留当前卡片，静默更新） ========== */
+/* ========== 启动（SWR：先显旧数据，后台再验） ========== */
 (async ()=>{
-  await loadCardOverrides();
+  // 立即显旧（避免 0.5-1s 白屏）
+  if(!restoreFromHash(false)) showList(false);
+  // 后台拉卡片覆盖，命中再平滑重渲
+  loadCardOverrides().then(updated=>{
+    if(updated){
+      if(state.view==='list') renderList();
+      else renderDetail();
+    }
+  });
   if(REQUIRE_LOGIN && !(await requireLogin())) return;
-  await refreshProfileAvatar();
-  // 管理员显示入口
+  // 头像 SWR：先显本地旧头像，后台再验
+  refreshProfileAvatar();
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+getToken()}});
     const j=await r.json();
     if(j.user && j.user.username==="admin") document.getElementById("adminBtn").hidden=false;
   }catch(e){}
-  if(!restoreFromHash(false)) showList(false);
 })();
 </script>
 </body>
