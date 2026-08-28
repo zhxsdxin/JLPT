@@ -1,0 +1,14 @@
+name = "jlpt-login"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# D1 绑定：binding 必须与 worker.js 的 env.DB 一致
+# 先执行： wrangler d1 create jlpt-db  -> 复制返回的 database_id 填到下面
+#        wrangler d1 list 查看已有库
+[[d1_databases]]
+binding = "DB"
+database_name = "jlpt-db"
+database_id = "REPLACE_WITH_D1_ID"
+
+[vars]
+MAX_USERS = "5"

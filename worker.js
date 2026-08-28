@@ -12,6 +12,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
     try {
+      if(!env.DB) return json({error:"DB 未绑定：wrangler.toml 需 [[d1_databases]] binding=\"DB\" database_name=\"jlpt-db\" 且 database_id 正确；先 wrangler d1 create jlpt-db / wrangler d1 list"}, cors, 500);
       // 初始化表（首次访问自动建表）
       await env.DB.prepare(`
         CREATE TABLE IF NOT EXISTS users (
@@ -30,6 +31,8 @@ export default {
           FOREIGN KEY(user_id) REFERENCES users(id)
         )
       `).run();
+      // 头像列（已存在则忽略）
+      await env.DB.prepare("ALTER TABLE users ADD COLUMN avatar TEXT").run().catch(()=>{});
 
       // 你给的查询：列出全部
       if (pathname === "/api/users" && request.method === "GET") {
@@ -77,13 +80,49 @@ export default {
         });
       }
 
-      // 校验登录态
+      // 校验登录态（含头像）
       if (pathname === "/api/me" && request.method === "GET") {
         const token = getToken(request);
         if (!token) return json({ user: null }, cors);
-        const row = await env.DB.prepare("SELECT u.id, u.username, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
         if (!row || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
-        return json({ user: { id: row.id, username: row.username } }, cors);
+        return json({ user: { id: row.id, username: row.username, avatar: row.avatar || null } }, cors);
+      }
+      // 资料
+      if (pathname === "/api/profile" && request.method === "GET") {
+        const token = getToken(request);
+        if (!token) return json({ error: "未登录" }, cors, 401);
+        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, u.created_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row) return json({ error: "未登录" }, cors, 401);
+        return json({ user: row }, cors);
+      }
+      // 改密码
+      if (pathname === "/api/profile/password" && request.method === "POST") {
+        const token = getToken(request);
+        if (!token) return json({ error: "未登录" }, cors, 401);
+        const row = await env.DB.prepare("SELECT u.id, u.password_hash FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row) return json({ error: "未登录" }, cors, 401);
+        let { oldPassword, newPassword } = await request.json();
+        oldPassword = String(oldPassword||""); newPassword = String(newPassword||"");
+        if(newPassword.length < 6 || newPassword.length > 64) return json({ error: "新密码 6-64 字符" }, cors, 400);
+        const oldHash = await sha256(oldPassword);
+        if(oldHash !== row.password_hash) return json({ error: "原密码错误" }, cors, 400);
+        const newHash = await sha256(newPassword);
+        await env.DB.prepare("UPDATE users SET password_hash=? WHERE id=?").bind(newHash, row.id).run();
+        return json({ ok: true }, cors);
+      }
+      // 上传头像（data URL base64，限 200KB）
+      if (pathname === "/api/profile/avatar" && request.method === "POST") {
+        const token = getToken(request);
+        if (!token) return json({ error: "未登录" }, cors, 401);
+        const row = await env.DB.prepare("SELECT u.id FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row) return json({ error: "未登录" }, cors, 401);
+        let { avatar } = await request.json();
+        avatar = String(avatar||"").trim();
+        if(!avatar.startsWith("data:image/")) return json({ error: "头像需为 data:image/* base64" }, cors, 400);
+        if(avatar.length > 280000) return json({ error: "头像过大，请 <200KB" }, cors, 400);
+        await env.DB.prepare("UPDATE users SET avatar=? WHERE id=?").bind(avatar, row.id).run();
+        return json({ ok: true }, cors);
       }
 
       // 登出
