@@ -983,8 +983,31 @@ window.addEventListener('beforeunload', ()=>{
    注意：#stalkingGif 由 renderDetail() 动态注入，必须用 getElementById 每次取，不能启动时缓存 */
 (() => {
   let gifVisible=false, inactivityTimer=null;
-  let isDragging=false, startX=0, startY=0, origX=0, origY=0, hasMoved=false;
+  let isDragging=false, startX=0, startY=0, origX=0, origY=0, hasMoved=false, userMoved=false;
   const getGif=()=>document.getElementById('stalkingGif');
+  // 获取当前可视区域（visualViewport 优先，适配 iOS/Android 地址栏）
+  function getViewport(){
+    const vv=window.visualViewport;
+    if(vv && typeof vv.width==='number' && vv.width>0){
+      return { w:vv.width, h:vv.height, left:vv.offsetLeft||0, top:vv.offsetTop||0 };
+    }
+    return { w:window.innerWidth, h:window.innerHeight, left:0, top:0 };
+  }
+  // GIF 固定定位到当前可视区域视觉中心
+  function placeCenter(gif){
+    const vp=getViewport();
+    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
+    const scale=Math.SQRT2, fw=curW*scale, fh=curH*scale;
+    gif.style.position='fixed'; gif.style.right='auto';
+    gif.style.left=(vp.left+vp.w/2-fw/2)+'px';
+    gif.style.top=(vp.top+vp.h/2-fh/2)+'px';
+  }
+  // 滚动/地址栏变化时保持可视区中心（未拖动时）
+  function keepCentered(){
+    const gif=getGif(); if(!gif || !gifVisible || isDragging || userMoved) return;
+    gif.style.transition='none';
+    placeCenter(gif);
+  }
   function positionStalking(){
     const gif=getGif(); if(!gif) return;
     const h2=document.querySelector('.detail h2');
@@ -1040,21 +1063,23 @@ window.addEventListener('beforeunload', ()=>{
   }
   function showGif(){
     const gif=getGif(); if(!gif) return;
+    userMoved=false;
     const vw=window.innerWidth, vh=window.innerHeight;
     const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
     const scale=Math.SQRT2; // 面积×2 = 边长×√2
     const fw=curW*scale, fh=curH*scale;
-    // 起点：随机位置（浏览器窗口坐标系 fixed，避免贴边）
-    const pad=16;
-    const cx=(vw-fw)/2, cy=(vh-fh)/2;
+    const vp=getViewport();
+    // 终点：当前可视区域视觉中心
+    const cx=(vp.left+vp.w/2-fw/2), cy=(vp.top+vp.h/2-fh/2);
     const isMobile = vw < 600;
     const isPortrait = vw <= vh;
     const startScale = isMobile ? 0.3 : 1;
+    const pad=16;
     let startX, startY;
     // 是否需要位移到中心
     let moveToCenter = true;
     if(isMobile && isPortrait){
-      // 移动端竖屏：从「接续」处出现，随后移向画面中心并放大
+      // 移动端竖屏：从「接续」处出现，随后移向可视区中心并放大
       const conn=document.querySelector('.sense .section');
       if(conn){
         const r=conn.getBoundingClientRect();
@@ -1063,13 +1088,13 @@ window.addEventListener('beforeunload', ()=>{
       } else { startX=cx; startY=cy; }
       gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
     } else if(isMobile){
-      // 移动端横屏：固定从画面中心出现并放大，不位移
+      // 移动端横屏：固定从可视区中心出现并放大，不位移
       startX=cx; startY=cy;
       moveToCenter=false;
       gif.style.transition='opacity .7s ease, transform 4s ease-in-out';
     } else {
-      startX=pad + Math.random()*Math.max(10, vw-curW-pad*2);
-      startY=pad + Math.random()*Math.max(10, vh-curH-pad*2);
+      startX=vp.left+pad + Math.random()*Math.max(10, vp.w-curW-pad*2);
+      startY=vp.top+pad + Math.random()*Math.max(10, vp.h-curH-pad*2);
       gif.style.transition='opacity .7s ease, left 4s ease-in-out, top 4s ease-in-out, transform 4s ease-in-out';
     }
     gif.style.position='fixed';
@@ -1155,23 +1180,28 @@ window.addEventListener('beforeunload', ()=>{
     }
   }).observe(detailView, {attributes:true, attributeFilter:['class']});
   window.addEventListener('resize', positionStalking);
+  // 滚动 / 地址栏 / 可视区变化时保持可视区中心（fixed 不随内容滚动）
+  window.addEventListener('scroll', keepCentered, {passive:true});
+  window.addEventListener('resize', keepCentered);
+  const vv=window.visualViewport;
+  if(vv){
+    vv.addEventListener('resize', keepCentered);
+    vv.addEventListener('scroll', keepCentered);
+  }
   const detail=document.getElementById('detail');
   if(detail) new MutationObserver(()=>{
     positionStalking();
     // 切换卡片重建 DOM 后保持 GIF 可见
     if(gifVisible) restoreGif();
   }).observe(detail, {childList:true, subtree:true});
-  // 切卡后恢复显示到中心
+  // 切卡后恢复显示到可视区中心
   function restoreGif(){
     const gif=getGif(); if(!gif) return;
-    const vw=window.innerWidth, vh=window.innerHeight;
-    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
-    const scale=Math.SQRT2, fw=curW*scale, fh=curH*scale;
     gif.style.transition='none';
-    gif.style.position='fixed'; gif.style.right='auto';
-    gif.style.left=((vw-fw)/2)+'px'; gif.style.top=((vh-fh)/2)+'px';
+    placeCenter(gif);
+    const curW=gif.offsetWidth||120, curH=gif.offsetHeight||120;
     gif.style.width=curW+'px'; gif.style.height=curH+'px';
-    gif.style.transform='scale('+scale+')';
+    gif.style.transform='scale('+Math.SQRT2+')';
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
   }
