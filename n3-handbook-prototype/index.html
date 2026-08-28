@@ -1026,7 +1026,7 @@ window.addEventListener('beforeunload', ()=>{
       if(document.visibilityState!=='visible') return;
       if(!document.getElementById('detailView')?.classList.contains('active')) return;
       showGif();
-    }, 60000);
+    }, 5000);
   }
   function resetInactivityTimer(){
     if(gifVisible) return;
@@ -1034,7 +1034,7 @@ window.addEventListener('beforeunload', ()=>{
   }
   hideGif();
   startInactivityTimer();
-  // 不活跃：前台可见且 1 分钟无 mousemove/click/scroll/keydown/touch
+  // 不活跃：前台可见且 5 秒无 mousemove/click/scroll/keydown/touch
   ["mousemove","click","scroll","keydown","touchstart"].forEach(ev=>{
     window.addEventListener(ev, resetInactivityTimer, {passive:true});
   });
