@@ -133,15 +133,27 @@ export default {
         return json({ ok: true }, cors, 200, { "Set-Cookie": `token=; Path=/; Max-Age=0` });
       }
 
-      if (pathname === "/" ) {
-        // 主页不再返回 JSON，直接跳登录（强制登录）
-        const loginUrl = "https://zhxsdxin.github.io/JLPT/n3-handbook-prototype/login.html";
-        return Response.redirect(loginUrl, 302);
-      }
       if (pathname === "/api" ) {
         return json({ ok: true, msg: "JLPT API", routes: ["/api/register POST","/api/login POST","/api/me GET","/api/profile GET","/api/profile/password POST","/api/profile/avatar POST","/api/users GET","/api/sessions GET","/api/logout POST"] }, cors);
       }
-      return json({ error: "not found", path: pathname, hint: "可用 /api/*，见 /api" }, cors, 404);
+
+      // 静态：/ 需 session 否则跳 /login.html，否则交给 ASSETS
+      if (pathname === "/") {
+        const token = getToken(request);
+        let ok = false;
+        if(token){
+          const row = await env.DB.prepare("SELECT 1 FROM sessions s WHERE s.token=? AND s.expires_at > datetime('now')").bind(token).first().catch(()=>null);
+          ok = !!row;
+        }
+        if(!ok) return Response.redirect(new URL("/login.html", request.url).toString(), 302);
+        if(env.ASSETS) return env.ASSETS.fetch(new Request(new URL("/index.html", request.url), request));
+      }
+      // 其他静态资源（/login.html /profile.html /index.html /data.js 等）走 ASSETS
+      if(env.ASSETS){
+        const assetRes = await env.ASSETS.fetch(request);
+        if(assetRes.status !== 404) return assetRes;
+      }
+      return json({ error: "not found", path: pathname, hint: "可用 /api/* 或静态 /login.html" }, cors, 404);
     } catch (e) {
       return json({ error: String(e) }, cors, 500);
     }

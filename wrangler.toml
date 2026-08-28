@@ -10,5 +10,9 @@ binding = "DB"
 database_name = "jlpt-db"
 database_id = "e90c7cf9-688d-4cec-b544-52baf88f6503"
 
+[assets]
+directory = "./n3-handbook-prototype"
+not_found_handling = "single-page-application"
+
 [vars]
 MAX_USERS = "5"
