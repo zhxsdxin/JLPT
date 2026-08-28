@@ -81,9 +81,17 @@ const apiBase = (localStorage.getItem("jlpt_api")||"https://jlpt.zhxsdxin.worker
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 const $=id=>document.getElementById(id);
-// 浏览器本地时区展示（最合理：存 UTC，显本地）
+// 浏览器本地时区展示（最合理：存 UTC，显本地）- 兼容 SQLite "YYYY-MM-DD HH:MM:SS" UTC
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const fmt = s=> s? new Date(s).toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tz})` : "-";
+const parseUTC = s=>{
+  if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return new Date(s.replace(" ","T")+"Z");
+  return new Date(s);
+};
+const fmt = s=> {
+  const d=parseUTC(s); if(!d||isNaN(d)) return "-";
+  return d.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tz})`;
+};
 const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), sec2=sec%60; if(h) return `${h}h ${m}m`; if(m) return `${m}m ${sec2}s`; return `${sec2}s`; };
 
 async function checkAdmin(){

@@ -102,8 +102,7 @@ export default {
         const user = await env.DB.prepare("SELECT * FROM users WHERE username=? AND password_hash=?").bind(username, hash).first();
         if (!user) return json({ error: "账号或密码错误" }, cors, 401);
         const token = crypto.randomUUID();
-        const expires = new Date(Date.now() + 24 * 3600000).toISOString(); // 24小时
-        await env.DB.prepare("INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES (?,?,?, datetime('now'))").bind(user.id, token, expires).run();
+        await env.DB.prepare("INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES (?,?, datetime('now', '+24 hours'), datetime('now'))").bind(user.id, token).run();
         return json({ ok: true, token, user: { id: user.id, username: user.username } }, cors, 200, {
           "Set-Cookie": `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
         });
@@ -114,7 +113,7 @@ export default {
         const token = getToken(request);
         if (!token) return json({ user: null }, cors);
         const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
-        if (!row || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
+        if (!row || parseAsUTC(row.expires_at) < new Date()) return json({ user: null }, cors);
         return json({ user: { id: row.id, username: row.username, avatar: row.avatar || null } }, cors);
       }
       // 资料
@@ -256,6 +255,12 @@ async function requireAdmin(request, env){
 async function sha256(s) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function parseAsUTC(s){
+  if(!s) return null;
+  // SQLite datetime('now') 为 "YYYY-MM-DD HH:MM:SS" UTC，需补 Z 按 UTC 解析
+  if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return new Date(s.replace(" ", "T")+"Z");
+  return new Date(s);
 }
 function validateInput(username, password, isLogin=false){
   if(!username || !password) return "username/password 必填";
