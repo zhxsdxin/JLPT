@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#1f3a5f" />
+<title>N3 文法 小手册</title>
+<style>
+  :root{
+    --bg:#f6f4ee;
+    --card:#ffffff;
+    --ink:#1c2434;
+    --ink-soft:#475063;
+    --muted:#7a8597;
+    --line:#e6e2d6;
+    --accent:#1f3a5f;
+    --accent-soft:#dde6f1;
+    --warn:#8a5a00;
+    --warn-bg:#fff5dc;
+    --ok:#1f6f4a;
+    --ok-bg:#e0f1e7;
+    --ruby:#c0392b;
+    --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#101521;
+      --card:#172033;
+      --ink:#eef1f6;
+      --ink-soft:#b9c2d2;
+      --muted:#8392a8;
+      --line:#26324a;
+      --accent:#9ec0ea;
+      --accent-soft:#1d2c46;
+      --warn:#f1c179;
+      --warn-bg:#3a2e16;
+      --ok:#7fcf9f;
+      --ok-bg:#14322a;
+      --ruby:#ff8a80;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}   /* 防止 display:flex 等样式覆盖 hidden 属性 */
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  a{color:var(--accent);text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  @media (prefers-color-scheme: dark){
+    .topbar{background:rgba(16,21,33,.78)}
+  }
+  .topbar-inner{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;max-width:920px;margin:0 auto;
+  }
+  .topbar h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar .actions{display:flex;gap:6px}
+  .icon-btn{
+    width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);
+  }
+  .icon-btn:hover,.icon-btn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+  .icon-btn svg{width:20px;height:20px}
+
+  /* ===== Search ===== */
+  .search-wrap{padding:8px 14px 12px;max-width:920px;margin:0 auto}
+  .search{
+    display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:8px 12px;
+  }
+  .search input{
+    flex:1;border:0;background:transparent;outline:0;font-size:15px;color:var(--ink);
+  }
+  .search input::placeholder{color:var(--muted)}
+  .search .x{color:var(--muted);display:none}
+  .search .x.show{display:inline}
+
+  /* ===== List view ===== */
+  .view{display:none;max-width:920px;margin:0 auto;padding:8px 12px 80px}
+  .view.active{display:block}
+
+  .unit-title{
+    position:sticky;top:60px;z-index:5;
+    font-size:12px;letter-spacing:.12em;color:var(--muted);
+    text-transform:uppercase;
+    padding:14px 6px 6px;background:linear-gradient(var(--bg) 70%,transparent);
+  }
+  .list-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (min-width:680px){ .list-grid{grid-template-columns:1fr 1fr 1fr} }
+  .card-item{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;
+    transition:transform .08s ease;
+  }
+  .card-item:active{transform:scale(.98)}
+  @media (hover:hover){
+    .card-item:hover{
+      transform:scale(1.035);
+      box-shadow:0 8px 24px rgba(20,30,50,.14);
+      border-color:var(--accent-soft);
+      z-index:1;
+      position:relative;
+    }
+  }
+  .card-item .num{font-size:11px;color:var(--muted)}
+  .card-item .pat{font-size:16px;font-weight:600;line-height:1.3;word-break:break-all}
+  .card-item .zh{font-size:12px;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-item .badge{align-self:flex-start;font-size:10px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+  .card-item.done{border-color:var(--ok);background:var(--ok-bg)}
+  .card-item.keigo{
+    border-style:dashed;border-color:var(--warn);background:var(--warn-bg);
+  }
+  .card-item.keigo .pat{color:var(--warn)}
+
+  .empty{text-align:center;color:var(--muted);padding:60px 20px}
+
+  /* ===== Detail view ===== */
+  .detail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 16px 16px;margin-top:8px}
+  .detail .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .detail .meta .chip{background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px;font-weight:500}
+  .detail h2{margin:0 0 4px;font-size:26px;letter-spacing:.01em;word-break:break-all}
+  .detail h2 .alt{font-size:14px;color:var(--muted);font-weight:400;margin-left:6px}
+
+  .sense{border-top:1px dashed var(--line);margin-top:16px;padding-top:14px}
+  .sense:first-child{border-top:0;margin-top:0;padding-top:0}
+  .sense .sense-label{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.14em;
+    color:var(--accent);background:var(--accent-soft);border-radius:999px;
+    padding:2px 10px;margin-bottom:10px;font-weight:600;
+  }
+  .section{margin-top:12px}
+  .section h3{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 6px;font-weight:600;
+  }
+  .pill-row{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{
+    font-family:"SF Mono","Menlo",monospace;font-size:13px;
+    background:var(--accent-soft);color:var(--accent);
+    padding:3px 9px;border-radius:8px;
+  }
+  .desc{color:var(--ink-soft);font-size:15px;white-space:pre-wrap}
+
+  .examples{display:flex;flex-direction:column;gap:8px}
+  .ex{
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);
+  }
+  .ex .src{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .ex .src .no{background:var(--card);border:1px solid var(--line);padding:0 6px;border-radius:6px;font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .ex .src .tag{background:var(--accent-soft);color:var(--accent);padding:0 6px;border-radius:6px;font-size:11px;font-weight:500}
+
+  /* ===== 朗读按钮 ===== */
+  .speak{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:50%;
+    background:var(--accent-soft);color:var(--accent);flex:none;
+    transition:transform .08s ease;
+  }
+  .speak:active{transform:scale(.9)}
+  .speak:hover{filter:brightness(.96)}
+  .speak svg{width:14px;height:14px}
+
+  /* ===== 隐藏假名标注 ===== */
+  .hide-ruby rt{display:none!important}
+
+  /* ruby 注音样式 */
+  ruby rt{font-size:.58em;color:var(--muted);font-weight:400;letter-spacing:0}
+  .detail h2 ruby rt{font-size:.4em}
+  .ex .ja{font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px}
+  .ex .ja > span{flex:0 1 auto}   /* 不撑满：喇叭紧跟句子文字，不靠最右 */
+  .ex .ja .speak{margin-top:2px;width:22px;height:22px;flex:none}
+  .ex .ja .speak svg{width:12px;height:12px}
+  .ex .ja .target{color:var(--ruby);font-weight:600;background:rgba(192,57,43,.08);padding:0 2px;border-radius:3px}
+  @media (prefers-color-scheme: dark){
+    .ex .ja .target{background:rgba(255,138,128,.18);color:var(--ruby)}
+  }
+  .ex .zh{font-size:13px;color:var(--ink-soft);margin-top:4px}
+  .ex.hide-zh .zh{display:none}
+  .ex.hide-ja .ja{filter:blur(4px);user-select:none;pointer-events:none}
+  .ex.reveal-ja .ja{filter:none}
+
+  .note{
+    background:var(--warn-bg);color:var(--warn);
+    border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6;
+    border-left:3px solid var(--warn);white-space:pre-wrap;
+  }
+
+  /* 敬語详情 */
+  .keigo-page{
+    border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);
+    margin-bottom:10px;font-size:14px;white-space:pre-wrap;line-height:1.8;
+  }
+  .keigo-page .pg{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;font-weight:600}
+
+  /* ===== Bottom nav (detail) ===== */
+  .bottom-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    border-top:1px solid var(--line);
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  }
+  @media (prefers-color-scheme: dark){
+    .bottom-nav{background:rgba(16,21,33,.85)}
+  }
+  .bottom-inner{display:flex;gap:8px;max-width:920px;margin:0 auto;align-items:center}
+  .btn{
+    flex:1;height:40px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+    color:var(--ink);font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  }
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:disabled{opacity:.45}
+  .progress{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap}
+  .fab{
+    position:fixed;right:14px;bottom:calc(64px + env(safe-area-inset-bottom));
+    z-index:25;width:48px;height:48px;border-radius:50%;
+    background:var(--accent);color:#fff;box-shadow:var(--shadow);
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .fab[aria-pressed="true"]{background:var(--ruby)}
+  .fab svg{width:22px;height:22px}
+
+  /* ===== Switches ===== */
+  .switches{display:flex;gap:8px;padding:6px 14px 0;max-width:920px;margin:0 auto;flex-wrap:wrap}
+  .sw{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);
+    background:var(--card);border:1px solid var(--line);padding:5px 10px;border-radius:999px;
+  }
+  .sw input{accent-color:var(--accent)}
+
+  /* utility */
+  .hide{display:none!important}
+  kbd{font-family:"SF Mono",monospace;font-size:11px;background:var(--card);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 4px}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <button class="icon-btn" id="backBtn" aria-label="返回" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h1 id="title">N3 文法 小手册</h1>
+    <div class="actions">
+      <button class="icon-btn" id="searchBtn" aria-label="搜索">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <button class="icon-btn" id="randomBtn" aria-label="随机一条" title="随机">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-7 4 14 3-7h2"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="search-wrap" id="searchWrap" hidden>
+    <div class="search">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="search" placeholder="搜句型 / 中文 / 例句关键词…" autocomplete="off" />
+      <button class="x" id="searchClear" aria-label="清空">✕</button>
+    </div>
+  </div>
+  <div class="switches" id="switchesList" hidden>
+    <label class="sw"><input type="checkbox" id="onlyFav" /> 仅收藏</label>
+  </div>
+  <div class="switches" id="switchesDetail" hidden>
+    <label class="sw"><input type="checkbox" id="hideZh" /> 隐藏中文</label>
+    <label class="sw"><input type="checkbox" id="hideJa" /> 隐藏日文（点击显示）</label>
+    <label class="sw"><input type="checkbox" id="hideRuby" /> 隐藏假名</label>
+  </div>
+</header>
+
+<!-- =================== LIST VIEW =================== -->
+<main class="view active" id="listView"></main>
+
+<!-- =================== DETAIL VIEW =================== -->
+<main class="view" id="detailView">
+  <article class="detail" id="detail"></article>
+  <button class="fab" id="favBtn" aria-pressed="false" aria-label="收藏">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <nav class="bottom-nav">
+    <div class="bottom-inner">
+      <button class="btn" id="prevBtn">← 上一条</button>
+      <span class="progress" id="progress">— / —</span>
+      <button class="btn primary" id="nextBtn">下一条 →</button>
+    </div>
+  </nav>
+</main>
+
+<script src="data.js"></script>
+<script>
+/* ============================================================
+ * 数据：N3_DATA（194 条语法）+ N3_KEIGO（第20単元 敬語）
+ * 条目结构：
+ *  id     : 编号（1~194）
+ *  unit   : 单元（1~19，每 10 条一单元，第19单元=181~194）
+ *  pattern: 句型（OCR 底稿，待校对）
+ *  senses : 义项数组，每项 {connect[], desc, examples[{src,ja,zh}], note}
+ * 敬語：N3_KEIGO = [{page, text}]
+ * ============================================================ */
+const UNIT_NAMES = Array.from({length:19}, (_,i)=>`第${i+1}単元`);
+const KEIGO_ID = 'keigo';   // 敬語特殊条目 id
+
+/* ========== 状态 ========== */
+const state = {
+  view: 'list',           // 'list' | 'detail'
+  current: null,
+  query: '',
+  hideZh: false,
+  hideJa: false,
+  onlyFav: false,
+  favs: loadFavs(),
+  done: loadDone()
+};
+
+function loadFavs(){ try{ return new Set(JSON.parse(localStorage.getItem('n3.favs')||'[]')) }catch(e){ return new Set() } }
+function saveFavs(){ localStorage.setItem('n3.favs', JSON.stringify([...state.favs])) }
+function loadDone(){ try{ return new Set(JSON.parse(localStorage.getItem('n3.done')||'[]')) }catch(e){ return new Set() } }
+function saveDone(){ localStorage.setItem('n3.done', JSON.stringify([...state.done])) }
+
+function stripTags(s){return (s||'').replace(/<[^>]+>/g,'')}
+
+function allText(item){
+  // 用于搜索/摘要：拼接 pattern + 所有义项文本
+  const parts = [item.pattern];
+  (item.senses||[]).forEach(s=>{
+    if(s.desc) parts.push(s.desc);
+    (s.examples||[]).forEach(e=>{ if(e.ja) parts.push(e.ja); if(e.zh) parts.push(e.zh); });
+    if(s.note) parts.push(s.note);
+  });
+  return parts.join(' ');
+}
+
+function descPreview(item){
+  const d = (item.senses||[]).map(s=>s.desc).filter(Boolean).join(' ');
+  return d;
+}
+
+/* ========== 列表渲染 ========== */
+function renderList(){
+  const root = document.getElementById('listView');
+  const q = state.query.trim().toLowerCase();
+  const grouped = new Map();
+
+  N3_DATA.forEach(item=>{
+    if(state.onlyFav && !state.favs.has(item.id)) return;
+    if(q){
+      const hay = allText(item).toLowerCase();
+      if(!hay.includes(q)) return;
+    }
+    const uname = UNIT_NAMES[item.unit-1];
+    if(!grouped.has(uname)) grouped.set(uname, []);
+    grouped.get(uname).push(item);
+  });
+
+  // 敬語入口放到最后（第20単元）
+  if(!state.onlyFav){
+    const showKeigo = !q || '敬語'.includes(q) || 'けいご'.includes(q) || 'keigo'.includes(q);
+    if(showKeigo) grouped.set('第20単元 敬語', [{_keigo:true}]);
+  }
+
+  if(grouped.size===0){
+    root.innerHTML = `<div class="empty">没有匹配的条目。<br/>试试更短的关键词，或关闭"仅收藏"。</div>`;
+    return;
+  }
+  const html = [...grouped.entries()].map(([unit, items])=>{
+    const cards = items.map(it=>{
+      if(it._keigo){
+        return `<div class="card-item keigo" data-id="${KEIGO_ID}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="num">UNIT 20</span>
+            <span class="badge">专题</span>
+          </div>
+          <div class="pat">敬語</div>
+          <div class="zh">尊敬語 · 謙譲語 · 丁寧語</div>
+        </div>`;
+      }
+      const fav = state.favs.has(it.id) ? 'done' : '';
+      return `<div class="card-item ${fav}" data-id="${it.id}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="num">No.${String(it.id).padStart(3,'0')}</span>
+          ${state.favs.has(it.id) ? '<span class="badge">★ 收藏</span>' : ''}
+        </div>
+        <div class="pat">${esc(it.pattern)}</div>
+        <div class="zh">${esc(descPreview(it)).slice(0,42)}${descPreview(it).length>42?'…':''}</div>
+      </div>`;
+    }).join('');
+    return `<div class="unit-title">${unit}</div><div class="list-grid">${cards}</div>`;
+  }).join('');
+  root.innerHTML = html;
+  root.querySelectorAll('.card-item').forEach(el=>{
+    const id = el.dataset.id;
+    el.addEventListener('click',()=>openDetail(id === KEIGO_ID ? KEIGO_ID : parseInt(id,10)));
+  });
+}
+
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* 例句中高亮当前句型：从 pattern 提取关键词（去括号/波浪符，按 / 拆选项，
+   波浪符连接的重复词如 "にしろ〜にしろ" 再切段取 "にしろ"），kana 为 pattern 的假名读音
+   （如 上(に)→うえに、代わりに→かわりに），长词优先，逐字去尾，允许单字。 */
+function highlightJa(ja, pattern, kana){
+  const e = esc(ja);
+  if(!e || !pattern) return e;
+  const kws = [];
+  pattern.split('/').forEach(opt=>{
+    const o = opt.replace(/[（）]/g,'');
+    // 半角括号内为可选部分："ず(に)" → 同时生成 "ずに" 和 "ず"
+    const pm = o.match(/^(.*?)\((.*?)\)(.*)$/);
+    if(pm){
+      const v1 = (pm[1]+pm[2]+pm[3]).replace(/[〜～〜˜~]/g,'');
+      const v2 = (pm[1]+pm[3]).replace(/[〜～〜˜~]/g,'');
+      if(v1) kws.push(v1);
+      if(v2) kws.push(v2);
+    }
+    const clean = o.replace(/[〜～〜˜~]/g,'');
+    if(clean) kws.push(clean);
+    o.split(/[〜～〜˜~]/).forEach(seg=>{ if(seg) kws.push(seg); });
+  });
+  if(Array.isArray(kana)) kana.forEach(k=>{ if(k) kws.push(k); });
+  const seen = new Set();
+  const uniq = kws.filter(k=>{ if(seen.has(k)) return false; seen.add(k); return true; })
+                  .sort((a,b)=>b.length-a.length);
+  // 完整关键词优先；不中则逐字符去尾重试（覆盖活用/带助词形式，如 一方で→一方、てみる→てみ）。
+  // 原生单字（如 間）允许单字匹配；长词去尾最低到 2 字，避免红到无关单字。
+  for(const kw of uniq){
+    const minLen = kw.length === 1 ? 1 : 2;
+    for(let len = kw.length; len >= minLen; len--){
+      const cand = kw.slice(0, len);
+      if(e.includes(cand)){
+        return e.split(cand).join(`<span class="target">${cand}</span>`);
+      }
+    }
+  }
+  return e;
+}
+
+/* ========== 详情渲染 ========== */
+function renderDetail(){
+  if(state.current === KEIGO_ID){
+    renderKeigoDetail();
+    return;
+  }
+  const item = N3_DATA.find(x=>x.id===state.current);
+  if(!item){
+    // 199 等不存在的编号：保持详情页停留，不跳列表
+    document.getElementById('title').textContent = `No.${String(state.current).padStart(3,'0')} · 未找到`;
+    document.getElementById('progress').textContent = `— / ${N3_DATA.length}`;
+    document.getElementById('detail').innerHTML = `<div class="empty">未找到编号 ${esc(String(state.current))} 的卡片。<br>有效范围 1-${N3_DATA.length}，或 <a href="#list" onclick="event.preventDefault();showList()">返回列表</a>。</div>`;
+    document.getElementById('favBtn').setAttribute('aria-pressed','false');
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+  const idx = N3_DATA.findIndex(x=>x.id===state.current);
+  document.getElementById('title').textContent = `No.${String(item.id).padStart(3,'0')} · ${UNIT_NAMES[item.unit-1]}`;
+  document.getElementById('progress').textContent = `${idx+1} / ${N3_DATA.length}`;
+
+  const sensesHtml = (item.senses||[]).map((s,i)=>{
+    const label = (item.senses.length>1) ? `<div class="sense-label">用法 ${i+1}</div>` : '';
+    const connectHtml = s.connect && s.connect.length ? `<div class="section"><h3>接续</h3><div class="pill-row">${s.connect.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div></div>` : '';
+    const descHtml = s.desc ? `<div class="section"><h3>说明</h3><div class="desc">${esc(s.desc)}</div></div>` : '';
+    const exHtml = (s.examples||[]).map((e,j)=>{
+      const srcTag = e.src ? `<span class="tag">${esc(e.src)}</span>` : '';
+      const speakBtn = `<button class="speak" data-jp="${esc(e.ja)}" aria-label="朗读例句"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>`;
+      return `<div class="ex" data-i="${j}">
+        <div class="src"><span class="no">例 ${j+1}</span>${srcTag}</div>
+        <div class="ja"><span>${e.jaHtml || highlightJa(e.ja, item.pattern, item.kana)}</span>${speakBtn}</div>
+        <div class="zh">${esc(e.zh||'')}</div>
+      </div>`;
+    }).join('');
+    const exSection = exHtml ? `<div class="section"><h3>例句</h3><div class="examples">${exHtml}</div></div>` : '';
+    const noteHtml = s.note ? `<div class="section"><h3>注意</h3><div class="note">${esc(s.note)}</div></div>` : '';
+    return `<div class="sense">${label}${connectHtml}${descHtml}${exSection}${noteHtml}</div>`;
+  }).join('');
+
+  document.getElementById('detail').innerHTML = `
+    <div class="meta">
+      <span class="chip">No.${String(item.id).padStart(3,'0')}</span>
+      <span>${UNIT_NAMES[item.unit-1]}</span>
+    </div>
+    <h2 style="display:flex;align-items:flex-start;gap:10px">${item.patternHtml || esc(item.pattern)}<button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="margin-top:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
+    ${sensesHtml}
+  `;
+
+  // 例句交互
+  document.querySelectorAll('#detail .ex').forEach(el=>{
+    if(state.hideZh) el.classList.add('hide-zh');
+    if(state.hideJa) el.classList.add('hide-ja');
+    el.querySelector('.ja').addEventListener('click',(ev)=>{
+      if(ev.target.closest('.speak')) return;  // 点喇叭不触发"点击显示日文"
+      el.classList.toggle('reveal-ja');
+    });
+  });
+
+  // 收藏按钮
+  const favBtn = document.getElementById('favBtn');
+  favBtn.setAttribute('aria-pressed', state.favs.has(item.id) ? 'true' : 'false');
+  favBtn.title = state.favs.has(item.id) ? '已收藏' : '收藏';
+
+  // 上下条
+  document.getElementById('prevBtn').disabled = idx<=0;
+  document.getElementById('nextBtn').disabled = idx>=N3_DATA.length-1;
+}
+
+/* ========== 敬語详情 ========== */
+function renderKeigoDetail(){
+  document.getElementById('title').textContent = '第20単元 · 敬語';
+  document.getElementById('progress').textContent = `${N3_KEIGO.length} 页`;
+  const html = (N3_KEIGO||[]).map(pg=>`
+    <div class="keigo-page">
+      <div class="pg">P.${pg.page}</div>
+      ${esc(pg.text)}
+    </div>`).join('');
+  document.getElementById('detail').innerHTML = `
+    <div class="meta">
+      <span class="chip">UNIT 20</span>
+      <span>敬語（尊敬語 · 謙譲語 · 丁寧語）</span>
+    </div>
+    <h2>敬語</h2>
+    <div class="desc" style="margin-top:8px">第20単元 敬語专题（OCR 底稿，待校对）。</div>
+    <div class="section" style="margin-top:14px"><div class="examples">${html}</div></div>
+  `;
+  document.getElementById('favBtn').setAttribute('aria-pressed','false');
+  document.getElementById('prevBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+}
+
+/* ========== 视图切换（支持刷新停留 + 浏览器前进/后退） ========== */
+let _navLock = false;
+function syncNav(push){
+  // 保存到 localStorage + URL hash，刷新后可恢复
+  try{ localStorage.setItem('n3.nav', JSON.stringify({view:state.view, current:state.current, query:state.query, onlyFav:state.onlyFav})); }catch(e){}
+  const targetHash = state.view==='detail' ? (state.current===KEIGO_ID ? '#keigo' : '#'+state.current) : '#list';
+  if(location.hash !== targetHash){
+    try{
+      if(push===false) history.replaceState(null,'', targetHash);
+      else if(!location.hash) history.replaceState(null,'', targetHash);
+      else history.pushState(null,'', targetHash);
+    }catch(e){
+      // file:// 等环境 history 异常时回退到直接改 hash
+      location.hash = targetHash;
+    }
+  }
+}
+function showList(push){
+  _navLock = true;
+  state.view='list';
+  document.getElementById('listView').classList.add('active');
+  document.getElementById('detailView').classList.remove('active');
+  document.getElementById('backBtn').hidden = true;
+  document.getElementById('searchBtn').hidden = false;
+  document.getElementById('title').textContent = 'N3 文法 小手册';
+  document.getElementById('searchWrap').hidden = !state.query;
+  document.getElementById('switchesList').hidden = false;
+  document.getElementById('switchesDetail').hidden = true;
+  renderList();
+  // 恢复搜索框
+  const inp = document.getElementById('searchInput');
+  if(inp && inp.value !== state.query) inp.value = state.query;
+  document.getElementById('searchClear').classList.toggle('show', !!state.query);
+  document.getElementById('onlyFav').checked = !!state.onlyFav;
+  syncNav(push);
+  // 列表滚动位置恢复（hash 恢复时）
+  const y = sessionStorage.getItem('n3.scrollY');
+  if(y && push===false) setTimeout(()=>window.scrollTo(0, parseInt(y,10)||0), 0);
+  else if(push!==false) window.scrollTo(0,0);
+  _navLock = false;
+}
+function openDetail(id, push){
+  _navLock = true;
+  state.view='detail';
+  state.current = id;
+  document.getElementById('listView').classList.remove('active');
+  document.getElementById('detailView').classList.add('active');
+  document.getElementById('backBtn').hidden = false;
+  document.getElementById('searchBtn').hidden = true;
+  document.getElementById('searchWrap').hidden = true;
+  document.getElementById('switchesList').hidden = true;
+  document.getElementById('switchesDetail').hidden = false;
+  // 进入详情前保存列表滚动位置（仅用户主动跳转时，刷新恢复时不覆盖）
+  if(push!==false) try{ sessionStorage.setItem('n3.scrollY', String(window.scrollY)); }catch(e){}
+  renderDetail();
+  syncNav(push);
+  window.scrollTo(0,0);
+  _navLock = false;
+}
+function restoreFromHash(push){
+  const raw = (location.hash||'').replace(/^#/,'');
+  if(raw === 'keigo'){
+    openDetail(KEIGO_ID, push);
+    return true;
+  }
+  const nid = parseInt(raw,10);
+  if(!isNaN(nid)){
+    // 允许 199 等不存在的编号，renderDetail 会显示“未找到”并保持 hash 停留
+    openDetail(nid, push);
+    return true;
+  }
+  if(raw === 'list'){
+    // 显式 #list 时也尝试恢复筛选状态
+    try{
+      const nav = JSON.parse(localStorage.getItem('n3.nav')||'null');
+      if(nav){
+        if(typeof nav.query==='string') state.query = nav.query;
+        if(typeof nav.onlyFav==='boolean') state.onlyFav = nav.onlyFav;
+      }
+    }catch(e){}
+    showList(push);
+    return true;
+  }
+  if(!raw){
+    // hash 为空时尝试 localStorage 恢复（刷新但浏览器清 hash 的情况）
+    try{
+      const nav = JSON.parse(localStorage.getItem('n3.nav')||'null');
+      if(nav && nav.view==='detail' && nav.current!=null){
+        // 199 等非法编号也允许恢复，保持停留
+        if(nav.current===KEIGO_ID || typeof nav.current==='number' || typeof nav.current==='string'){
+          // 恢复搜索/筛选
+          if(typeof nav.query==='string') state.query = nav.query;
+          if(typeof nav.onlyFav==='boolean') state.onlyFav = nav.onlyFav;
+          openDetail(nav.current, false);
+          return true;
+        }
+      }
+      if(nav && nav.view==='list'){
+        if(typeof nav.query==='string') state.query = nav.query;
+        if(typeof nav.onlyFav==='boolean') state.onlyFav = nav.onlyFav;
+        showList(false);
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  return false;
+}
+
+/* ========== 朗读（日语发音，Web Speech API） ========== */
+let jaVoice = null;
+let ttsAudio = null;
+// 清洗后供 TTS 使用：去波浪/斜杠/括号等符号，避免 Chrome 读出怪音
+function cleanForTTS(s){
+  if(!s) return '';
+  return s.replace(/<[^>]+>/g,'')
+          .replace(/[〜～〜˜~]/g,'')
+          .replace(/[（）()]/g,'')
+          .replace(/[\/／]/g,'、')
+          .replace(/\s+/g,'')
+          .trim();
+}
+function getPatternSpeakText(item){
+  // 优先用 patternHtml 中的假名（ruby rt）拼出发音，避免汉字误读，如 間→あいだ
+  if(item.patternHtml){
+    const rts = [...item.patternHtml.matchAll(/<rt>(.*?)<\/rt>/g)].map(m=>m[1]);
+    if(rts.length) return rts.join('、');
+  }
+  if(Array.isArray(item.kana) && item.kana.length) return item.kana.join('、');
+  return cleanForTTS(item.pattern||'');
+}
+function pickBestJaVoice(voices){
+  const jaVoices = voices.filter(v=>/^ja/i.test(v.lang));
+  if(!jaVoices.length) return null;
+  function rank(v){
+    const n = (v.name||'').toLowerCase();
+    if(n.includes('kyoko')||n.includes('otoya')||n.includes('eddy')) return 0;
+    if(n.includes('haruka')||n.includes('ayumi')||n.includes('nanami')||n.includes('ichiro')||n.includes('ayumi')) return 1;
+    if(n.includes('google')) return 5;
+    return 2;
+  }
+  jaVoices.sort((a,b)=>{
+    if(a.localService!==b.localService) return a.localService ? -1 : 1;
+    return rank(a)-rank(b);
+  });
+  return jaVoices[0]||null;
+}
+function pickJaVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  jaVoice = pickBestJaVoice(voices);
+  if(jaVoice) console.log('[tts] picked', jaVoice.name, jaVoice.lang, jaVoice.localService);
+  else if(voices.length) console.warn('[tts] no ja voice, available:', voices.map(v=>`${v.lang}:${v.name}(${v.localService?'local':'net'})`).join(' | '));
+}
+function waitForVoices(timeout=3000){
+  return new Promise(resolve=>{
+    if(!('speechSynthesis' in window)) return resolve([]);
+    const v0 = speechSynthesis.getVoices();
+    if(v0.length) return resolve(v0);
+    let done=false;
+    const timer=setTimeout(()=>{
+      if(done) return; done=true;
+      speechSynthesis.removeEventListener('voiceschanged', onChange);
+      clearInterval(iv);
+      resolve(speechSynthesis.getVoices());
+    }, timeout);
+    function onChange(){
+      if(done) return; done=true;
+      clearTimeout(timer); clearInterval(iv);
+      speechSynthesis.removeEventListener('voiceschanged', onChange);
+      resolve(speechSynthesis.getVoices());
+    }
+    speechSynthesis.addEventListener('voiceschanged', onChange);
+    // 轮询兜底：Chrome 有时不触发 voiceschanged
+    const iv=setInterval(()=>{
+      const v=speechSynthesis.getVoices();
+      if(v.length && !done){
+        done=true;
+        clearTimeout(timer);
+        speechSynthesis.removeEventListener('voiceschanged', onChange);
+        clearInterval(iv);
+        resolve(v);
+      }
+    },100);
+    // 10s 后强制清理
+    setTimeout(()=>clearInterval(iv), 10000);
+  });
+}
+if('speechSynthesis' in window){
+  pickJaVoice();
+  speechSynthesis.addEventListener('voiceschanged', pickJaVoice);
+  setTimeout(pickJaVoice, 600);
+  // 预热：Chrome 首次需用户手势前就加载
+  waitForVoices(2000).then(pickJaVoice);
+}
+function fallbackAudio(text){
+  if(!text) return;
+  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text);
+  if(ttsAudio) try{ttsAudio.pause();}catch(e){}
+  ttsAudio = new Audio(url);
+  ttsAudio.play().catch(()=>{
+    toast('本机无日语语音且网络语音被拦截：请安装系统日语语音（Win: 设置-时间和语言-语言-添加日语；Mac: 系统设置-辅助功能-朗读内容-系统语音-自定-日语）后刷新重试');
+  });
+}
+async function speak(raw){
+  if(!raw) return;
+  let text = cleanForTTS(raw);
+  if(!text) return;
+  if(!('speechSynthesis' in window)){
+    fallbackAudio(text);
+    return;
+  }
+  // 确保 voices 已加载（Chrome 异步）
+  let voices = speechSynthesis.getVoices();
+  if(!voices.length){
+    voices = await waitForVoices(3000);
+  }
+  const best = pickBestJaVoice(voices);
+  if(best) jaVoice = best;
+  else {
+    // 仍无本地日语语音
+    const all = voices.map(v=>`${v.lang}:${v.name}`).join(' | ') || '（空）';
+    console.warn('[tts] no ja voice after wait, all:', all);
+    // 若 voices 为空，可能是 Chrome 未授权，再等一次
+    if(!voices.length){
+      toast('日语语音加载中，请 1 秒后再点一次');
+      // 主动触发一次空话以唤醒 Chrome 语音引擎
+      try{ speechSynthesis.getVoices(); }catch(e){}
+      return;
+    }
+    toast('未检测到本机日语语音，已用网络语音（若无声请安装系统日语语音后刷新）');
+    fallbackAudio(text);
+    return;
+  }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  // Chrome cancel 是异步的，留 80ms 再 speak 避免被截断/怪音
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP';
+    u.rate = 0.95;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    u.voice = jaVoice;
+    u.onstart = ()=>console.log('[tts] start', text.slice(0,20), 'voice', jaVoice.name);
+    u.onerror = (e)=>{ console.error('[tts] error', e); fallbackAudio(text); };
+    u.onend = ()=>console.log('[tts] end');
+    if(speechSynthesis.paused) try{speechSynthesis.resume();}catch(e){}
+    speechSynthesis.speak(u);
+    // Chrome 有时 speak 后仍 suspended，需 resume
+    setTimeout(()=>{ if(speechSynthesis.paused) try{speechSynthesis.resume();}catch(e){} }, 100);
+  }, 80);
+}
+
+/* 轻提示 */
+let toastTimer = null;
+function toast(msg){
+  let el = document.getElementById('toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:99;background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);border-radius:10px;padding:8px 14px;font-size:13px;max-width:86vw;box-shadow:var(--shadow)';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.style.display = 'none'; }, 3500);
+}
+
+/* ========== 事件绑定 ========== */
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.speak');
+  if(btn) speak(btn.dataset.jp);
+});
+document.getElementById('backBtn').addEventListener('click', showList);
+document.getElementById('searchBtn').addEventListener('click', ()=>{
+  const w = document.getElementById('searchWrap');
+  w.hidden = !w.hidden;
+  if(!w.hidden){ document.getElementById('searchInput').focus() }
+});
+document.getElementById('searchInput').addEventListener('input', e=>{
+  state.query = e.target.value;
+  document.getElementById('searchClear').classList.toggle('show', !!state.query);
+  renderList();
+  syncNav();
+});
+document.getElementById('searchClear').addEventListener('click', ()=>{
+  document.getElementById('searchInput').value=''; state.query=''; renderList(); syncNav();
+});
+document.getElementById('randomBtn').addEventListener('click',()=>{
+  const id = N3_DATA[Math.floor(Math.random()*N3_DATA.length)].id;
+  openDetail(id);
+});
+document.getElementById('favBtn').addEventListener('click',()=>{
+  if(!state.current || state.current === KEIGO_ID) return;
+  if(state.favs.has(state.current)) state.favs.delete(state.current);
+  else state.favs.add(state.current);
+  saveFavs();
+  document.getElementById('favBtn').setAttribute('aria-pressed', state.favs.has(state.current));
+});
+document.getElementById('prevBtn').addEventListener('click',()=>{
+  const i = N3_DATA.findIndex(x=>x.id===state.current);
+  if(i>0) openDetail(N3_DATA[i-1].id);
+});
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  const i = N3_DATA.findIndex(x=>x.id===state.current);
+  if(i<N3_DATA.length-1) openDetail(N3_DATA[i+1].id);
+});
+document.getElementById('hideZh').addEventListener('change',e=>{ state.hideZh = e.target.checked; renderDetail(); });
+document.getElementById('hideJa').addEventListener('change',e=>{ state.hideJa = e.target.checked; renderDetail(); });
+document.getElementById('hideRuby').addEventListener('change',e=>{
+  document.body.classList.toggle('hide-ruby', e.target.checked);
+});
+document.getElementById('onlyFav').addEventListener('change',e=>{ state.onlyFav = e.target.checked; renderList(); syncNav(); });
+
+// 键盘快捷键（桌面端）
+document.addEventListener('keydown',e=>{
+  if(state.view!=='detail') return;
+  if(e.key==='ArrowLeft') document.getElementById('prevBtn').click();
+  if(e.key==='ArrowRight') document.getElementById('nextBtn').click();
+  if(e.key==='f' && !e.metaKey && !e.ctrlKey) document.getElementById('favBtn').click();
+  if(e.key==='Escape') showList();
+});
+
+/* ========== hash 变化（浏览器前进/后退） ========== */
+window.addEventListener('hashchange', ()=>{
+  if(_navLock) return;
+  restoreFromHash(false);
+});
+window.addEventListener('popstate', ()=>{
+  if(_navLock) return;
+  restoreFromHash(false);
+});
+// 刷新前保存滚动位置
+window.addEventListener('beforeunload', ()=>{
+  try{ sessionStorage.setItem('n3.scrollY', String(window.scrollY)); }catch(e){}
+});
+
+/* ========== 启动（刷新停留当前卡片） ========== */
+if(!restoreFromHash(false)) showList(false);
+</script>
+</body>
+</html>
