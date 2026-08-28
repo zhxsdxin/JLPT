@@ -548,6 +548,9 @@ function renderDetail(){
     return `<div class="sense">${label}${connectHtml}${descHtml}${exSection}${noteHtml}</div>`;
   }).join('');
 
+  // 切卡前记录 GIF 位置，避免换卡时移动/跳变
+  const _oldGif=document.getElementById('stalkingGif');
+  if(_oldGif) window._stkPos={x:_oldGif._tx||0, y:_oldGif._ty||0};
   document.getElementById('detail').innerHTML = `
     <h2 style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px"><span style="flex:0 1 auto;min-width:0;word-break:break-word;overflow-wrap:anywhere;line-height:1.5">${item.patternHtml || esc(item.pattern)}</span><button class="speak" data-jp="${esc(getPatternSpeakText(item))}" aria-label="朗读句型" style="flex:none;margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></h2>
     <img id="stalkingGif" src="./stalking.gif" alt="" style="position:absolute;top:4px;right:4px;width:192px;height:192px;object-fit:contain;z-index:40;opacity:0;pointer-events:none;transition:opacity .6s, transform .6s;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18));touch-action:none;cursor:grab">
@@ -1118,7 +1121,7 @@ window.addEventListener('beforeunload', ()=>{
       if(document.visibilityState!=='visible') return;
       if(!document.getElementById('detailView')?.classList.contains('active')) return;
       showGif();
-    }, 5000);
+    }, 60000);
   }
   function resetInactivityTimer(){
     if(gifVisible) return;
@@ -1176,11 +1179,17 @@ window.addEventListener('beforeunload', ()=>{
     // 切换卡片重建 DOM 后保持 GIF 可见
     if(gifVisible) restoreGif();
   }).observe(detail, {childList:true, subtree:true});
-  // 切卡后恢复显示到可视区中心
+  // 切卡后恢复显示；有 _stkPos 则保持原位（不移动），否则回可视区中心
   function restoreGif(){
     const gif=getGif(); if(!gif) return;
     gif.style.transition='none';
-    placeCenter(gif);
+    if(window._stkPos){
+      gif._tx=window._stkPos.x; gif._ty=window._stkPos.y;
+      gif.style.transform='translate('+gif._tx+'px,'+gif._ty+'px) scale('+Math.SQRT2+')';
+      delete window._stkPos;
+    } else {
+      placeCenter(gif);
+    }
     gif.style.opacity='0.92';
     gif.style.pointerEvents='auto';
   }
