@@ -113,8 +113,8 @@ export default {
       if (pathname === "/api/me" && request.method === "GET") {
         const token = getToken(request);
         if (!token) return json({ user: null }, cors);
-        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at, s.closed_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
-        if (!row || row.closed_at || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
+        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
         return json({ user: { id: row.id, username: row.username, avatar: row.avatar || null } }, cors);
       }
       // 资料
@@ -222,7 +222,7 @@ export default {
         const token = getToken(request);
         let ok = false;
         if(token){
-          const row = await env.DB.prepare("SELECT 1 FROM sessions s WHERE s.token=? AND s.expires_at > datetime('now') AND s.closed_at IS NULL").bind(token).first().catch(()=>null);
+          const row = await env.DB.prepare("SELECT 1 FROM sessions s WHERE s.token=? AND s.expires_at > datetime('now')").bind(token).first().catch(()=>null);
           ok = !!row;
         }
         if(!ok) return Response.redirect(new URL("/login.html", request.url).toString(), 302);
@@ -250,7 +250,7 @@ function getToken(req) {
 async function requireAdmin(request, env){
   const token = getToken(request);
   if(!token) return null;
-  const row = await env.DB.prepare("SELECT u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at > datetime('now') AND s.closed_at IS NULL").bind(token).first();
+  const row = await env.DB.prepare("SELECT u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at > datetime('now')").bind(token).first();
   return row && row.username === "admin" ? row : null;
 }
 async function sha256(s) {
