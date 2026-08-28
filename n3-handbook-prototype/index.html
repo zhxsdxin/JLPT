@@ -63,7 +63,7 @@
     display:flex;align-items:center;gap:8px;
     padding:10px 14px;max-width:920px;margin:0 auto;
   }
-  .topbar h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.04em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(135deg,var(--accent) 0%,#ff7a8a 70%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .topbar .actions{display:flex;gap:6px}
   .icon-btn{
     width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;
@@ -258,6 +258,7 @@
       <button class="icon-btn" id="randomBtn" aria-label="随机一条" title="随机">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-7 4 14 3-7h2"/></svg>
       </button>
+      <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="font-size:18px;line-height:1;overflow:hidden;border-radius:50%;width:32px;height:32px">🐱</a>
     </div>
   </div>
   <div class="search-wrap" id="searchWrap" hidden>
@@ -892,9 +893,29 @@ async function requireLogin(){
   }
 }
 
+async function refreshProfileAvatar(){
+  const btn=document.getElementById("profileBtn"); if(!btn) return;
+  const token=getToken(); if(!token){ btn.textContent="🐱"; return; }
+  try{
+    const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
+    const j=await r.json();
+    if(j.user && j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
+    if(j.user){ btn.textContent="🐱"; return; }
+  }catch(e){}
+  // mock 兜底
+  try{
+    const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
+    const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+    const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
+    if(u && u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    else btn.textContent="🐱";
+  }catch(e){ btn.textContent="🐱"; }
+}
+
 /* ========== 启动（刷新停留当前卡片） ========== */
 (async ()=>{
   if(REQUIRE_LOGIN && !(await requireLogin())) return;
+  refreshProfileAvatar();
   if(!restoreFromHash(false)) showList(false);
 })();
 </script>

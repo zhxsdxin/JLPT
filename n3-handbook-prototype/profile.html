@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#1f3a5f"/>
+<title>我的 - N3 文法 小手册</title>
+<style>
+  :root{--bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;--line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--radius:14px}
+  @media (prefers-color-scheme: dark){:root{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
+  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+  a{color:var(--accent);text-decoration:none}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+  @media (prefers-color-scheme: dark){.topbar{background:rgba(16,21,33,.78)}}
+  .topbar-inner{display:flex;align-items:center;gap:8px;padding:10px 14px;max-width:520px;margin:0 auto}
+  .topbar h1{font-size:18px;margin:0;font-weight:800;flex:1;letter-spacing:.06em;background:linear-gradient(135deg,var(--accent) 20%,#ff7a8a 60%,#ffb86a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .icon-btn{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .icon-btn:hover{background:var(--accent-soft);color:var(--accent)}
+  .wrap{max-width:520px;margin:0 auto;padding:12px 14px 40px}
+  .hero{margin-top:12px;background:linear-gradient(135deg,var(--accent) 0%,#2a4b7a 55%,#ff8a80 100%);color:#fff;border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero::after{content:"🐾";position:absolute;right:12px;bottom:-6px;font-size:64px;opacity:.18}
+  .hero-title{font-size:22px;font-weight:800;letter-spacing:.04em;line-height:1.2}
+  .hero-sub{font-size:12px;opacity:.9;margin-top:4px;letter-spacing:.06em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-top:12px}
+  .card h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;color:var(--muted)}
+  .avatar{width:88px;height:88px;border-radius:50%;background:var(--accent-soft);display:inline-flex;align-items:center;justify-content:center;font-size:44px;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 16px rgba(31,58,95,.18);margin-top:4px}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .recs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .rec{font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .rec.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+  .rec.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+  .inp{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);outline:0;font-size:14px;margin:6px 0}
+  .inp:focus{border-color:var(--accent);background:var(--card)}
+  .btn{width:100%;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .muted{font-size:12px;color:var(--muted)}
+  pre{margin:8px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;white-space:pre-wrap;word-break:break-all}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="icon-btn" href="./index.html">‹</a><h1>PROFILE · 我的</h1><a class="icon-btn" href="./login.html">⎋</a>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <div class="hero-title">🐱 默认猫猫头像</div>
+    <div class="hero-sub">未设置则显示 🐱 · 登录后自动同步到手册右上角</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div id="avatar" class="avatar">🐱</div>
+    <div id="uname" style="margin-top:10px;font-weight:700;font-size:16px">未登录</div>
+    <div id="uid" class="muted"></div>
+    <label class="btn primary" style="margin-top:14px">📷 更换头像<input id="file" type="file" accept="image/*" hidden></label>
+    <div class="muted">jpg / png / webp，≤200KB，自动存 D1</div>
+    <div class="recs" style="justify-content:center">
+      <span class="rec">⭕ 圆图最清晰</span><span class="rec ok">1:1 最佳</span><span class="rec warn">≤200KB</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔒 改密码 · 推荐 12 位+ 大小写+符号</h3>
+    <input id="old" class="inp" type="password" placeholder="原密码"/>
+    <input id="nw" class="inp" type="password" placeholder="新密码 6-64 字符"/>
+    <input id="nw2" class="inp" type="password" placeholder="确认新密码"/>
+    <button id="pwdBtn" class="btn primary">确认修改</button>
+    <div class="recs">
+      <span class="rec ok">推荐 12+ 位</span><span class="rec">Aa1! 混合</span><span class="rec warn">勿用生日</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>调试 / Worker</h3>
+    <input id="api" class="inp" placeholder="Worker 域名，如 https://xxx.workers.dev"/>
+    <pre id="out">就绪</pre>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const out=v=>$("out").textContent=typeof v==="string"?v:JSON.stringify(v,null,2);
+const api=()=>$("api").value.trim().replace(/\/$/,"")||location.origin;
+const tokenKey="jlpt_token";
+const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
+$("api").value=localStorage.getItem("jlpt_api")||""; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
+
+function setAvatar(url){
+  const el=$("avatar");
+  if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; } else el.textContent="🐱";
+}
+
+async function loadProfile(){
+  try{
+    const r=await fetch(api()+"/api/profile",{headers:headers()});
+    const j=await r.json();
+    if(j.user){ $("uname").textContent=j.user.username; $("uid").textContent="ID "+j.user.id; setAvatar(j.user.avatar); out(j); return; }
+    else { out(j); if(r.status===401) setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); return; }
+  }catch(e){}
+  // mock 兜底（无 worker 时）
+  const token=localStorage.getItem(tokenKey);
+  if(!token){ $("uname").textContent="未登录 · 默认🐱"; out({user:null, mock:true, tip:"Worker 未部署，本地 mock"}); return; }
+  try{
+    const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
+    const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+    const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
+    if(u){ $("uname").textContent=u.username; $("uid").textContent="ID "+u.id; setAvatar(u.avatar||null); out({user:{id:u.id, username:u.username, avatar:u.avatar||null}, mock:true}); }
+    else { out({user:null, mock:true}); setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); }
+  }catch(e){ out({user:null, mock:true}); }
+}
+loadProfile();
+
+$("file").onchange=async()=>{
+  const f=$("file").files[0]; if(!f) return;
+  if(f.size>200*1024) return out("头像需 <200KB");
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const data=reader.result;
+    try{
+      const r=await fetch(api()+"/api/profile/avatar",{method:"POST",headers:{"Content-Type":"application/json",...headers()},body:JSON.stringify({avatar:data})});
+      const j=await r.json(); out(j);
+      if(j.ok) setAvatar(data); else throw new Error();
+    }catch(e){
+      // mock
+      const token=localStorage.getItem(tokenKey);
+      const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
+      const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+      const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
+      if(u){ u.avatar=data; localStorage.setItem("mock_users", JSON.stringify(users)); setAvatar(data); out({ok:true, mock:true, tip:"Worker 未部署，已本地 mock 保存头像"}); }
+      else out({error:"未登录 (mock)", mock:true});
+    }
+  };
+  reader.readAsDataURL(f);
+};
+
+$("pwdBtn").onclick=async()=>{
+  const oldPassword=$("old").value, newPassword=$("nw").value;
+  if(newPassword!==$("nw2").value) return out("两次新密码不一致");
+  if(newPassword.length<6||newPassword.length>64) return out("新密码 6-64 字符");
+  try{
+    const r=await fetch(api()+"/api/profile/password",{method:"POST",headers:{"Content-Type":"application/json",...headers()},body:JSON.stringify({oldPassword,newPassword})});
+    const j=await r.json(); out(j); if(j.ok) $("old").value=$("nw").value=$("nw2").value="";
+    return;
+  }catch(e){}
+  // mock
+  try{
+    const token=localStorage.getItem(tokenKey);
+    const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
+    const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
+    const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
+    if(!u) return out({error:"未登录 (mock)"});
+    const hOld=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(oldPassword)).then(b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""));
+    if(hOld!==u.password_hash) return out({error:"原密码错误 (mock)"});
+    const hNew=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(newPassword)).then(b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""));
+    u.password_hash=hNew; localStorage.setItem("mock_users", JSON.stringify(users));
+    out({ok:true, mock:true}); $("old").value=$("nw").value=$("nw2").value="";
+  }catch(e){ out(String(e)); }
+};
+</script>
+</body>
+</html>
