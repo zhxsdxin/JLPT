@@ -134,9 +134,14 @@ export default {
       }
 
       if (pathname === "/" ) {
+        // 主页不再返回 JSON，直接跳登录（强制登录）
+        const loginUrl = "https://zhxsdxin.github.io/JLPT/n3-handbook-prototype/login.html";
+        return Response.redirect(loginUrl, 302);
+      }
+      if (pathname === "/api" ) {
         return json({ ok: true, msg: "JLPT API", routes: ["/api/register POST","/api/login POST","/api/me GET","/api/profile GET","/api/profile/password POST","/api/profile/avatar POST","/api/users GET","/api/sessions GET","/api/logout POST"] }, cors);
       }
-      return json({ error: "not found", path: pathname, hint: "可用 /api/register 等，见 /" }, cors, 404);
+      return json({ error: "not found", path: pathname, hint: "可用 /api/*，见 /api" }, cors, 404);
     } catch (e) {
       return json({ error: String(e) }, cors, 500);
     }
