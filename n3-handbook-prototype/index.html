@@ -949,11 +949,17 @@ async function refreshProfileAvatar(){
   const btn=document.getElementById("profileBtn"); if(!btn) return;
   const token=getToken();
   const isAdminUser=(u)=>u && u.username==="admin";
-  // SWR 先显旧（mock/localStorage）避免闪白
+  // SWR 先显旧（lastUser + mock）避免 admin 闪回 🐱
   let stale = null;
   try{
-    if(!token){ btn.textContent="🐱"; stale="cat"; }
-    else {
+    const last = JSON.parse(localStorage.getItem("jlpt_last_user")||"null");
+    if(last && last.username==="admin"){ btn.textContent="🐭"; stale="mouse"; }
+    else if(last && last.avatar){ btn.innerHTML=`<img src="${last.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; stale="custom"; }
+    else if(last){ btn.textContent="🐱"; stale="cat"; }
+  }catch(e){}
+  try{
+    if(!token){ if(!stale) btn.textContent="🐱"; stale=stale||"cat"; }
+    else if(!stale){
       const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
       const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
       const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
@@ -969,6 +975,7 @@ async function refreshProfileAvatar(){
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
     const j=await r.json();
     if(j.user){
+      try{ localStorage.setItem("jlpt_last_user", JSON.stringify(j.user)); }catch(e){}
       const isAdmin=isAdminUser(j.user);
       const next = isAdmin ? "mouse" : (j.user.avatar ? "custom" : "cat");
       if(next !== stale){
