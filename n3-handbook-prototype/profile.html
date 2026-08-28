@@ -43,11 +43,11 @@
 </div></header>
 <main class="wrap">
   <div class="hero">
-    <div class="hero-title">🐭 默认鼠鼠头像</div>
-    <div class="hero-sub">未设置则显示 🐭 · 登录后自动同步到手册右上角</div>
+    <div class="hero-title">🐱 默认猫猫头像</div>
+    <div class="hero-sub">未设置则显示 🐱 · 管理员为 🐭</div>
   </div>
   <div class="card" style="text-align:center">
-    <div id="avatar" class="avatar" style="cursor:pointer" title="点击下载头像">🐭</div>
+    <div id="avatar" class="avatar" style="cursor:pointer" title="点击下载头像">🐱</div>
     <div id="uname" style="margin-top:10px;font-weight:700;font-size:16px">未登录</div>
     <div id="uid" class="muted"></div>
     <label class="btn primary" style="margin-top:14px">📷 更换头像<input id="file" type="file" accept="image/*" hidden></label>
@@ -91,15 +91,18 @@ const api=()=> (localStorage.getItem("jlpt_api")||DEFAULT_API).replace(/\/$/,"")
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 
+let _isAdmin=false;
 function setAvatar(url){
   const el=$("avatar");
-  if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; } else el.textContent="🐭";
+  if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; }
+  else if(_isAdmin){ el.innerHTML=`<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover">`; }
+  else el.textContent="🐱";
 }
 $("avatar").onclick=()=>{
   const img=$("avatar").querySelector("img");
   const a=document.createElement("a");
-  if(img){ a.href=img.src; a.download="avatar.png"; }
-  else { a.href="./avatar-mouse.svg"; a.download="avatar-mouse.svg"; }
+  if(img){ a.href=img.src; a.download= _isAdmin ? "avatar-mouse.svg" : "avatar-cat.svg"; }
+  else { a.href= _isAdmin ? "./avatar-mouse.svg" : "./avatar-cat.svg"; a.download= _isAdmin ? "avatar-mouse.svg" : "avatar-cat.svg"; }
   a.click();
 };
 
@@ -107,17 +110,17 @@ async function loadProfile(){
   try{
     const r=await fetch(api()+"/api/profile",{headers:headers()});
     const j=await r.json();
-    if(j.user){ $("uname").textContent=j.user.username; $("uid").textContent="ID "+j.user.id; setAvatar(j.user.avatar); out(j); return; }
+    if(j.user){ _isAdmin=j.user.username==="admin"; $("uname").textContent=j.user.username; $("uid").textContent="ID "+j.user.id; setAvatar(j.user.avatar); out(j); return; }
     else { out(j); if(r.status===401) setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); return; }
   }catch(e){}
   // mock 兜底（无 worker 时）
   const token=localStorage.getItem(tokenKey);
-  if(!token){ $("uname").textContent="未登录 · 默认🐭"; out({user:null, mock:true, tip:"Worker 未部署，本地 mock"}); return; }
+  if(!token){ _isAdmin=false; $("uname").textContent="未登录 · 默认🐱"; out({user:null, mock:true, tip:"Worker 未部署，本地 mock"}); return; }
   try{
     const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
     const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
     const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
-    if(u){ $("uname").textContent=u.username; $("uid").textContent="ID "+u.id; setAvatar(u.avatar||null); out({user:{id:u.id, username:u.username, avatar:u.avatar||null}, mock:true}); }
+    if(u){ _isAdmin=u.username==="admin"; $("uname").textContent=u.username; $("uid").textContent="ID "+u.id; setAvatar(u.avatar||null); out({user:{id:u.id, username:u.username, avatar:u.avatar||null}, mock:true}); }
     else { out({user:null, mock:true}); setTimeout(()=>location.href="./login.html?redirect="+encodeURIComponent(location.href),600); }
   }catch(e){ out({user:null, mock:true}); }
 }
@@ -182,6 +185,15 @@ $("logoutBtn").onclick=async()=>{
   localStorage.removeItem(tokenKey);
   out("已登出，需重新登录"); setTimeout(()=>location.href="./login.html", 600);
 };
+window.addEventListener('pagehide', ()=>{
+  const t=localStorage.getItem(tokenKey); if(!t) return;
+  try{ navigator.sendBeacon(api()+"/api/close", JSON.stringify({token:t})); }catch(e){}
+  try{ fetch(api()+"/api/close",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
+});
+window.addEventListener('beforeunload', ()=>{
+  const t=localStorage.getItem(tokenKey); if(!t) return;
+  try{ navigator.sendBeacon(api()+"/api/close", JSON.stringify({token:t})); }catch(e){}
+});
 </script>
 </body>
 </html>

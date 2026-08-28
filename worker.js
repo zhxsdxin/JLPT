@@ -30,14 +30,16 @@ export default {
           token TEXT UNIQUE NOT NULL,
           expires_at DATETIME NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          closed_at DATETIME,
           FOREIGN KEY(user_id) REFERENCES users(id)
         )
       `).run();
       // 头像列（已存在则忽略）
       await env.DB.prepare("ALTER TABLE users ADD COLUMN avatar TEXT").run().catch(()=>{});
       await env.DB.prepare("ALTER TABLE sessions ADD COLUMN created_at DATETIME").run().catch(()=>{});
+      await env.DB.prepare("ALTER TABLE sessions ADD COLUMN closed_at DATETIME").run().catch(()=>{});
       // 旧库 sessions 缺 token 列则重建
-      try{ await env.DB.prepare("SELECT token, created_at FROM sessions LIMIT 1").run(); }catch(e){
+      try{ await env.DB.prepare("SELECT token, created_at, closed_at FROM sessions LIMIT 1").run(); }catch(e){
         await env.DB.prepare("DROP TABLE IF EXISTS sessions").run();
         await env.DB.prepare(`
           CREATE TABLE sessions (
@@ -46,6 +48,7 @@ export default {
             token TEXT UNIQUE NOT NULL,
             expires_at DATETIME NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            closed_at DATETIME,
             FOREIGN KEY(user_id) REFERENCES users(id)
           )
         `).run();
@@ -99,10 +102,10 @@ export default {
         const user = await env.DB.prepare("SELECT * FROM users WHERE username=? AND password_hash=?").bind(username, hash).first();
         if (!user) return json({ error: "账号或密码错误" }, cors, 401);
         const token = crypto.randomUUID();
-        const expires = new Date(Date.now() + 7 * 86400000).toISOString(); // 7天
+        const expires = new Date(Date.now() + 24 * 3600000).toISOString(); // 24小时
         await env.DB.prepare("INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES (?,?,?, datetime('now'))").bind(user.id, token, expires).run();
         return json({ ok: true, token, user: { id: user.id, username: user.username } }, cors, 200, {
-          "Set-Cookie": `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`,
+          "Set-Cookie": `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
         });
       }
 
@@ -110,8 +113,8 @@ export default {
       if (pathname === "/api/me" && request.method === "GET") {
         const token = getToken(request);
         if (!token) return json({ user: null }, cors);
-        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
-        if (!row || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
+        const row = await env.DB.prepare("SELECT u.id, u.username, u.avatar, s.expires_at, s.closed_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?").bind(token).first();
+        if (!row || row.closed_at || new Date(row.expires_at) < new Date()) return json({ user: null }, cors);
         return json({ user: { id: row.id, username: row.username, avatar: row.avatar || null } }, cors);
       }
       // 资料
@@ -151,11 +154,21 @@ export default {
         return json({ ok: true }, cors);
       }
 
-      // 登出
+      // 登出（记关闭时间，24h 后过期由 D1 过期判断）
       if (pathname === "/api/logout" && request.method === "POST") {
         const token = getToken(request);
-        if (token) await env.DB.prepare("DELETE FROM sessions WHERE token=?").bind(token).run();
+        if (token) await env.DB.prepare("UPDATE sessions SET closed_at=datetime('now') WHERE token=? AND closed_at IS NULL").bind(token).run();
         return json({ ok: true }, cors, 200, { "Set-Cookie": `token=; Path=/; Max-Age=0` });
+      }
+      // 关闭网页上报（beforeunload/sendBeacon，支持 body/query 兜底）
+      if (pathname === "/api/close" && request.method === "POST") {
+        let token = getToken(request);
+        if(!token){
+          try{ const b=await request.clone().json(); token=b.token||b.t||null; }catch(e){}
+        }
+        if(!token) token = url.searchParams.get("token") || url.searchParams.get("t");
+        if(token) await env.DB.prepare("UPDATE sessions SET closed_at=datetime('now') WHERE token=? AND closed_at IS NULL").bind(token).run();
+        return json({ ok: true }, cors);
       }
       // 卡片覆盖 - 公开读（用于前端合并）
       if (pathname === "/api/cards" && request.method === "GET") {
@@ -173,7 +186,7 @@ export default {
           return json(r.results, cors);
         }
         if (pathname === "/api/admin/sessions" && request.method === "GET") {
-          const r = await env.DB.prepare("SELECT s.id, s.user_id, u.username, s.token, s.created_at, s.expires_at, CAST((julianday(s.expires_at)-julianday(s.created_at))*86400 AS INTEGER) as duration_sec FROM sessions s JOIN users u ON u.id=s.user_id ORDER BY s.created_at DESC").all();
+          const r = await env.DB.prepare("SELECT s.id, s.user_id, u.username, s.token, s.created_at, s.expires_at, s.closed_at, CAST((julianday(COALESCE(s.closed_at, datetime('now')))-julianday(s.created_at))*86400 AS INTEGER) as duration_sec FROM sessions s JOIN users u ON u.id=s.user_id ORDER BY s.created_at DESC").all();
           return json(r.results, cors);
         }
         if (pathname === "/api/admin/card" && request.method === "GET") {
@@ -209,7 +222,7 @@ export default {
         const token = getToken(request);
         let ok = false;
         if(token){
-          const row = await env.DB.prepare("SELECT 1 FROM sessions s WHERE s.token=? AND s.expires_at > datetime('now')").bind(token).first().catch(()=>null);
+          const row = await env.DB.prepare("SELECT 1 FROM sessions s WHERE s.token=? AND s.expires_at > datetime('now') AND s.closed_at IS NULL").bind(token).first().catch(()=>null);
           ok = !!row;
         }
         if(!ok) return Response.redirect(new URL("/login.html", request.url).toString(), 302);
@@ -237,7 +250,7 @@ function getToken(req) {
 async function requireAdmin(request, env){
   const token = getToken(request);
   if(!token) return null;
-  const row = await env.DB.prepare("SELECT u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at > datetime('now')").bind(token).first();
+  const row = await env.DB.prepare("SELECT u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at > datetime('now') AND s.closed_at IS NULL").bind(token).first();
   return row && row.username === "admin" ? row : null;
 }
 async function sha256(s) {

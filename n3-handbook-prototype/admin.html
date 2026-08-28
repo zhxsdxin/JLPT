@@ -52,8 +52,9 @@
     </div>
 
     <div id="pane-sessions" class="card" style="display:none">
-      <h3 style="margin:0 0 8px">会话 / 登录时长</h3>
-      <table><thead><tr><th>用户</th><th>登录时间</th><th>过期</th><th>时长</th><th>token</th></tr></thead><tbody id="sBody"></tbody></table>
+      <h3 style="margin:0 0 8px">会话 / 登录时长 <span class="muted">（时长=关闭时间-登录时间，过期24h）</span></h3>
+      <div class="muted">登录/关闭时间按浏览器本地时区 <code id="tzShow"></code> 显示（存 UTC）</div>
+      <table><thead><tr><th>用户</th><th>登录(本地)</th><th>关闭/过期</th><th>时长</th><th>状态</th><th>token</th></tr></thead><tbody id="sBody"></tbody></table>
     </div>
 
     <div id="pane-cards" class="card" style="display:none">
@@ -80,8 +81,10 @@ const apiBase = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin
 const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 const $=id=>document.getElementById(id);
-const fmt = s=> s? new Date(s).toLocaleString() : "-";
-const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h?`${h}h ${m}m`:`${m}m`; };
+// 浏览器本地时区展示（最合理：存 UTC，显本地）
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const fmt = s=> s? new Date(s).toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:tz, hour12:false}) + ` (${tz})` : "-";
+const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), sec2=sec%60; if(h) return `${h}h ${m}m`; if(m) return `${m}m ${sec2}s`; return `${sec2}s`; };
 
 async function checkAdmin(){
   const r=await fetch(apiBase+"/api/me",{headers:headers()});
@@ -90,6 +93,17 @@ async function checkAdmin(){
   $("main").style.display="block"; return true;
 }
 checkAdmin().then(ok=>{ if(ok){ loadUsers(); loadSessions(); renderCardLib(); } });
+// 关闭上报：时长按 关闭时间-登录时间
+window.addEventListener('pagehide', ()=>{
+  const t=localStorage.getItem(tokenKey); if(!t) return;
+  const url=apiBase+"/api/close";
+  try{ navigator.sendBeacon(url, JSON.stringify({token:t})); }catch(e){}
+  try{ fetch(url,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
+});
+window.addEventListener('beforeunload', ()=>{
+  const t=localStorage.getItem(tokenKey); if(!t) return;
+  try{ navigator.sendBeacon(apiBase+"/api/close", JSON.stringify({token:t})); }catch(e){}
+});
 
 document.querySelectorAll(".tab").forEach(b=>{
   b.onclick=()=>{
@@ -111,10 +125,16 @@ async function loadUsers(){
   $("uBody").innerHTML=j.map(u=>`<tr><td>${u.id}</td><td>${u.username}</td><td>${u.avatar?`<img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`:"🐱"}</td><td>${fmt(u.created_at)}</td><td>${u.session_count}</td><td>${fmt(u.last_login)}</td></tr>`).join("");
 }
 async function loadSessions(){
+  $("tzShow").textContent = tz;
   const r=await fetch(apiBase+"/api/admin/sessions",{headers:headers()});
   const j=await r.json();
-  if(j.error){ $("sBody").innerHTML=`<tr><td colspan=5>${j.error}</td></tr>`; return; }
-  $("sBody").innerHTML=j.map(s=>`<tr><td>${s.username}</td><td>${fmt(s.created_at)}</td><td>${fmt(s.expires_at)}</td><td>${dur(s.duration_sec)}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`).join("") || `<tr><td colspan=5>无会话</td></tr>`;
+  if(j.error){ $("sBody").innerHTML=`<tr><td colspan=6>${j.error}</td></tr>`; return; }
+  $("sBody").innerHTML=j.map(s=>{
+    const closed = s.closed_at ? fmt(s.closed_at) : "-";
+    const status = s.closed_at ? "已关闭" : (new Date(s.expires_at) < new Date() ? "已过期(24h)" : "进行中");
+    const closeOrExp = s.closed_at ? closed : `${fmt(s.expires_at)} 到期`;
+    return `<tr><td>${s.username}</td><td>${fmt(s.created_at)}</td><td>${closeOrExp}</td><td>${dur(s.duration_sec)}</td><td>${status}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`;
+  }).join("") || `<tr><td colspan=6>无会话</td></tr>`;
 }
 
 function renderCardLib(){

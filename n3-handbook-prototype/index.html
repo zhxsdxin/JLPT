@@ -259,7 +259,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-7 4 14 3-7h2"/></svg>
       </button>
       <a class="icon-btn" id="adminBtn" href="./admin.html" aria-label="管理" title="管理" hidden>⚙</a>
-      <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="font-size:18px;line-height:1;overflow:hidden;border-radius:50%;width:32px;height:32px">🐭</a>
+      <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="overflow:hidden;border-radius:50%;width:32px;height:32px;padding:0"><img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></a>
     </div>
   </div>
   <div class="search-wrap" id="searchWrap" hidden>
@@ -909,12 +909,14 @@ async function requireLogin(){
 
 async function refreshProfileAvatar(){
   const btn=document.getElementById("profileBtn"); if(!btn) return;
-  const token=getToken(); if(!token){ btn.textContent="🐭"; return; }
+  const token=getToken(); 
+  const isAdminUser=(u)=>u && u.username==="admin";
+  if(!token){ btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; return; }
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
     const j=await r.json();
     if(j.user && j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
-    if(j.user){ btn.textContent="🐭"; return; }
+    if(j.user){ const isAdmin=isAdminUser(j.user); btn.innerHTML=`<img src="${isAdmin?"./avatar-mouse.svg":"./avatar-cat.svg"}" alt="${isAdmin?"🐭":"🐱"}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
   }catch(e){}
   // mock 兜底
   try{
@@ -922,9 +924,21 @@ async function refreshProfileAvatar(){
     const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
     const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
     if(u && u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    else btn.textContent="🐭";
-  }catch(e){ btn.textContent="🐭"; }
+    else { const isAdmin=isAdminUser(u); btn.innerHTML=`<img src="${isAdmin?"./avatar-mouse.svg":"./avatar-cat.svg"}" alt="${isAdmin?"🐭":"🐱"}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; }
+  }catch(e){ btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; }
 }
+
+// 关闭上报：登录时长按 关闭时间-登录时间（24h 过期）
+window.addEventListener('pagehide', ()=>{
+  const t=getToken(); if(!t) return;
+  const url=getApiBase()+"/api/close";
+  try{ navigator.sendBeacon(url, JSON.stringify({token:t})); }catch(e){}
+  try{ fetch(url,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
+});
+window.addEventListener('beforeunload', ()=>{
+  const t=getToken(); if(!t) return;
+  try{ navigator.sendBeacon(getApiBase()+"/api/close", JSON.stringify({token:t})); }catch(e){}
+});
 
 /* ========== 启动（刷新停留当前卡片） ========== */
 (async ()=>{
