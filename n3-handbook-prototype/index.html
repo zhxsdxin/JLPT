@@ -59,7 +59,7 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}   /* 防止 display:flex 等样式覆盖 hidden 属性 */
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%;overflow-x:hidden;max-width:100%}
   body{padding-bottom:env(safe-area-inset-bottom)}
   a{color:var(--accent);text-decoration:none}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -164,8 +164,9 @@
     font-family:"SF Mono","Menlo",monospace;font-size:13px;
     background:var(--accent-soft);color:var(--accent);
     padding:3px 9px;border-radius:8px;
+    word-break:break-word;overflow-wrap:anywhere;max-width:100%;
   }
-  .desc{color:var(--ink-soft);font-size:15px;white-space:pre-wrap}
+  .desc{color:var(--ink-soft);font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 
   .examples{display:flex;flex-direction:column;gap:8px}
   .ex{
@@ -200,7 +201,8 @@
     .detail h2 ruby rt{font-size:.42em}
     .topbar h1{font-size:18px}
   }
-  .ex .ja{font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px}
+  .ex .ja{font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px;max-width:100%}
+  .ex .ja > span{overflow-wrap:anywhere;word-break:break-word}
   .ex .ja > span{flex:0 1 auto}   /* 不撑满：喇叭紧跟句子文字，不靠最右 */
   .ex .ja .speak{margin-top:2px;width:22px;height:22px;flex:none}
   .ex .ja .speak svg{width:12px;height:12px}
@@ -221,6 +223,7 @@
   .keigo-page{
     border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);
     margin-bottom:10px;font-size:14px;white-space:pre-wrap;line-height:1.8;
+    overflow-wrap:anywhere;word-break:break-word;max-width:100%;
   }
   .keigo-page .pg{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;font-weight:600}
 
