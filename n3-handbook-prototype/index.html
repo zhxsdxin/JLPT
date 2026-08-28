@@ -43,7 +43,7 @@
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}   /* 防止 display:flex 等样式覆盖 hidden 属性 */
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
   body{padding-bottom:env(safe-area-inset-bottom)}
   a{color:var(--accent);text-decoration:none}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -259,7 +259,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-7 4 14 3-7h2"/></svg>
       </button>
       <a class="icon-btn" id="adminBtn" href="./admin.html" aria-label="管理" title="管理" hidden>⚙</a>
-      <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="font-size:18px;line-height:1;overflow:hidden;border-radius:50%;width:32px;height:32px">🐱</a>
+      <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="font-size:18px;line-height:1;overflow:hidden;border-radius:50%;width:32px;height:32px">🐭</a>
     </div>
   </div>
   <div class="search-wrap" id="searchWrap" hidden>
@@ -909,12 +909,12 @@ async function requireLogin(){
 
 async function refreshProfileAvatar(){
   const btn=document.getElementById("profileBtn"); if(!btn) return;
-  const token=getToken(); if(!token){ btn.textContent="🐱"; return; }
+  const token=getToken(); if(!token){ btn.textContent="🐭"; return; }
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
     const j=await r.json();
     if(j.user && j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
-    if(j.user){ btn.textContent="🐱"; return; }
+    if(j.user){ btn.textContent="🐭"; return; }
   }catch(e){}
   // mock 兜底
   try{
@@ -922,8 +922,8 @@ async function refreshProfileAvatar(){
     const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
     const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
     if(u && u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    else btn.textContent="🐱";
-  }catch(e){ btn.textContent="🐱"; }
+    else btn.textContent="🐭";
+  }catch(e){ btn.textContent="🐭"; }
 }
 
 /* ========== 启动（刷新停留当前卡片） ========== */
