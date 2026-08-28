@@ -77,12 +77,101 @@ const tokenKey="jlpt_token";
 const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
 const redirect = new URLSearchParams(location.search).get("redirect");
 if(redirect) $("out").textContent = "需登录后访问："+redirect;
-$("reg").onclick=async()=>{ const r=await fetch(api()+"/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); out(await r.json()); };
-$("login").onclick=async()=>{ const r=await fetch(api()+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("u").value,password:$("p").value})}); const j=await r.json(); if(j.token){ localStorage.setItem(tokenKey,j.token); out(j); setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400); } else out(j); };
-$("me").onclick=async()=>{ const r=await fetch(api()+"/api/me",{headers:headers()}); out(await r.json()); };
-$("logout").onclick=async()=>{ const r=await fetch(api()+"/api/logout",{method:"POST",headers:headers()}); localStorage.removeItem(tokenKey); out(await r.json()); };
-$("listU").onclick=async()=>{ const r=await fetch(api()+"/api/users",{headers:headers()}); out(await r.json()); };
-$("listS").onclick=async()=>{ const r=await fetch(api()+"/api/sessions",{headers:headers()}); out(await r.json()); };
+
+// 本地无 worker 时的 mock（localStorage 演示，保证点了一定有反馈）
+function mockUsers(){ try{ return JSON.parse(localStorage.getItem("mock_users")||"[]"); }catch(e){ return []; } }
+function mockSessions(){ try{ return JSON.parse(localStorage.getItem("mock_sessions")||"[]"); }catch(e){ return []; } }
+function saveMock(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+async function sha256s(s){ const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+
+async function safeFetch(path, opts={}){
+  const url = api()+path;
+  try{
+    const r = await fetch(url, opts);
+    const txt = await r.text();
+    let data; try{ data = JSON.parse(txt); }catch(e){ data = txt; }
+    if(!r.ok) return {ok:false, status:r.status, data, url};
+    return {ok:true, data, url};
+  }catch(e){
+    return {ok:false, error:String(e), url};
+  }
+}
+
+function validInput(u,p){
+  if(!u||!p) return "用户名/密码不能为空";
+  if(u.length<2||u.length>20) return "用户名 2-20 字符";
+  if(p.length<6||p.length>64) return "密码 6-64 字符";
+  if(!/^[a-zA-Z0-9_\u4e00-\u9fa5-]+$/.test(u)) return "用户名仅允许字母数字_ - 中文";
+  return null;
+}
+$("reg").onclick=async()=>{
+  const username=$("u").value.trim(), password=$("p").value;
+  const e=validInput(username,password); if(e) return out(e);
+  const res = await safeFetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+  if(res.ok){ out({...res.data, tip:"注册成功，请点登录"}); return; }
+  // 回退 mock（同 worker 限 5）
+  const MAX_USERS = 5;
+  const users = mockUsers();
+  if(users.length >= MAX_USERS) return out({error:`注册已满（上限 ${MAX_USERS}），请通知🐴✨ (本地 mock)`, mock:true});
+  if(users.find(u=>u.username===username)) return out({error:"用户名已存在 (本地 mock)", mock:true});
+  const h = await sha256s(password);
+  users.push({id:users.length+1, username, password_hash:h});
+  saveMock("mock_users", users);
+  out({ok:true, id:users.length, mock:true, tip:"Worker 未部署，已用本地 mock 注册成功，请点登录", api:res.url, fetchError:res.error||res.data});
+};
+$("login").onclick=async()=>{
+  const username=$("u").value.trim(), password=$("p").value;
+  const e2=validInput(username,password); if(e2) return out(e2);
+  const res = await safeFetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+  if(res.ok && res.data.token){
+    localStorage.setItem(tokenKey,res.data.token); out(res.data);
+    setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400); return;
+  }
+  if(res.ok){ out(res.data); return; }
+  // mock 登录
+  const h = await sha256s(password);
+  const users = mockUsers();
+  const u = users.find(x=>x.username===username && x.password_hash===h);
+  if(!u) return out({error:"账号或密码错误 (本地 mock)", mock:true, fetchError:res.error||res.data, api:res.url});
+  const token = crypto.randomUUID();
+  const sessions = mockSessions();
+  sessions.push({id:sessions.length+1, user_id:u.id, token, expires_at:new Date(Date.now()+7*86400000).toISOString()});
+  saveMock("mock_sessions", sessions);
+  localStorage.setItem(tokenKey, token);
+  out({ok:true, token, user:{id:u.id, username:u.username}, mock:true, tip:"Worker 未部署，已用本地 mock 登录"});
+  setTimeout(()=>{ location.href = redirect || "./index.html"; }, 400);
+};
+$("me").onclick=async()=>{
+  const res = await safeFetch("/api/me",{headers:headers()});
+  if(res.ok){ out(res.data); return; }
+  // mock
+  const token = localStorage.getItem(tokenKey);
+  const sessions = mockSessions(); const users = mockUsers();
+  const s = sessions.find(x=>x.token===token);
+  const u = s ? users.find(x=>x.id===s.user_id) : null;
+  if(u && s && new Date(s.expires_at) > new Date()) out({user:{id:u.id, username:u.username}, mock:true});
+  else out({user:null, mock:true, fetchError:res.error||res.data});
+};
+$("logout").onclick=async()=>{
+  const res = await safeFetch("/api/logout",{method:"POST",headers:headers()});
+  const token = localStorage.getItem(tokenKey);
+  if(token){
+    const sessions = mockSessions().filter(x=>x.token!==token);
+    saveMock("mock_sessions", sessions);
+    localStorage.removeItem(tokenKey);
+  }
+  out(res.ok?res.data:{ok:true, mock:true, fetchError:res.error||res.data});
+};
+$("listU").onclick=async()=>{
+  const res = await safeFetch("/api/users",{headers:headers()});
+  if(res.ok) return out(res.data);
+  out({mock_users: mockUsers(), tip:"Worker 未部署，显示本地 mock", fetchError:res.error||res.data});
+};
+$("listS").onclick=async()=>{
+  const res = await safeFetch("/api/sessions",{headers:headers()});
+  if(res.ok) return out(res.data);
+  out({mock_sessions: mockSessions(), tip:"Worker 未部署，显示本地 mock", fetchError:res.error||res.data});
+};
 $("api").value=localStorage.getItem("jlpt_api")||""; $("api").oninput=()=>localStorage.setItem("jlpt_api",$("api").value);
 </script>
 </body>

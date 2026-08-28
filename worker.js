@@ -41,12 +41,18 @@ export default {
         return json(result.results, cors);
       }
 
-      // 注册
+      // 注册（限量 + 防注入/校验）
       if (pathname === "/api/register" && request.method === "POST") {
-        const { username, password } = await request.json();
-        if (!username || !password) return json({ error: "username/password 必填" }, cors, 400);
+        const MAX_USERS = 5;
+        let { username, password } = await request.json();
+        username = String(username||"").trim(); password = String(password||"");
+        const err = validateInput(username, password);
+        if (err) return json({ error: err }, cors, 400);
+        const cnt = await env.DB.prepare("SELECT COUNT(*) as c FROM users").first();
+        if (cnt && cnt.c >= MAX_USERS) return json({ error: `注册已满（上限 ${MAX_USERS}），请通知🐴✨` }, cors, 403);
         const hash = await sha256(password);
         try {
+          // prepare+bind 已参数化，杜绝 SQL 注入
           const r = await env.DB.prepare("INSERT INTO users (username, password_hash) VALUES (?,?)").bind(username, hash).run();
           return json({ ok: true, id: r.meta.last_row_id }, cors);
         } catch (e) {
@@ -54,9 +60,12 @@ export default {
         }
       }
 
-      // 登录 -> 建 session
+      // 登录 -> 建 session（同校验）
       if (pathname === "/api/login" && request.method === "POST") {
-        const { username, password } = await request.json();
+        let { username, password } = await request.json();
+        username = String(username||"").trim(); password = String(password||"");
+        const err = validateInput(username, password, true);
+        if (err) return json({ error: err }, cors, 400);
         const hash = await sha256(password);
         const user = await env.DB.prepare("SELECT * FROM users WHERE username=? AND password_hash=?").bind(username, hash).first();
         if (!user) return json({ error: "账号或密码错误" }, cors, 401);
@@ -102,6 +111,15 @@ async function sha256(s) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+function validateInput(username, password, isLogin=false){
+  if(!username || !password) return "username/password 必填";
+  if(username.length < 2 || username.length > 20) return "用户名 2-20 字符";
+  if(password.length < 6 || password.length > 64) return "密码 6-64 字符";
+  if(!/^[a-zA-Z0-9_\u4e00-\u9fa5-]+$/.test(username)) return "用户名仅允许字母数字_ - 中文";
+  // 登录时不强制复杂度，注册时可加；此处统一放行
+  return null;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
 function json(data, cors, status = 200, extra = {}) {
   return new Response(JSON.stringify(data), {
     status,
