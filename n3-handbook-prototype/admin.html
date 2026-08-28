@@ -173,7 +173,7 @@ async function loadUsers(){
   const isNarrow = window.innerWidth < 600;
   $("uBody").innerHTML=j.map(u=>{
     const avatar = u.username==="admin"
-      ? `<img src="./avatar-mouse.svg" style="width:28px;height:28px;border-radius:50%;object-fit:cover" alt="🐭">`
+      ? `🐭`
       : (u.avatar?`<img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`:"🐱");
     const reg = isNarrow ? fmtDate(u.created_at) : fmt(u.created_at);
     const last = isNarrow ? fmtDate(u.last_login) : fmt(u.last_login);

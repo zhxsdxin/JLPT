@@ -94,7 +94,7 @@ const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorizatio
 let _isAdmin=false;
 function setAvatar(url){
   const el=$("avatar");
-  if(_isAdmin){ el.innerHTML=`<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover">`; return; }
+  if(_isAdmin){ el.textContent="🐭"; return; }
   if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; } else el.textContent="🐱";
 }
 $("avatar").onclick=()=>{
