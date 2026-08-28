@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#1f3a5f"/>
+<title>管理 - N3 文法 小手册</title>
+<style>
+  :root{--bg:#f6f4ee;--card:#ffffff;--ink:#1c2434;--ink-soft:#475063;--muted:#7a8597;--line:#e6e2d6;--accent:#1f3a5f;--accent-soft:#dde6f1;--warn:#8a5a00;--warn-bg:#fff5dc;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);--radius:14px}
+  @media (prefers-color-scheme: dark){:root{--bg:#101521;--card:#172033;--ink:#eef1f6;--ink-soft:#b9c2d2;--muted:#8392a8;--line:#26324a;--accent:#9ec0ea;--accent-soft:#1d2c46;--warn:#f1c179;--warn-bg:#3a2e16;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
+  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic","PingFang SC","Microsoft YaHei",sans-serif}
+  a{color:var(--accent);text-decoration:none}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+  @media (prefers-color-scheme: dark){.topbar{background:rgba(16,21,33,.78)}}
+  .topbar-inner{display:flex;align-items:center;gap:8px;padding:10px 14px;max-width:900px;margin:0 auto}
+  .topbar h1{font-size:17px;margin:0;font-weight:800;flex:1;background:linear-gradient(135deg,var(--accent) 0%,#ff7a8a 70%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .icon-btn{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .wrap{max-width:900px;margin:0 auto;padding:12px 14px 40px}
+  .tabs{display:flex;gap:8px;margin-top:12px}
+  .tab{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);word-break:break-all}
+  th{color:var(--muted);font-size:11px;letter-spacing:.06em}
+  .inp{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;margin:4px 0}
+  .btn{padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.danger{color:#c0392b;border-color:#ffcccc}
+  .muted{font-size:12px;color:var(--muted)}
+  pre{white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px;max-height:240px;overflow:auto}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="icon-btn" href="./index.html">‹</a><h1>ADMIN · 管理</h1><a class="icon-btn" href="./profile.html">🐱</a>
+</div></header>
+<main class="wrap">
+  <div id="gate" class="card" style="display:none">需 <b>admin</b> 账号登录。<a href="./login.html">去登录</a></div>
+
+  <div id="main" style="display:none">
+    <div class="tabs">
+      <button class="tab active" data-t="users">用户</button>
+      <button class="tab" data-t="sessions">登录时长</button>
+      <button class="tab" data-t="cards">卡片 JS</button>
+    </div>
+
+    <div id="pane-users" class="card">
+      <h3 style="margin:0 0 8px">用户数据 <span class="muted" id="uCount"></span></h3>
+      <table><thead><tr><th>ID</th><th>用户名</th><th>头像</th><th>注册</th><th>会话数</th><th>最后登录</th></tr></thead><tbody id="uBody"></tbody></table>
+      <pre id="uRaw" style="display:none"></pre>
+    </div>
+
+    <div id="pane-sessions" class="card" style="display:none">
+      <h3 style="margin:0 0 8px">会话 / 登录时长</h3>
+      <table><thead><tr><th>用户</th><th>登录时间</th><th>过期</th><th>时长</th><th>token</th></tr></thead><tbody id="sBody"></tbody></table>
+    </div>
+
+    <div id="pane-cards" class="card" style="display:none">
+      <h3 style="margin:0 0 8px">卡片 JS (N3_DATA)</h3>
+      <div class="muted">修改后存 D1 <code>card_overrides</code>，前端优先读覆盖；留空删覆盖。</div>
+      <div style="display:flex;gap:8px;margin:8px 0">
+        <input id="cardId" class="inp" placeholder="卡片 ID，如 1" style="flex:0 0 100px">
+        <button class="btn" id="cardLoad">加载</button>
+        <button class="btn" id="cardList">全部覆盖</button>
+      </div>
+      <textarea id="cardJson" class="inp" style="height:260px;font-family:monospace" placeholder='{"pattern":"...","senses":[...]}'></textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn primary" id="cardSave">保存覆盖</button>
+        <button class="btn danger" id="cardDel">删除覆盖</button>
+      </div>
+      <pre id="cardOut"></pre>
+      <div id="cardLib" style="margin-top:10px;max-height:260px;overflow:auto"></div>
+    </div>
+  </div>
+</main>
+<script src="./data.js"></script>
+<script>
+const apiBase = location.hostname.includes("github.io") ? "https://jlpt.zhxsdxin.workers.dev" : location.origin;
+const tokenKey="jlpt_token";
+const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorization:"Bearer "+t}:{}};
+const $=id=>document.getElementById(id);
+const fmt = s=> s? new Date(s).toLocaleString() : "-";
+const dur = sec=>{ if(sec==null) return "-"; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h?`${h}h ${m}m`:`${m}m`; };
+
+async function checkAdmin(){
+  const r=await fetch(apiBase+"/api/me",{headers:headers()});
+  const j=await r.json();
+  if(!j.user || j.user.username!=="admin"){ $("gate").style.display="block"; return false; }
+  $("main").style.display="block"; return true;
+}
+checkAdmin().then(ok=>{ if(ok){ loadUsers(); loadSessions(); renderCardLib(); } });
+
+document.querySelectorAll(".tab").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+    const t=b.dataset.t;
+    $("pane-users").style.display=t==="users"?"block":"none";
+    $("pane-sessions").style.display=t==="sessions"?"block":"none";
+    $("pane-cards").style.display=t==="cards"?"block":"none";
+    if(t==="users") loadUsers();
+    if(t==="sessions") loadSessions();
+  };
+});
+
+async function loadUsers(){
+  const r=await fetch(apiBase+"/api/admin/users",{headers:headers()});
+  const j=await r.json();
+  if(j.error){ $("uBody").innerHTML=`<tr><td colspan=6>${j.error}</td></tr>`; return; }
+  $("uCount").textContent=`共 ${j.length} 人 (上限 5)`;
+  $("uBody").innerHTML=j.map(u=>`<tr><td>${u.id}</td><td>${u.username}</td><td>${u.avatar?`<img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`:"🐱"}</td><td>${fmt(u.created_at)}</td><td>${u.session_count}</td><td>${fmt(u.last_login)}</td></tr>`).join("");
+}
+async function loadSessions(){
+  const r=await fetch(apiBase+"/api/admin/sessions",{headers:headers()});
+  const j=await r.json();
+  if(j.error){ $("sBody").innerHTML=`<tr><td colspan=5>${j.error}</td></tr>`; return; }
+  $("sBody").innerHTML=j.map(s=>`<tr><td>${s.username}</td><td>${fmt(s.created_at)}</td><td>${fmt(s.expires_at)}</td><td>${dur(s.duration_sec)}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`).join("") || `<tr><td colspan=5>无会话</td></tr>`;
+}
+
+function renderCardLib(){
+  const lib=$("cardLib");
+  if(typeof N3_DATA==="undefined"){ lib.textContent="N3_DATA 未加载"; return; }
+  lib.innerHTML=N3_DATA.slice(0,50).map(x=>`<div style="padding:4px 0;border-bottom:1px dashed var(--line);font-size:12px"><b>No.${x.id}</b> ${x.pattern} <button class="btn" style="padding:2px 6px;font-size:11px" onclick="document.getElementById('cardId').value=${x.id};document.getElementById('cardLoad').click()">编辑</button></div>`).join("") + `<div class="muted">共 ${N3_DATA.length} 条，仅列 50</div>`;
+}
+$("cardLoad").onclick=async()=>{
+  const id=$("cardId").value.trim(); if(!id) return;
+  // 优先读覆盖
+  let r=await fetch(apiBase+"/api/admin/card?id="+id,{headers:headers()}); let j=await r.json();
+  if(j){ $("cardJson").value=JSON.stringify(j,null,2); $("cardOut").textContent="命中覆盖"; return; }
+  // 回退 N3_DATA
+  const item=(typeof N3_DATA!=="undefined"?N3_DATA.find(x=>String(x.id)===String(id)):null);
+  if(item) $("cardJson").value=JSON.stringify(item,null,2); else $("cardOut").textContent="未找到";
+};
+$("cardList").onclick=async()=>{
+  const r=await fetch(apiBase+"/api/admin/card",{headers:headers()}); const j=await r.json(); $("cardOut").textContent=JSON.stringify(j,null,2);
+};
+$("cardSave").onclick=async()=>{
+  const id=$("cardId").value.trim(); let data;
+  try{ data=JSON.parse($("cardJson").value); }catch(e){ return $("cardOut").textContent="JSON 解析失败: "+e; }
+  const r=await fetch(apiBase+"/api/admin/card",{method:"POST",headers:{"Content-Type":"application/json",...headers()},body:JSON.stringify({id,data})});
+  $("cardOut").textContent=JSON.stringify(await r.json(),null,2);
+};
+$("cardDel").onclick=async()=>{
+  const id=$("cardId").value.trim(); if(!id) return;
+  const r=await fetch(apiBase+"/api/admin/card?id="+id,{method:"DELETE",headers:headers()});
+  $("cardOut").textContent=JSON.stringify(await r.json(),null,2);
+};
+</script>
+</body>
+</html>

@@ -258,6 +258,7 @@
       <button class="icon-btn" id="randomBtn" aria-label="随机一条" title="随机">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-7 4 14 3-7h2"/></svg>
       </button>
+      <a class="icon-btn" id="adminBtn" href="./admin.html" aria-label="管理" title="管理" hidden>⚙</a>
       <a class="icon-btn" id="profileBtn" href="./profile.html" aria-label="我的" title="我的" style="font-size:18px;line-height:1;overflow:hidden;border-radius:50%;width:32px;height:32px">🐱</a>
     </div>
   </div>
@@ -309,6 +310,19 @@
  * ============================================================ */
 const UNIT_NAMES = Array.from({length:19}, (_,i)=>`第${i+1}単元`);
 const KEIGO_ID = 'keigo';   // 敬語特殊条目 id
+// 卡片覆盖：从 D1 拉取 admin 修改
+async function loadCardOverrides(){
+  try{
+    const base=(localStorage.getItem("jlpt_api")||(location.hostname.includes("github.io")?"https://jlpt.zhxsdxin.workers.dev":location.origin)).replace(/\/$/,"");
+    const r=await fetch(base+"/api/cards"); if(!r.ok) return;
+    const list=await r.json();
+    if(Array.isArray(list)) list.forEach(o=>{
+      const idx=N3_DATA.findIndex(x=>x.id===o.id);
+      if(idx>=0) N3_DATA[idx]={...N3_DATA[idx], ...o.data};
+      else N3_DATA.push(o.data);
+    });
+  }catch(e){}
+}
 
 /* ========== 状态 ========== */
 const state = {
@@ -914,8 +928,15 @@ async function refreshProfileAvatar(){
 
 /* ========== 启动（刷新停留当前卡片） ========== */
 (async ()=>{
+  await loadCardOverrides();
   if(REQUIRE_LOGIN && !(await requireLogin())) return;
   refreshProfileAvatar();
+  // 管理员显示入口
+  try{
+    const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+getToken()}});
+    const j=await r.json();
+    if(j.user && j.user.username==="admin") document.getElementById("adminBtn").hidden=false;
+  }catch(e){}
   if(!restoreFromHash(false)) showList(false);
 })();
 </script>
