@@ -796,12 +796,24 @@ if('speechSynthesis' in window){
 }
 function fallbackAudio(text){
   if(!text) return;
-  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text);
+  // 多源回退：谷歌（可能被墙）→ 百度翻译（国内可达）
+  const sources = [
+    'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=' + encodeURIComponent(text),
+    'https://fanyi.baidu.com/gettts?lan=jpn&spd=5&source=web&text=' + encodeURIComponent(text),
+    'https://dict.youdao.com/dictvoice?audio=' + encodeURIComponent(text) + '&type=3'
+  ];
   if(ttsAudio) try{ttsAudio.pause();}catch(e){}
-  ttsAudio = new Audio(url);
-  ttsAudio.play().catch(()=>{
-    toast('本机无日语语音且网络语音被拦截：请安装系统日语语音（Win: 设置-时间和语言-语言-添加日语；Mac: 系统设置-辅助功能-朗读内容-系统语音-自定-日语）后刷新重试');
-  });
+  let i=0;
+  function tryPlay(){
+    if(i>=sources.length){
+      toast('无可用日语语音：请安装系统日语 TTS 语音包（安卓：设置→系统→语言与输入→文字转语音→Google语音引擎→安装日语；iOS：设置→辅助功能→朗读内容→系统语音→日语）或检查网络');
+      return;
+    }
+    ttsAudio = new Audio(sources[i++]);
+    ttsAudio.onerror = ()=>{ try{ttsAudio.pause();}catch(e){} tryPlay(); };
+    ttsAudio.play().catch(()=>{ tryPlay(); });
+  }
+  tryPlay();
 }
 async function speak(raw){
   if(!raw) return;
