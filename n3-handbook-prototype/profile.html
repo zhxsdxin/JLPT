@@ -44,7 +44,7 @@
 <main class="wrap">
   <div class="hero">
     <div class="hero-title">🐱 默认猫猫头像</div>
-    <div class="hero-sub">未设置则显示 🐱 · 管理员为 🐭</div>
+    <div class="hero-sub">登录后自动同步到手册右上角</div>
   </div>
   <div class="card" style="text-align:center">
     <div id="avatar" class="avatar" style="cursor:pointer" title="点击下载头像">🐱</div>
@@ -94,9 +94,8 @@ const headers=()=>{const t=localStorage.getItem(tokenKey);return t?{Authorizatio
 let _isAdmin=false;
 function setAvatar(url){
   const el=$("avatar");
-  if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; }
-  else if(_isAdmin){ el.innerHTML=`<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover">`; }
-  else el.textContent="🐱";
+  if(_isAdmin){ el.innerHTML=`<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover">`; return; }
+  if(url){ el.innerHTML=`<img src="${url}" alt="avatar">`; } else el.textContent="🐱";
 }
 $("avatar").onclick=()=>{
   const img=$("avatar").querySelector("img");

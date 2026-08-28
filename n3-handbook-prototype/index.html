@@ -915,16 +915,26 @@ async function refreshProfileAvatar(){
   try{
     const r=await fetch(getApiBase()+"/api/me",{headers:{Authorization:"Bearer "+token}});
     const j=await r.json();
-    if(j.user && j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
-    if(j.user){ const isAdmin=isAdminUser(j.user); btn.innerHTML=`<img src="${isAdmin?"./avatar-mouse.svg":"./avatar-cat.svg"}" alt="${isAdmin?"🐭":"🐱"}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
+    if(j.user){
+      const isAdmin=isAdminUser(j.user);
+      if(isAdmin){ btn.innerHTML='<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; return; }
+      if(j.user.avatar){ btn.innerHTML=`<img src="${j.user.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; return; }
+      btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; return;
+    }
   }catch(e){}
   // mock 兜底
   try{
     const users=JSON.parse(localStorage.getItem("mock_users")||"[]");
     const sessions=JSON.parse(localStorage.getItem("mock_sessions")||"[]");
     const s=sessions.find(x=>x.token===token); const u=s?users.find(x=>x.id===s.user_id):null;
-    if(u && u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    else { const isAdmin=isAdminUser(u); btn.innerHTML=`<img src="${isAdmin?"./avatar-mouse.svg":"./avatar-cat.svg"}" alt="${isAdmin?"🐭":"🐱"}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`; }
+    if(u){
+      const isAdmin=isAdminUser(u);
+      if(isAdmin){ btn.innerHTML='<img src="./avatar-mouse.svg" alt="🐭" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; return; }
+      if(u.avatar) btn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      else btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      return;
+    }
+    btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
   }catch(e){ btn.innerHTML='<img src="./avatar-cat.svg" alt="🐱" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; }
 }
 
