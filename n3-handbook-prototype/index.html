@@ -926,12 +926,12 @@ function renderPracticeDetail(unit){
         box.querySelectorAll('.practice-opt.large').forEach(o=>o.disabled=true);
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解':'❌ 误选'} 正解：<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误选 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       };
     });
-    // A-J 小卡片：可拖动到题目，或下拉选框
+    // A-J  bank：下拉选框 + 拖动小卡片
     document.querySelectorAll('.blank-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         const qi=parseInt(sel.dataset.qi,10);
@@ -943,7 +943,7 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解':'❌ 误选'} 正解：<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误选 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         sel.disabled=true;
         sel.style.borderColor = ok ? 'var(--ok)' : '#e57373';
@@ -996,7 +996,7 @@ function renderPracticeDetail(unit){
         const correct = q.options ? q.options[q.answer] : String(q.answer);
         const ok = val===correct || val.toLowerCase()===String(correct).toLowerCase();
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解':'❌ 误答'} 正解：<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误答 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         inp.disabled=true; btn.disabled=true;
         if(ok) inp.style.borderColor='var(--ok)'; else inp.style.borderColor='#e57373';
