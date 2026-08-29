@@ -207,6 +207,20 @@ window.addEventListener('beforeunload', ()=>{
   const t=localStorage.getItem(tokenKey); if(!t) return;
   try{ navigator.sendBeacon(api()+"/api/close", JSON.stringify({token:t})); }catch(e){}
 });
+// 心跳：10 分钟不活跃到期，有效时长不计该 10 分钟
+(function(){
+  let lastTouch = 0;
+  async function touch(){
+    const t=localStorage.getItem(tokenKey); if(!t) return;
+    const now=Date.now();
+    if(now - lastTouch < 30000) return;
+    lastTouch = now;
+    try{ await fetch(api()+"/api/touch",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t})}); }catch(e){}
+  }
+  setInterval(touch, 120000);
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(ev=>{ window.addEventListener(ev, touch, {passive:true}); });
+  touch();
+})();
 </script>
 </body>
 </html>

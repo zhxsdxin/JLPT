@@ -36,9 +36,10 @@
   @media (max-width:600px){
     table{font-size:11px}
     th,td{padding:4px 6px}
-    /* 窄屏精简：头像与 token 列隐藏，时间仅 hh:mm 已由 JS 处理 */
+    /* 窄屏精简：头像隐藏；会话表 Token 与设备列隐藏，时间仅 hh:mm 已由 JS 处理 */
     #pane-users th:nth-child(3), #pane-users td:nth-child(3){display:none}
-    #pane-sessions th:last-child, #pane-sessions td:last-child{display:none}
+    #pane-sessions th:nth-child(6), #pane-sessions td:nth-child(6),
+    #pane-sessions th:nth-child(7), #pane-sessions td:nth-child(7){display:none}
   }
 </style>
 </head>
@@ -65,9 +66,10 @@
     </div>
 
     <div id="pane-sessions" class="card" style="display:none">
-      <h3 style="margin:0 0 8px">会话 / 登录时长 <span class="muted">（时长=关闭时间-登录时间，过期24h）</span></h3>
-      <div class="muted">登录/关闭时间按浏览器本地时区 <code id="tzShow"></code> 显示（存 UTC）</div>
-      <table><thead><tr><th>用户</th><th>登录(本地)</th><th>关闭/过期</th><th>时长</th><th>状态</th><th>token</th></tr></thead><tbody id="sBody"></tbody></table>
+      <h3 style="margin:0 0 8px">会话 / 登录时长 <span class="muted">（时长=有效使用时长，不计不活跃10分钟）</span></h3>
+      <div class="muted">登录 / 终止时间按浏览器本地时区 <code id="tzShow"></code> 显示（存 UTC）；终止仅显示「主动关闭」或「不活跃到期」，默认 24 小时过期不显示</div>
+      <table><thead><tr><th>用户</th><th>登录(本地)</th><th>终止</th><th>时长</th><th>状态</th><th>Token</th><th>登录设备</th></tr></thead><tbody id="sBody"></tbody></table>
+      <div class="muted" style="margin-top:8px">不活跃：连续 10 分钟无操作自动终止，再次操作需重新登录</div>
     </div>
 
     <div id="pane-cards" class="card" style="display:none">
@@ -193,18 +195,45 @@ async function loadUsers(){
     return `<tr><td>${u.id}</td><td>${u.username}</td><td>${avatar}</td><td>${reg}</td><td>${u.session_count}</td><td>${last}</td></tr>`;
   }).join("");
 }
+const escapeHtml = s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 async function loadSessions(){
   $("tzShow").textContent = tzDisplay;
   const r=await fetch(apiBase+"/api/admin/sessions",{headers:headers()});
   const j=await r.json();
-  if(j.error){ $("sBody").innerHTML=`<tr><td colspan=6>${j.error}</td></tr>`; return; }
+  if(j.error){ $("sBody").innerHTML=`<tr><td colspan=7>${escapeHtml(j.error)}</td></tr>`; return; }
   const isNarrow = window.innerWidth < 600;
   $("sBody").innerHTML=j.map(s=>{
     const login = isNarrow ? fmtDate(s.created_at) : fmt(s.created_at);
-    const closeOrExp = s.closed_at ? (isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at)) : (isNarrow ? fmtTime(s.expires_at) : `${fmt(s.expires_at)} 到期`);
-    const status = s.closed_at ? "已关闭" : (parseUTC(s.expires_at) < new Date() ? "已过期(24h)" : "进行中");
-    return `<tr><td>${s.username}</td><td>${login}</td><td>${closeOrExp}</td><td>${dur(s.duration_sec)}</td><td>${status}</td><td title="${s.token}">${s.token.slice(0,8)}…</td></tr>`;
-  }).join("") || `<tr><td colspan=6>无会话</td></tr>`;
+    // 终止：仅主动关闭 / 不活跃到期 显示时间，其它（进行中 / 24h默认过期）显示 —
+    let terminated = "—";
+    let status = "进行中";
+    let badge = "";
+    if(s.close_reason === 'active'){
+      terminated = isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at);
+      status = "主动关闭";
+      badge = `<span style="margin-left:4px;font-size:10px;padding:1px 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent)">主动</span>`;
+    } else if(s.close_reason === 'inactive'){
+      terminated = isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at);
+      status = "不活跃到期";
+      badge = `<span style="margin-left:4px;font-size:10px;padding:1px 5px;border-radius:999px;background:var(--warn-bg);color:var(--warn)">不活跃</span>`;
+    } else {
+      // 未关闭：判断是否 24h 已过期
+      const exp = parseUTC(s.expires_at);
+      if(exp && exp < new Date()){
+        status = "已过期";
+        terminated = "—";
+      } else {
+        status = "进行中";
+        terminated = "—";
+      }
+    }
+    const durText = dur(s.duration_sec);
+    const tokenShort = s.token ? `${escapeHtml(s.token.slice(0,8))}…` : "—";
+    const tokenFull = s.token ? escapeHtml(s.token) : "";
+    const device = s.device ? escapeHtml(s.device) : (s.user_agent ? "其他" : "—");
+    const deviceTitle = s.user_agent ? escapeHtml(s.user_agent) : device;
+    return `<tr><td>${escapeHtml(s.username)}</td><td>${login}</td><td>${terminated}${badge}</td><td>${durText}</td><td>${status}</td><td title="${tokenFull}">${tokenShort}</td><td title="${deviceTitle}">${device}</td></tr>`;
+  }).join("") || `<tr><td colspan=7>无会话</td></tr>`;
 }
 
 function renderCardLib(){
@@ -235,6 +264,32 @@ $("cardDel").onclick=async()=>{
   const r=await fetch(apiBase+"/api/admin/card?id="+id,{method:"DELETE",headers:headers()});
   $("cardOut").textContent=JSON.stringify(await r.json(),null,2);
 };
+
+// 心跳：10 分钟不活跃到期，定时 + 操作触发 /api/touch 刷新 last_active_at
+(function(){
+  let lastTouch = 0;
+  async function touch(){
+    const t=localStorage.getItem(tokenKey); if(!t) return;
+    const now=Date.now();
+    if(now - lastTouch < 30000) return; // 节流 30s
+    lastTouch = now;
+    try{
+      const r=await fetch(apiBase+"/api/touch",{method:"POST",headers:{"Content-Type":"application/json",...headers()},body:JSON.stringify({token:t})});
+      if(r.status===401){
+        // 不活跃到期或过期，需重新登录
+        try{ const j=await r.json(); if(j.reason==='inactive') console.warn('session inactive expired'); }catch(e){}
+      }
+    }catch(e){}
+  }
+  // 定时心跳 2 分钟
+  setInterval(touch, 120000);
+  // 操作触发
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(ev=>{
+    window.addEventListener(ev, touch, {passive:true});
+  });
+  // 初始 touch
+  touch();
+})();
 </script>
 </body>
 </html>

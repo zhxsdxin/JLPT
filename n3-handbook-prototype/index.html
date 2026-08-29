@@ -1299,7 +1299,7 @@ async function refreshProfileAvatar(){
   }catch(e){ if(!stale) btn.textContent="🐱"; }
 }
 
-// 关闭上报：登录时长按 关闭时间-登录时间（24h 过期）
+// 关闭上报：主动关闭记 close_reason='active'（终止列显示）；不活跃 10 分钟由服务端判定，24h 默认过期不显示终止时间
 window.addEventListener('pagehide', ()=>{
   const t=getToken(); if(!t) return;
   const url=getApiBase()+"/api/close";
@@ -1310,6 +1310,33 @@ window.addEventListener('beforeunload', ()=>{
   const t=getToken(); if(!t) return;
   try{ navigator.sendBeacon(getApiBase()+"/api/close", JSON.stringify({token:t})); }catch(e){}
 });
+
+// 心跳：10 分钟无操作服务端自动置不活跃到期，有效时长不计该 10 分钟；定时 + 用户操作触发 touch
+(function(){
+  let lastTouch = 0;
+  async function touch(){
+    const t=getToken(); if(!t) return;
+    const now=Date.now();
+    if(now - lastTouch < 30000) return;
+    lastTouch = now;
+    try{
+      const r=await fetch(getApiBase()+"/api/touch",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t})});
+      if(r.status===401){
+        // 不活跃到期或过期需重新登录
+        const j=await r.json().catch(()=>({}));
+        if(j.reason==='inactive'){
+          // 可选：提示后跳转登录
+          console.warn('session inactive expired, need relogin');
+        }
+      }
+    }catch(e){}
+  }
+  setInterval(touch, 120000);
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(ev=>{
+    window.addEventListener(ev, touch, {passive:true});
+  });
+  touch();
+})();
 
 /* ========== 启动（SWR：先显旧数据，后台再验） ========== */
 (async ()=>{
