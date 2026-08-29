@@ -1299,17 +1299,7 @@ async function refreshProfileAvatar(){
   }catch(e){ if(!stale) btn.textContent="🐱"; }
 }
 
-// 关闭上报：主动关闭记 close_reason='active'（终止列显示）；不活跃 10 分钟由服务端判定，24h 默认过期不显示终止时间
-window.addEventListener('pagehide', ()=>{
-  const t=getToken(); if(!t) return;
-  const url=getApiBase()+"/api/close";
-  try{ navigator.sendBeacon(url, JSON.stringify({token:t})); }catch(e){}
-  try{ fetch(url,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
-});
-window.addEventListener('beforeunload', ()=>{
-  const t=getToken(); if(!t) return;
-  try{ navigator.sendBeacon(getApiBase()+"/api/close", JSON.stringify({token:t})); }catch(e){}
-});
+// 主动关闭仅由显式登出触发；pagehide 自动 /api/close 会在站内跳转时误标记会话导致 admin 被踢，已禁用（不活跃由服务端 10 分钟判定，24h 过期不显示终止）
 
 // 心跳：10 分钟无操作服务端自动置不活跃到期，有效时长不计该 10 分钟；定时 + 用户操作触发 touch
 (function(){

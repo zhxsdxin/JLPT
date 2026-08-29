@@ -198,15 +198,7 @@ $("logoutBtn").onclick=async()=>{
   localStorage.removeItem(tokenKey);
   out("已登出，需重新登录"); setTimeout(()=>location.href="./login.html", 600);
 };
-window.addEventListener('pagehide', ()=>{
-  const t=localStorage.getItem(tokenKey); if(!t) return;
-  try{ navigator.sendBeacon(api()+"/api/close", JSON.stringify({token:t})); }catch(e){}
-  try{ fetch(api()+"/api/close",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
-});
-window.addEventListener('beforeunload', ()=>{
-  const t=localStorage.getItem(tokenKey); if(!t) return;
-  try{ navigator.sendBeacon(api()+"/api/close", JSON.stringify({token:t})); }catch(e){}
-});
+// 主动关闭仅由登出按钮触发；pagehide 自动 close 已禁用，避免站内跳转误踢
 // 心跳：10 分钟不活跃到期，有效时长不计该 10 分钟
 (function(){
   let lastTouch = 0;

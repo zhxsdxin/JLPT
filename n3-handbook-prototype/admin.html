@@ -148,17 +148,8 @@ async function checkAdmin(){
   return false;
 }
 checkAdmin().then(ok=>{ if(ok){ loadUsers(); loadSessions(); renderCardLib(); } });
-// 关闭上报：时长按 关闭时间-登录时间
-window.addEventListener('pagehide', ()=>{
-  const t=localStorage.getItem(tokenKey); if(!t) return;
-  const url=apiBase+"/api/close";
-  try{ navigator.sendBeacon(url, JSON.stringify({token:t})); }catch(e){}
-  try{ fetch(url,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({token:t}),keepalive:true}); }catch(e){}
-});
-window.addEventListener('beforeunload', ()=>{
-  const t=localStorage.getItem(tokenKey); if(!t) return;
-  try{ navigator.sendBeacon(apiBase+"/api/close", JSON.stringify({token:t})); }catch(e){}
-});
+// 主动关闭仅由 /api/logout 触发；pagehide 的 /api/close 会在站内跳转(index↔admin)时误将有效会话标记为已关闭导致被踢，故已禁用自动上报
+// 需要「关闭浏览器即主动关闭」可改为监听 visibilitychange + 延迟 beacon，此处保留不自动关闭以保证导航不踢出
 
 const savedTab = localStorage.getItem("admin_tab") || "users";
 document.querySelectorAll(".tab").forEach(b=>{
