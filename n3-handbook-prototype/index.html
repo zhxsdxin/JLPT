@@ -130,10 +130,6 @@
   .card-item .zh{font-size:12px;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .card-item .badge{align-self:flex-start;font-size:10px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
   .card-item.done{border-color:var(--ok);background:var(--ok-bg)}
-  .card-item.keigo{
-    border-style:dashed;border-color:var(--warn);background:var(--warn-bg);
-  }
-  .card-item.keigo .pat{color:var(--warn)}
 
   .empty{text-align:center;color:var(--muted);padding:60px 20px}
 
@@ -219,14 +215,6 @@
     border-left:3px solid var(--warn);white-space:pre-wrap;
   }
 
-  /* 敬語详情 */
-  .keigo-page{
-    border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);
-    margin-bottom:10px;font-size:14px;white-space:pre-wrap;line-height:1.8;
-    overflow-wrap:anywhere;word-break:break-word;max-width:100%;
-  }
-  .keigo-page .pg{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;font-weight:600}
-
   /* ===== Bottom nav (detail) ===== */
   .bottom-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:30;
@@ -242,7 +230,10 @@
   }
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn:disabled{opacity:.45}
-  .progress{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap}
+  .progress{font-size:12px;color:var(--muted);padding:0 6px;white-space:nowrap;user-select:text}
+  .progress-input{width:44px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:2px 4px;font-size:12px;background:var(--card);color:var(--ink);outline:0}
+  .progress-dropdown{scrollbar-width:thin;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+  .progress-option:hover{background:var(--accent-soft);color:var(--accent)}
   .fab{
     position:fixed;right:14px;bottom:calc(64px + env(safe-area-inset-bottom));
     z-index:25;width:48px;height:48px;border-radius:50%;
@@ -362,7 +353,28 @@ try{
  * 敬語：N3_KEIGO = [{page, text}]
  * ============================================================ */
 const UNIT_NAMES = Array.from({length:19}, (_,i)=>`第${i+1}単元`);
-const KEIGO_ID = 'keigo';   // 敬語特殊条目 id
+const KEIGO_ID = 'keigo';   // 敬語特殊条目 id（兼容旧 #keigo 跳转）
+const KEIGO_PAGE_PREFIX = 'keigo-';
+function keigoTitle(pg){
+  const t = (pg.pattern||pg.text||'').split('\n')[0].trim().slice(0,22);
+  if(t.includes('尊敬')||t.includes('尊他')) return `尊敬語`;
+  if(t.includes('謙譲')||t.includes('自谦')||t.includes('謙譲語')) return `謙譲語`;
+  if(t.includes('丁寧')) return `丁寧語`;
+  if(pg.page===207) return '敬語 概論';
+  return `敬語`;
+}
+function keigoSnippet(pg){
+  const lines=(pg.text||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const body=lines.slice(1).join(' ').replace(/\s+/g,' ').slice(0,42);
+  return body || lines[0].slice(0,42);
+}
+function keigoBadge(pg){
+  const p = (pg.pattern||pg.text||'');
+  if(p.includes('尊敬')||p.includes('尊他')) return '尊敬';
+  if(p.includes('謙譲')||p.includes('自谦')) return '謙譲';
+  if(p.includes('丁寧')) return '丁寧';
+  return '概論';
+}
 // 卡片覆盖：SWR 旧数据保持，后台拉新后平滑更新
 async function loadCardOverrides(){
   try{
@@ -437,10 +449,14 @@ function renderList(){
     grouped.get(uname).push(item);
   });
 
-  // 敬語入口放到最后（第20単元）
-  if(!state.onlyFav){
-    const showKeigo = !q || '敬語'.includes(q) || 'けいご'.includes(q) || 'keigo'.includes(q);
-    if(showKeigo) grouped.set('第20単元 敬語', [{_keigo:true}]);
+  // 敬語按页拆卡：与 1-19 单元同为 list-grid 卡片，便于浏览/搜索/收藏式预览
+  if(!state.onlyFav && typeof N3_KEIGO !== 'undefined'){
+    const keigoPages = N3_KEIGO.filter(pg=>{
+      if(!q) return true;
+      const hay = allText(pg).toLowerCase();
+      return hay.includes(q) || '敬語'.includes(q) || 'けいご'.includes(q) || 'keigo'.includes(q) || '尊敬語'.includes(q) || '謙譲語'.includes(q) || '丁寧語'.includes(q);
+    }).map(pg=>({_keigo:true, page:pg.page, text:pg.text, pattern:pg.pattern, senses:pg.senses}));
+    if(keigoPages.length) grouped.set('第20単元 敬語', keigoPages);
   }
 
   if(grouped.size===0){
@@ -450,13 +466,12 @@ function renderList(){
   const html = [...grouped.entries()].map(([unit, items])=>{
     const cards = items.map(it=>{
       if(it._keigo){
-        return `<div class="card-item keigo" data-id="${KEIGO_ID}">
+        return `<div class="card-item keigo" data-id="${KEIGO_PAGE_PREFIX+it.page}">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="num">UNIT 20</span>
-            <span class="badge">专题</span>
+            <span class="badge">${keigoBadge(it)}</span>
           </div>
-          <div class="pat">敬語</div>
-          <div class="zh">尊敬語 · 謙譲語 · 丁寧語</div>
+          <div class="pat">${esc(keigoTitle(it))}</div>
+          <div class="zh">${esc(keigoSnippet(it)).slice(0,42)}${keigoSnippet(it).length>=42?'…':''}</div>
         </div>`;
       }
       const fav = state.favs.has(it.id) ? 'done' : '';
@@ -474,7 +489,11 @@ function renderList(){
   root.innerHTML = html;
   root.querySelectorAll('.card-item').forEach(el=>{
     const id = el.dataset.id;
-    el.addEventListener('click',()=>openDetail(id === KEIGO_ID ? KEIGO_ID : parseInt(id,10)));
+    if(id.startsWith(KEIGO_PAGE_PREFIX)){
+      el.addEventListener('click',()=>openDetail(id));
+    } else {
+      el.addEventListener('click',()=>openDetail(parseInt(id,10)));
+    }
   });
 }
 
@@ -519,29 +538,11 @@ function highlightJa(ja, pattern, kana){
   return e;
 }
 
-/* ========== 详情渲染 ========== */
-function renderDetail(){
-  if(state.current === KEIGO_ID){
-    renderKeigoDetail();
-    return;
-  }
-  const item = N3_DATA.find(x=>x.id===state.current);
-  if(!item){
-    // 199 等不存在的编号：保持详情页停留，不跳列表
-    document.getElementById('title').textContent = `No.${String(state.current).padStart(3,'0')} · 未找到`;
-    document.getElementById('progress').textContent = `— / ${N3_DATA.length}`;
-    document.getElementById('detail').innerHTML = `<div class="empty">未找到编号 ${esc(String(state.current))} 的卡片。<br>有效范围 1-${N3_DATA.length}，或 <a href="#list" onclick="event.preventDefault();showList()">返回列表</a>。</div>`;
-    document.getElementById('favBtn').setAttribute('aria-pressed','false');
-    document.getElementById('prevBtn').disabled = true;
-    document.getElementById('nextBtn').disabled = true;
-    return;
-  }
-  const idx = N3_DATA.findIndex(x=>x.id===state.current);
-  document.getElementById('title').textContent = `No.${String(item.id).padStart(3,'0')} · ${UNIT_NAMES[item.unit-1]}`;
-  document.getElementById('progress').textContent = `${idx+1} / ${N3_DATA.length}`;
-
-  const sensesHtml = (item.senses||[]).map((s,i)=>{
-    const label = (item.senses.length>1) ? `<div class="sense-label">用法 ${i+1}</div>` : '';
+/* 公共：义项 senses → 详情 HTML（1-19 语法与第20単元 敬語 共用，保证风格一致） */
+function buildSensesHtml(item){
+  return (item.senses||[]).map((s,i)=>{
+    const label = s.label ? `<div class="sense-label">${esc(s.label)}</div>`
+                 : (item.senses.length>1 ? `<div class="sense-label">用法 ${i+1}</div>` : '');
     const connectHtml = s.connect && s.connect.length ? `<div class="section"><h3>接续</h3><div class="pill-row">${s.connect.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div></div>` : '';
     const descHtml = s.desc ? `<div class="section"><h3>说明</h3><div class="desc">${esc(s.desc)}</div></div>` : '';
     const exHtml = (s.examples||[]).map((e,j)=>{
@@ -557,6 +558,82 @@ function renderDetail(){
     const noteHtml = s.note ? `<div class="section"><h3>注意</h3><div class="note">${esc(s.note)}</div></div>` : '';
     return `<div class="sense">${label}${connectHtml}${descHtml}${exSection}${noteHtml}</div>`;
   }).join('');
+}
+
+/* 公共：例句卡交互（隐藏中/日文开关、点击日文显示） */
+function bindExInteractions(){
+  document.querySelectorAll('#detail .ex').forEach(el=>{
+    if(state.hideZh) el.classList.add('hide-zh');
+    if(state.hideJa) el.classList.add('hide-ja');
+    el.querySelector('.ja').addEventListener('click',(ev)=>{
+      if(ev.target.closest('.speak')) return;  // 点喇叭不触发"点击显示日文"
+      el.classList.toggle('reveal-ja');
+    });
+  });
+}
+
+/* ========== 详情渲染 ========== */
+function renderDetail(){
+  if(typeof state.current === 'string' && state.current.startsWith(KEIGO_PAGE_PREFIX)){
+    const pgNum = parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
+    renderKeigoDetail(pgNum);
+    return;
+  }
+  if(state.current === KEIGO_ID){
+    renderKeigoDetail(N3_KEIGO[0]?.page);
+    return;
+  }
+  const item = N3_DATA.find(x=>x.id===state.current);
+  if(!item){
+    // 199 等不存在的编号：保持详情页停留，不跳列表
+    document.getElementById('title').textContent = `No.${String(state.current).padStart(3,'0')} · 未找到`;
+    document.getElementById('progress').textContent = `— / ${N3_DATA.length}`;
+    document.getElementById('detail').innerHTML = `<div class="empty">未找到编号 ${esc(String(state.current))} 的卡片。<br>有效范围 1-${N3_DATA.length}，或 <a href="#list" onclick="event.preventDefault();showList()">返回列表</a>。</div>`;
+    document.getElementById('favBtn').setAttribute('aria-pressed','false');
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+  const idx = N3_DATA.findIndex(x=>x.id===state.current);
+  document.getElementById('title').textContent = `No.${String(item.id).padStart(3,'0')} · ${UNIT_NAMES[item.unit-1]}`;
+  (function(){
+    const el=document.getElementById('progress');
+    const total=N3_DATA.length, cur=idx+1;
+    el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px"><span style="position:relative;display:inline-block"><input class="progress-input" type="text" inputmode="numeric" autocomplete="off" value="${cur}"><div class="progress-dropdown" style="display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:280px;overflow:auto;z-index:30;min-width:64px;">${Array.from({length:total},(_,i)=>`<div class="progress-option" data-n="${i+1}" style="padding:7px 16px;font-size:13px;cursor:pointer;text-align:center;${i+1===cur?'background:var(--accent);color:#fff':''}">${i+1}</div>`).join('')}</div></span> / ${total}</span>`;
+    const wrap=el.querySelector('span > span');
+    const inp=wrap.querySelector('input');
+    const dropdown=wrap.querySelector('.progress-dropdown');
+    const jump=(n)=>{
+      const v=parseInt(n,10);
+      if(!isNaN(v)&&v>=1&&v<=total&&v!==cur) openDetail(N3_DATA[v-1].id);
+      else inp.value=cur;
+    };
+    const show=()=>{ dropdown.style.display='block'; const curOpt=dropdown.querySelector(`[data-n="${cur}"]`); if(curOpt) curOpt.scrollIntoView({block:'center'}); };
+    const hide=()=>{ dropdown.style.display='none'; };
+    inp.addEventListener('focus', show);
+    inp.addEventListener('click', e=>{ e.stopPropagation(); show(); });
+    inp.addEventListener('input', ()=>{
+      const v=parseInt(inp.value,10);
+      dropdown.querySelectorAll('.progress-option').forEach(o=>{
+        const n=parseInt(o.dataset.n,10);
+        o.style.background = n===v ? 'var(--accent)' : '';
+        o.style.color = n===v ? '#fff' : '';
+      });
+    });
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ e.preventDefault(); jump(inp.value); hide(); inp.blur(); }
+      if(e.key==='Escape'){ e.preventDefault(); inp.value=cur; hide(); inp.blur(); }
+    });
+    inp.addEventListener('blur', ()=> setTimeout(hide, 150));
+    dropdown.querySelectorAll('.progress-option').forEach(o=>{
+      o.addEventListener('mousedown', e=>{ e.preventDefault(); });
+      o.addEventListener('click', ()=>{ jump(o.dataset.n); });
+    });
+    el.addEventListener('click', e=>e.stopPropagation());
+    document.addEventListener('click', hide);
+  })();
+
+  const sensesHtml = buildSensesHtml(item);
 
   // 切卡前记录 GIF 位置，避免换卡时移动/跳变
   const _oldGif=document.getElementById('stalkingGif');
@@ -568,42 +645,72 @@ function renderDetail(){
   `;
 
   // 例句交互
-  document.querySelectorAll('#detail .ex').forEach(el=>{
-    if(state.hideZh) el.classList.add('hide-zh');
-    if(state.hideJa) el.classList.add('hide-ja');
-    el.querySelector('.ja').addEventListener('click',(ev)=>{
-      if(ev.target.closest('.speak')) return;  // 点喇叭不触发"点击显示日文"
-      el.classList.toggle('reveal-ja');
-    });
-  });
+  bindExInteractions();
 
   // 收藏按钮
   const favBtn = document.getElementById('favBtn');
   favBtn.setAttribute('aria-pressed', state.favs.has(item.id) ? 'true' : 'false');
   favBtn.title = state.favs.has(item.id) ? '已收藏' : '收藏';
 
-  // 上下条
+  // 上下条：194 的下一页跳敬語首頁
   document.getElementById('prevBtn').disabled = idx<=0;
-  document.getElementById('nextBtn').disabled = idx>=N3_DATA.length-1;
+  document.getElementById('nextBtn').disabled = false;
+  if(idx>=N3_DATA.length-1 && (!N3_KEIGO || !N3_KEIGO.length)) document.getElementById('nextBtn').disabled = true;
 }
 
-/* ========== 敬語详情 ========== */
-function renderKeigoDetail(){
-  document.getElementById('title').textContent = '第20単元 · 敬語';
-  document.getElementById('progress').textContent = `${N3_KEIGO.length} 页`;
-  const html = (N3_KEIGO||[]).map(pg=>`
-    <div class="keigo-page">
-      <div class="pg">P.${pg.page}</div>
-      ${esc(pg.text)}
-    </div>`).join('');
+/* ========== 敬語详情（按页拆分，与 1-19 卡片同渲染） ========== */
+function renderKeigoDetail(page){
+  const idx = N3_KEIGO.findIndex(p=>p.page===page);
+  const pg = idx>=0 ? N3_KEIGO[idx] : N3_KEIGO[0];
+  const realIdx = idx>=0 ? idx : 0;
+  document.getElementById('title').textContent = `第20単元 · ${keigoTitle(pg)}`;
+  (function(){
+    const el=document.getElementById('progress');
+    const total=N3_KEIGO.length, cur=realIdx+1;
+    el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px"><span style="position:relative;display:inline-block"><input class="progress-input" type="text" inputmode="numeric" autocomplete="off" value="${cur}"><div class="progress-dropdown" style="display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:280px;overflow:auto;z-index:30;min-width:64px;">${Array.from({length:total},(_,i)=>`<div class="progress-option" data-n="${i+1}" style="padding:7px 16px;font-size:13px;cursor:pointer;text-align:center;${i+1===cur?'background:var(--accent);color:#fff':''}">${i+1}</div>`).join('')}</div></span> / ${total}</span>`;
+    const wrap=el.querySelector('span > span');
+    const inp=wrap.querySelector('input');
+    const dropdown=wrap.querySelector('.progress-dropdown');
+    const jump=(n)=>{
+      const v=parseInt(n,10);
+      if(!isNaN(v)&&v>=1&&v<=total&&v!==cur) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[v-1].page);
+      else inp.value=cur;
+    };
+    const show=()=>{ dropdown.style.display='block'; const curOpt=dropdown.querySelector(`[data-n="${cur}"]`); if(curOpt) curOpt.scrollIntoView({block:'center'}); };
+    const hide=()=>{ dropdown.style.display='none'; };
+    inp.addEventListener('focus', show);
+    inp.addEventListener('click', e=>{ e.stopPropagation(); show(); });
+    inp.addEventListener('input', ()=>{
+      const v=parseInt(inp.value,10);
+      dropdown.querySelectorAll('.progress-option').forEach(o=>{
+        const n=parseInt(o.dataset.n,10);
+        o.style.background = n===v ? 'var(--accent)' : '';
+        o.style.color = n===v ? '#fff' : '';
+      });
+    });
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ e.preventDefault(); jump(inp.value); hide(); inp.blur(); }
+      if(e.key==='Escape'){ e.preventDefault(); inp.value=cur; hide(); inp.blur(); }
+    });
+    inp.addEventListener('blur', ()=> setTimeout(hide, 150));
+    dropdown.querySelectorAll('.progress-option').forEach(o=>{
+      o.addEventListener('mousedown', e=>{ e.preventDefault(); });
+      o.addEventListener('click', ()=>{ jump(o.dataset.n); });
+    });
+    el.addEventListener('click', e=>e.stopPropagation());
+    document.addEventListener('click', hide);
+  })();
+  const sensesHtml = buildSensesHtml(pg);
+  const bodyHtml = sensesHtml || `<div class="keigo-page"><div class="pg">P.${pg.page}</div><div style="white-space:pre-wrap;word-break:break-word">${esc(pg.text).replace(/\n/g,'<br>')}</div></div>`;
   document.getElementById('detail').innerHTML = `
-    <h2>敬語</h2>
-    <div class="desc" style="margin-top:8px">第20単元 敬語专题（OCR 底稿，待校对）。</div>
-    <div class="section" style="margin-top:14px"><div class="examples">${html}</div></div>
+    <h2>${esc(keigoTitle(pg))}</h2>
+    ${bodyHtml}
   `;
+  bindExInteractions();
   document.getElementById('favBtn').setAttribute('aria-pressed','false');
-  document.getElementById('prevBtn').disabled = true;
-  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('prevBtn').disabled = false;
+  document.getElementById('nextBtn').disabled = realIdx>=N3_KEIGO.length-1;
+  // 覆盖上下条的默认行为（在全局绑定之外，此处动态改 disabled 已足够，实际点击由下方的 prev/next 监听处理）
 }
 
 /* ========== 视图切换（支持刷新停留 + 浏览器前进/后退） ========== */
@@ -641,10 +748,28 @@ function showList(push){
   document.getElementById('searchClear').classList.toggle('show', !!state.query);
   document.getElementById('onlyFav').checked = !!state.onlyFav;
   syncNav(push);
-  // 列表滚动位置恢复（hash 恢复时）
+  // 列表滚动位置恢复：返回时回到当前卡片附近而非顶端
   const y = sessionStorage.getItem('n3.scrollY');
-  if(y && push===false) setTimeout(()=>window.scrollTo(0, parseInt(y,10)||0), 0);
-  else if(push!==false) window.scrollTo(0,0);
+  if(state.current != null){
+    setTimeout(()=>{
+      const idStr = String(state.current);
+      // CSS.escape 兼容
+      const escId = window.CSS && CSS.escape ? CSS.escape(idStr) : idStr.replace(/"/g,'\\"');
+      const card = document.querySelector(`.card-item[data-id="${escId}"]`);
+      if(card){
+        const top = card.getBoundingClientRect().top + window.scrollY - 72; // 顶栏 60 + 间隙
+        window.scrollTo({top: Math.max(0, top), behavior: 'auto'});
+      } else if(y){
+        window.scrollTo(0, parseInt(y,10)||0);
+      } else if(push!==false){
+        window.scrollTo(0,0);
+      }
+    }, 30);
+  } else if(y && push===false){
+    setTimeout(()=>window.scrollTo(0, parseInt(y,10)||0), 0);
+  } else if(push!==false){
+    window.scrollTo(0,0);
+  }
   _navLock = false;
 }
 function openDetail(id, push){
@@ -670,6 +795,13 @@ function restoreFromHash(push){
   if(raw === 'keigo'){
     openDetail(KEIGO_ID, push);
     return true;
+  }
+  if(raw.startsWith(KEIGO_PAGE_PREFIX)){
+    const pg=parseInt(raw.slice(KEIGO_PAGE_PREFIX.length),10);
+    if(!isNaN(pg) && N3_KEIGO.some(p=>p.page===pg)){
+      openDetail(KEIGO_PAGE_PREFIX+pg, push);
+      return true;
+    }
   }
   const nid = parseInt(raw,10);
   if(!isNaN(nid)){
@@ -924,19 +1056,38 @@ document.getElementById('randomBtn').addEventListener('click',()=>{
   openDetail(id);
 });
 document.getElementById('favBtn').addEventListener('click',()=>{
-  if(!state.current || state.current === KEIGO_ID) return;
+  if(!state.current || state.current === KEIGO_ID || (typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX))) return;
   if(state.favs.has(state.current)) state.favs.delete(state.current);
   else state.favs.add(state.current);
   saveFavs();
   document.getElementById('favBtn').setAttribute('aria-pressed', state.favs.has(state.current));
 });
 document.getElementById('prevBtn').addEventListener('click',()=>{
+  if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
+    const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
+    const i=N3_KEIGO.findIndex(x=>x.page===p);
+    if(i>0) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[i-1].page);
+    else if(i===0) openDetail(N3_DATA[N3_DATA.length-1].id);
+    return;
+  }
   const i = N3_DATA.findIndex(x=>x.id===state.current);
   if(i>0) openDetail(N3_DATA[i-1].id);
+  else if(i===0 && typeof N3_KEIGO!=='undefined' && N3_KEIGO.length){
+    // 1 的前一页无
+  }
 });
 document.getElementById('nextBtn').addEventListener('click',()=>{
+  if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
+    const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
+    const i=N3_KEIGO.findIndex(x=>x.page===p);
+    if(i>=0&&i<N3_KEIGO.length-1) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[i+1].page);
+    return;
+  }
   const i = N3_DATA.findIndex(x=>x.id===state.current);
-  if(i<N3_DATA.length-1) openDetail(N3_DATA[i+1].id);
+  if(i>=0&&i<N3_DATA.length-1) openDetail(N3_DATA[i+1].id);
+  else if(i===N3_DATA.length-1 && typeof N3_KEIGO!=='undefined' && N3_KEIGO.length){
+    openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[0].page);
+  }
 });
 document.getElementById('hideZh').addEventListener('change',e=>{ state.hideZh = !e.target.checked; renderDetail(); });
 document.getElementById('hideJa').addEventListener('change',e=>{ state.hideJa = !e.target.checked; renderDetail(); });
