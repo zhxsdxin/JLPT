@@ -215,6 +215,13 @@
     border-left:3px solid var(--warn);white-space:pre-wrap;
   }
 
+  /* 単元練習详情页 */
+  .practice-page{
+    border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);
+    margin-top:10px;font-size:14px;line-height:1.8;max-width:100%;
+  }
+  .practice-page .pg{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;font-weight:600}
+
   /* ===== Bottom nav (detail) ===== */
   .bottom-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:30;
@@ -250,6 +257,19 @@
     background:var(--card);border:1px solid var(--line);padding:5px 10px;border-radius:999px;
   }
   .sw input{accent-color:var(--accent)}
+
+  /* ===== Practice ===== */
+  .practice-q{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);margin-top:10px}
+  .practice-q .q{font-size:15px;font-weight:600;line-height:1.6}
+  .practice-opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .practice-opt{border:1px solid var(--line);border-radius:10px;padding:12px 16px;background:var(--card);cursor:pointer;text-align:left;font-size:15px;line-height:1.4}
+  .practice-opt:hover{border-color:var(--accent-soft);background:var(--accent-soft)}
+  .practice-opt.correct{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+  .practice-opt.wrong{border-color:#e57373;background:#fdecea;color:#c0392b}
+  .practice-opt:disabled{opacity:.6;cursor:default}
+  .practice-opt.large{padding:14px 18px;font-size:16px}
+  .practice-explain{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--card);border:1px dashed var(--line);font-size:13px;line-height:1.6}
+  .practice-tag{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:6px}
 
   /* utility */
   .hide{display:none!important}
@@ -341,7 +361,20 @@ try{
   </nav>
 </main>
 
+<!-- =================== PRACTICE VIEW（试点：第1単元） =================== -->
+<main class="view" id="practiceView">
+  <article class="detail" id="practiceDetail"></article>
+  <nav class="bottom-nav">
+    <div class="bottom-inner">
+      <button class="btn" id="practicePrevBtn">← 上一题</button>
+      <span class="progress" id="practiceProgress">— / —</span>
+      <button class="btn primary" id="practiceNextBtn">下一题 →</button>
+    </div>
+  </nav>
+</main>
+
 <script src="data.js"></script>
+<script src="practice-data.js"></script>
 <script>
 /* ============================================================
  * 数据：N3_DATA（194 条语法）+ N3_KEIGO（第20単元 敬語）
@@ -355,6 +388,10 @@ try{
 const UNIT_NAMES = Array.from({length:19}, (_,i)=>`第${i+1}単元`);
 const KEIGO_ID = 'keigo';   // 敬語特殊条目 id（兼容旧 #keigo 跳转）
 const KEIGO_PAGE_PREFIX = 'keigo-';
+const PRACTICE_PREFIX = 'practice-';   // 単元練習条目 id（practice-单元号）
+// 单元目次：第20単元之后展示各単元の题目（title=该单元首个句型）。
+// 试点阶段只显示第 1 单元；全量放开改为 1..19（或 'all'）。
+const UNIT_TITLES_SHOW = []; // 已去掉 単元テーマ 第1単元 卡片（10句型 〜間/間に）
 function keigoTitle(pg){
   const t = (pg.pattern||pg.text||'').split('\n')[0].trim().slice(0,22);
   if(t.includes('尊敬')||t.includes('尊他')) return `尊敬語`;
@@ -364,6 +401,8 @@ function keigoTitle(pg){
   return `敬語`;
 }
 function keigoSnippet(pg){
+  // 新结构：senses 摘要；旧结构兼容 text
+  if(pg.senses) return descPreview(pg);
   const lines=(pg.text||'').split('\n').map(s=>s.trim()).filter(Boolean);
   const body=lines.slice(1).join(' ').replace(/\s+/g,' ').slice(0,42);
   return body || lines[0].slice(0,42);
@@ -459,12 +498,51 @@ function renderList(){
     if(keigoPages.length) grouped.set('第20単元 敬語', keigoPages);
   }
 
+  // 单元目次（第20単元之后）：各単元の题目一览，点击跳转到对应单元
+  if(!state.onlyFav && typeof N3_UNITS !== 'undefined'){
+    const show = UNIT_TITLES_SHOW.includes('all')
+      ? N3_UNITS
+      : N3_UNITS.filter(u=>UNIT_TITLES_SHOW.includes(u.unit));
+    if(show.length) grouped.set('単元テーマ', show.map(u=>({_unit:true, ...u})));
+  }
+
+  // 単元練習（所有卡片最后）：每个单元的练习问题
+  if(!state.onlyFav && typeof N3_PRACTICE !== 'undefined'){
+    const ps = N3_PRACTICE.filter(p=>{
+      if(!q) return true;
+      const hay = (p.title + ' ' + p.pages.map(x=>x.text).join(' ')).toLowerCase();
+      return hay.includes(q);
+    }).map(p=>({_practice:true, ...p}));
+    if(ps.length) grouped.set('単元練習', ps);
+  }
+
   if(grouped.size===0){
     root.innerHTML = `<div class="empty">没有匹配的条目。<br/>试试更短的关键词，或关闭"仅收藏"。</div>`;
     return;
   }
   const html = [...grouped.entries()].map(([unit, items])=>{
     const cards = items.map(it=>{
+      if(it._practice){
+        const pgs = it.pages.map(x=>x.page);
+        return `<div class="card-item" data-id="${PRACTICE_PREFIX+it.unit}" title="第${it.unit}単元 练习">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="num">P.${pgs[0]}~${pgs[pgs.length-1]}</span>
+            <span class="badge">練習</span>
+          </div>
+          <div class="pat">${esc(it.title)}</div>
+          <div class="zh">基础+实战练习 · ${pgs.length} 页</div>
+        </div>`;
+      }
+      if(it._unit){
+        return `<div class="card-item" data-unit="${it.unit}" title="跳转到第${it.unit}単元">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="num">第${it.unit}単元</span>
+            <span class="badge">${it.count} 句型</span>
+          </div>
+          <div class="pat">${esc(it.title)}</div>
+          <div class="zh">单元第一个句型 · 点击跳到该单元</div>
+        </div>`;
+      }
       if(it._keigo){
         return `<div class="card-item keigo" data-id="${KEIGO_PAGE_PREFIX+it.page}">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -484,12 +562,19 @@ function renderList(){
         <div class="zh">${esc(descPreview(it)).slice(0,42)}${descPreview(it).length>42?'…':''}</div>
       </div>`;
     }).join('');
-    return `<div class="unit-title">${unit}</div><div class="list-grid">${cards}</div>`;
+    return `<div class="unit-title" id="unit-${UNIT_NAMES.indexOf(unit)+1}">${unit}</div><div class="list-grid">${cards}</div>`;
   }).join('');
   root.innerHTML = html;
   root.querySelectorAll('.card-item').forEach(el=>{
+    if(el.dataset.unit){
+      el.addEventListener('click',()=>{
+        const t = document.getElementById('unit-'+el.dataset.unit);
+        if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      return;
+    }
     const id = el.dataset.id;
-    if(id.startsWith(KEIGO_PAGE_PREFIX)){
+    if(id.startsWith(KEIGO_PAGE_PREFIX) || id.startsWith(PRACTICE_PREFIX)){
       el.addEventListener('click',()=>openDetail(id));
     } else {
       el.addEventListener('click',()=>openDetail(parseInt(id,10)));
@@ -574,6 +659,11 @@ function bindExInteractions(){
 
 /* ========== 详情渲染 ========== */
 function renderDetail(){
+  if(typeof state.current === 'string' && state.current.startsWith(PRACTICE_PREFIX)){
+    const u = parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    renderPracticeDetail(u);
+    return;
+  }
   if(typeof state.current === 'string' && state.current.startsWith(KEIGO_PAGE_PREFIX)){
     const pgNum = parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
     renderKeigoDetail(pgNum);
@@ -713,6 +803,241 @@ function renderKeigoDetail(page){
   // 覆盖上下条的默认行为（在全局绑定之外，此处动态改 disabled 已足够，实际点击由下方的 prev/next 监听处理）
 }
 
+/* ========== 単元練習详情（试点：第1単元 5页完整恢复，每页题型对应交互） ========== */
+function renderPracticeDetail(unit){
+  // 试点：第1単元 走 5页 AI补全（每页题型对应交互），非缩减
+  if(PRACTICE_DATA && PRACTICE_DATA[unit]){
+    const data = PRACTICE_DATA[unit];
+    const pages = data.pages || (Array.isArray(data) ? [{page:24, title:"", questions:data}] : []);
+    const title = data.title || `第${unit}単元 練習`;
+    const totalQ = pages.reduce((s,p)=>s+p.questions.length,0);
+    document.getElementById('title').textContent = title;
+    document.getElementById('progress').textContent = `${totalQ} 問 · ${pages.length} 页`;
+    // 页签：按钮上方按 パート 分类，按钮仅显示 問題
+    const partGroups={};
+    pages.forEach((pg,pi)=>{
+      const m=(pg.title||'').match(/^(パート[ⅠⅡ]+)/);
+      const part=m?m[1]:'その他';
+      if(!partGroups[part]) partGroups[part]=[];
+      partGroups[part].push({pg,pi});
+    });
+    const tabsHtml = Object.entries(partGroups).map(([part,list])=>`
+      <div style="margin:10px 0 4px;font-size:12px;color:var(--muted);letter-spacing:.04em">${esc(part)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${list.map(({pg,pi})=>{
+        const label=(pg.title||'').split(' ').pop()||'P.'+pg.page;
+        return `<button class="btn ${pi===0?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
+      }).join('')}</div>
+    `).join('');
+    const pagesHtml = pages.map((pg,pi)=>{
+      let bankBar='';
+      if(pg.type==='bank' && pg.bank){
+        bankBar = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;padding:8px;background:var(--card);border:1px dashed var(--line);border-radius:10px">${pg.bank.map((b,bi)=>`<span class="bank-card" draggable="true" data-bank="${bi}" data-page="${pi}" style="padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;cursor:grab;user-select:none">${String.fromCharCode(65+bi)}. ${esc(b)}</span>`).join('')}</div><div class="muted" style="font-size:11px">可拖动 A-J 小卡片到空格，或直接在空格内下拉选择</div>`;
+      }
+      const qsHtml = pg.questions.map((q,qi)=>{
+        const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
+        const qHtml = q.qHtml || esc(q.q);
+        const qText = q.qHtml ? q.qHtml : esc(q.q);
+        if(pg.type==='bank'){
+          const bankOptions = pg.bank.map((b,bi)=>`<option value="${bi}">${String.fromCharCode(65+bi)}. ${esc(b)}</option>`).join('');
+          const hasBlank = (q.q||'').includes('__') || (q.qHtml||'').includes('__');
+          const src = q.qHtml || esc(q.q);
+          const qWithBlank = hasBlank ? src.replace('__', `<select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`) : `${src} <select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`;
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${globalIdx+1}. ${qWithBlank}</div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        }
+        if(pg.type==='input'){
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入变形后形式" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
+            <div class="muted" style="font-size:11px;margin-top:6px">智能提示（点选填入）：</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${q.options.map((o,oi)=>`<button class="practice-opt large" data-qi="${globalIdx}" data-oi="${oi}" data-input-fill="${globalIdx}" style="flex:1 1 calc(50% - 8px);min-width:120px">${esc(o)}</button>`).join('')}</div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        }
+        if(q.options){
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            ${q.passage?`<div class="desc" style="margin:6px 0;padding:8px;background:var(--card);border-radius:8px">${q.passageHtml ? q.passageHtml : esc(q.passage).replace(/\n/g,'<br>')}</div>`:''}
+            <div class="practice-opts">
+              ${q.options.map((o,oi)=>`<button class="practice-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')}
+            </div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        } else {
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入答案" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        }
+      }).join('');
+      return `<div class="practice-page" data-practice-page="${pi}" style="${pi===0?'':'display:none'}">
+        ${bankBar}
+        ${qsHtml}
+      </div>`;
+    }).join('');
+    document.getElementById('detail').innerHTML = `<h2>${esc(title)} <span style="font-size:13px;color:var(--muted)">AI补全·每页交互</span></h2>${tabsHtml}${pagesHtml}`;
+    const allQs = pages.flatMap(p=>p.questions);
+    // 页签切换
+    document.querySelectorAll('[data-practice-tab]').forEach(b=>{
+      b.onclick=()=>{
+        const pi=parseInt(b.dataset.practiceTab,10);
+        document.querySelectorAll('[data-practice-tab]').forEach(x=>{
+          x.classList.toggle('primary', x===b);
+        });
+        document.querySelectorAll('.practice-page').forEach(x=>{
+          x.style.display = x.dataset.practicePage===String(pi) ? '' : 'none';
+        });
+        window.scrollTo(0,0);
+      };
+    });
+    document.querySelectorAll('.practice-opt').forEach(btn=>{
+      if(btn.hasAttribute('data-input-fill')){
+        btn.onclick=()=>{
+          const qi=parseInt(btn.dataset.qi,10);
+          const box=btn.closest('.practice-q');
+          if(box.dataset.done==='1') return;
+          const inp=box.querySelector('[data-input]');
+          const oi=parseInt(btn.dataset.oi,10);
+          inp.value = allQs[qi].options[oi];
+          inp.focus();
+          // 高亮选中
+          box.querySelectorAll('.practice-opt.large').forEach(o=>o.style.borderColor='');
+          btn.style.borderColor='var(--accent)';
+        };
+        return;
+      }
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.qi,10), oi=parseInt(btn.dataset.oi,10);
+        const q=allQs[qi];
+        const box=btn.closest('.practice-q');
+        const opts=box.querySelectorAll('.practice-opt:not(.large)');
+        const exp=box.querySelector('.practice-explain');
+        if(box.dataset.done==='1') return;
+        // 仅对当前题的普通选项禁用
+        box.querySelectorAll('.practice-opt:not(.large)').forEach((o,idx)=>{
+          o.disabled=true;
+          if(idx===q.answer) o.classList.add('correct');
+          if(idx===oi && idx!==q.answer) o.classList.add('wrong');
+        });
+        // 若为 large 的智能提示，也禁用
+        box.querySelectorAll('.practice-opt.large').forEach(o=>o.disabled=true);
+        const ok = oi===q.answer;
+        exp.style.display='block';
+        exp.innerHTML = `${ok?'✅ 正解':'❌ 误选'} 正解：<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        box.dataset.done='1';
+        try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+      };
+    });
+    // A-J 小卡片：可拖动到题目，或下拉选框
+    document.querySelectorAll('.blank-select').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        const qi=parseInt(sel.dataset.qi,10);
+        const oi=parseInt(sel.value,10);
+        if(isNaN(oi)) return;
+        const q=allQs[qi];
+        const box=sel.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+        const exp=box.querySelector('.practice-explain');
+        const ok = oi===q.answer;
+        exp.style.display='block';
+        exp.innerHTML = `${ok?'✅ 正解':'❌ 误选'} 正解：<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        box.dataset.done='1';
+        sel.disabled=true;
+        sel.style.borderColor = ok ? 'var(--ok)' : '#e57373';
+        try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+      });
+    });
+    document.querySelectorAll('.bank-card').forEach(card=>{
+      card.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', card.dataset.bank);
+        e.dataTransfer.effectAllowed='copy';
+      });
+      card.addEventListener('click', ()=>{
+        const page=card.dataset.page;
+        const bankIdx=card.dataset.bank;
+        const blanks=document.querySelectorAll(`.practice-page[data-practice-page="${page}"] .blank-select`);
+        for(const sel of blanks){
+          const box=sel.closest('.practice-q');
+          if(box.dataset.done==='1') continue;
+          if(!sel.value){
+            sel.value=bankIdx;
+            sel.dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+      });
+    });
+    document.querySelectorAll('.practice-q').forEach(box=>{
+      box.addEventListener('dragover', e=>{ e.preventDefault(); box.style.background='var(--accent-soft)'; });
+      box.addEventListener('dragleave', ()=>{ box.style.background=''; });
+      box.addEventListener('drop', e=>{
+        e.preventDefault(); box.style.background='';
+        const bankIdx=e.dataTransfer.getData('text/plain');
+        if(bankIdx==='') return;
+        const sel=box.querySelector('.blank-select');
+        if(!sel || box.dataset.done==='1') return;
+        sel.value=bankIdx;
+        sel.dispatchEvent(new Event('change'));
+      });
+    });
+    // 输入型（变形等）兼容
+    document.querySelectorAll('[data-check]').forEach(btn=>{
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.check,10);
+        const q=allQs[qi];
+        const box=btn.closest('.practice-q');
+        const inp=box.querySelector('[data-input]');
+        const exp=box.querySelector('.practice-explain');
+        if(box.dataset.done==='1') return;
+        const val=(inp.value||'').trim();
+        const correct = q.options ? q.options[q.answer] : String(q.answer);
+        const ok = val===correct || val.toLowerCase()===String(correct).toLowerCase();
+        exp.style.display='block';
+        exp.innerHTML = `${ok?'✅ 正解':'❌ 误答'} 正解：<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        box.dataset.done='1';
+        inp.disabled=true; btn.disabled=true;
+        if(ok) inp.style.borderColor='var(--ok)'; else inp.style.borderColor='#e57373';
+      };
+    });
+    document.getElementById('favBtn').setAttribute('aria-pressed','false');
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+  const idx = N3_PRACTICE.findIndex(p=>p.unit===unit);
+  const pg = idx>=0 ? N3_PRACTICE[idx] : N3_PRACTICE[0];
+  const realIdx = idx>=0 ? idx : 0;
+  document.getElementById('title').textContent = `${pg.title}`;
+  document.getElementById('progress').textContent = `${realIdx+1} / ${N3_PRACTICE.length}`;
+  const tabs = `<div class="section" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+    ${pg.pages.map((x,i)=>`<button class="btn" style="flex:0 0 auto;padding:4px 8px;font-size:11px;height:28px;${i===0?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" data-ppage="${i}">P.${x.page}</button>`).join('')}
+  </div>`;
+  document.getElementById('detail').innerHTML = `
+    <h2>${esc(pg.title)} <span class="alt">${pg.pages.length} 页</span></h2>
+    <div class="desc" style="margin-top:8px">练习为扫描版 OCR 底稿，页内格式可能错乱。</div>
+    ${tabs}
+    ${pg.pages.map((x,i)=>`<div class="practice-page" data-pp="${i}" style="${i===0?'':'display:none'}">
+      <div class="pg">P.${x.page}</div>
+      <div style="white-space:pre-wrap;word-break:break-word">${esc(x.text)}</div>
+    </div>`).join('')}
+  `;
+  document.querySelectorAll('[data-ppage]').forEach(b=>{
+    b.onclick=()=>{
+      const i = parseInt(b.dataset.ppage,10);
+      document.querySelectorAll('[data-ppage]').forEach(x=>x.style.background = x===b ? 'var(--accent)' : '');
+      document.querySelectorAll('[data-ppage]').forEach(x=>x.style.color = x===b ? '#fff' : '');
+      document.querySelectorAll('.practice-page').forEach(x=>x.style.display = x.dataset.pp===String(i) ? '' : 'none');
+      window.scrollTo(0,0);
+    };
+  });
+  document.getElementById('favBtn').setAttribute('aria-pressed','false');
+  document.getElementById('prevBtn').disabled = realIdx<=0;
+  document.getElementById('nextBtn').disabled = realIdx>=N3_PRACTICE.length-1;
+}
+
 /* ========== 视图切换（支持刷新停留 + 浏览器前进/后退） ========== */
 let _navLock = false;
 function syncNav(push){
@@ -795,6 +1120,13 @@ function restoreFromHash(push){
   if(raw === 'keigo'){
     openDetail(KEIGO_ID, push);
     return true;
+  }
+  if(raw.startsWith(PRACTICE_PREFIX)){
+    const u=parseInt(raw.slice(PRACTICE_PREFIX.length),10);
+    if(!isNaN(u) && N3_PRACTICE.some(p=>p.unit===u)){
+      openDetail(PRACTICE_PREFIX+u, push);
+      return true;
+    }
   }
   if(raw.startsWith(KEIGO_PAGE_PREFIX)){
     const pg=parseInt(raw.slice(KEIGO_PAGE_PREFIX.length),10);
@@ -1063,6 +1395,12 @@ document.getElementById('favBtn').addEventListener('click',()=>{
   document.getElementById('favBtn').setAttribute('aria-pressed', state.favs.has(state.current));
 });
 document.getElementById('prevBtn').addEventListener('click',()=>{
+  if(typeof state.current==='string'&&state.current.startsWith(PRACTICE_PREFIX)){
+    const u=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    const i=N3_PRACTICE.findIndex(x=>x.unit===u);
+    if(i>0) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i-1].unit);
+    return;
+  }
   if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
     const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
     const i=N3_KEIGO.findIndex(x=>x.page===p);
@@ -1077,6 +1415,12 @@ document.getElementById('prevBtn').addEventListener('click',()=>{
   }
 });
 document.getElementById('nextBtn').addEventListener('click',()=>{
+  if(typeof state.current==='string'&&state.current.startsWith(PRACTICE_PREFIX)){
+    const u=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    const i=N3_PRACTICE.findIndex(x=>x.unit===u);
+    if(i>=0&&i<N3_PRACTICE.length-1) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i+1].unit);
+    return;
+  }
   if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
     const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
     const i=N3_KEIGO.findIndex(x=>x.page===p);
