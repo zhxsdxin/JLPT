@@ -36,11 +36,22 @@
   @media (max-width:600px){
     table{font-size:11px}
     th,td{padding:4px 6px}
-    /* 窄屏精简：头像隐藏；会话表 Token 与设备列隐藏，时间仅 hh:mm 已由 JS 处理 */
+    /* 窄屏：头像隐藏；会话表各字段溢出省略，悬浮显示完整内容 */
     #pane-users th:nth-child(3), #pane-users td:nth-child(3){display:none}
-    #pane-sessions th:nth-child(6), #pane-sessions td:nth-child(6),
-    #pane-sessions th:nth-child(7), #pane-sessions td:nth-child(7){display:none}
+    #pane-sessions{overflow-x:auto; -webkit-overflow-scrolling:touch}
+    #pane-sessions table{table-layout:fixed; width:100%; min-width:560px}
+    #pane-sessions th, #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0}
+    #pane-sessions th:nth-child(1), #pane-sessions td:nth-child(1){max-width:90px}
+    #pane-sessions th:nth-child(2), #pane-sessions td:nth-child(2){max-width:110px}
+    #pane-sessions th:nth-child(3), #pane-sessions td:nth-child(3){max-width:110px}
+    #pane-sessions th:nth-child(4), #pane-sessions td:nth-child(4){max-width:80px}
+    #pane-sessions th:nth-child(5), #pane-sessions td:nth-child(5){max-width:90px}
+    #pane-sessions th:nth-child(6), #pane-sessions td:nth-child(6){max-width:90px}
+    #pane-sessions th:nth-child(7), #pane-sessions td:nth-child(7){max-width:110px}
   }
+  /* 通用：会话表字段溢出省略，hover 显示完整内容（通过 title） */
+  #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #pane-sessions td[title]{cursor:help}
 </style>
 </head>
 <body>
@@ -195,16 +206,20 @@ async function loadSessions(){
   const isNarrow = window.innerWidth < 600;
   $("sBody").innerHTML=j.map(s=>{
     const login = isNarrow ? fmtDate(s.created_at) : fmt(s.created_at);
+    const loginFull = fmt(s.created_at);
     // 终止：仅主动关闭 / 不活跃到期 显示时间，其它（进行中 / 24h默认过期）显示 —
     let terminated = "—";
+    let terminatedFull = "";
     let status = "进行中";
     let badge = "";
     if(s.close_reason === 'active'){
       terminated = isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at);
+      terminatedFull = fmt(s.closed_at);
       status = "主动关闭";
       badge = `<span style="margin-left:4px;font-size:10px;padding:1px 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent)">主动</span>`;
     } else if(s.close_reason === 'inactive'){
       terminated = isNarrow ? fmtTime(s.closed_at) : fmt(s.closed_at);
+      terminatedFull = fmt(s.closed_at);
       status = "不活跃到期";
       badge = `<span style="margin-left:4px;font-size:10px;padding:1px 5px;border-radius:999px;background:var(--warn-bg);color:var(--warn)">不活跃</span>`;
     } else {
@@ -213,9 +228,11 @@ async function loadSessions(){
       if(exp && exp < new Date()){
         status = "已过期";
         terminated = "—";
+        terminatedFull = "";
       } else {
         status = "进行中";
         terminated = "—";
+        terminatedFull = "";
       }
     }
     const durText = dur(s.duration_sec);
@@ -223,7 +240,11 @@ async function loadSessions(){
     const tokenFull = s.token ? escapeHtml(s.token) : "";
     const device = s.device ? escapeHtml(s.device) : (s.user_agent ? "其他" : "—");
     const deviceTitle = s.user_agent ? escapeHtml(s.user_agent) : device;
-    return `<tr><td>${escapeHtml(s.username)}</td><td>${login}</td><td>${terminated}${badge}</td><td>${durText}</td><td>${status}</td><td title="${tokenFull}">${tokenShort}</td><td title="${deviceTitle}">${device}</td></tr>`;
+    const usernameTitle = escapeHtml(s.username);
+    const durTitle = escapeHtml(durText);
+    const statusTitle = escapeHtml(status);
+    const termTitle = terminatedFull ? escapeHtml(terminatedFull) : (terminated==="—" ? "" : escapeHtml(terminated));
+    return `<tr><td title="${usernameTitle}">${escapeHtml(s.username)}</td><td title="${escapeHtml(loginFull)}">${login}</td><td title="${termTitle}">${terminated}${badge}</td><td title="${durTitle}">${durText}</td><td title="${statusTitle}">${status}</td><td title="${tokenFull}">${tokenShort}</td><td title="${deviceTitle}">${device}</td></tr>`;
   }).join("") || `<tr><td colspan=7>无会话</td></tr>`;
 }
 
