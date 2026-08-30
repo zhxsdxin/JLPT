@@ -207,6 +207,8 @@
   .ex .zh{font-size:13px;color:var(--ink-soft);margin-top:4px}
   .ex.hide-zh .zh{display:none}
   .ex.hide-ja .ja > span{filter:blur(4px);user-select:none;pointer-events:none}
+  .bank-dd-opt{padding:6px 12px;font-size:13px;cursor:pointer;white-space:nowrap;line-height:1.6}
+  .bank-dd-opt:hover{background:var(--accent-soft);color:var(--accent)}
   .ex.reveal-ja .ja > span{filter:none}
 
   .note{
@@ -668,6 +670,10 @@ function renderList(){
 }
 
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+// 振り仮名：将「漢字《かな》」标注转换为 <ruby> 标签；基字为紧邻《》前的连续汉字（不含送假名）
+function furigana(s){return (s||'').replace(/([\u3005\u4e00-\u9fff]+)《([^》]+)》/g,'<ruby>$1<rt>$2</rt></ruby>')}
+// 去掉「漢字《かな》」标注中的振り仮名，仅保留汉字/假名本体（用于 input 题的填入与判定）
+function stripFurigana(s){return (s||'').replace(/《[^》]*》/g,'')}
 
 /* 例句中高亮当前句型：从 pattern 提取关键词（去括号/波浪符，按 / 拆选项，
    波浪符连接的重复词如 "にしろ〜にしろ" 再切段取 "にしろ"），kana 为 pattern 的假名读音
@@ -928,47 +934,44 @@ function renderPracticeDetail(unit){
     const pagesHtml = pages.map((pg,pi)=>{
       let bankBar='';
       if(pg.type==='bank' && pg.bank){
-        bankBar = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;padding:8px;background:var(--card);border:1px dashed var(--line);border-radius:10px">${pg.bank.map((b,bi)=>`<span class="bank-card" draggable="true" data-bank="${bi}" data-page="${pi}" style="padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;cursor:grab;user-select:none">${String.fromCharCode(65+bi)}. ${esc(b)}</span>`).join('')}</div><div class="muted" style="font-size:11px">可拖动 A-J 小卡片到空格，或直接在空格内下拉选择</div>`;
+        bankBar = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;padding:8px;background:var(--card);border:1px dashed var(--line);border-radius:10px">${pg.bank.map((b,bi)=>`<span class="bank-card" draggable="true" data-bank="${bi}" data-page="${pi}" style="padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;cursor:grab;user-select:none">${String.fromCharCode(65+bi)}. ${furigana(esc(b))}</span>`).join('')}</div><div class="muted" style="font-size:11px">可拖动 A-J 小卡片到空格，或直接在空格内下拉选择</div>`;
       } else if(pg.type==='reading' && pg.passageHtml){
-        // 文章填空：合适的交互 — 文章内嵌下拉，下方按空逐项解析
-        // 将 passageHtml 中的占位 span 替换为对应题目的 inline select
+        // 文章填空：原生下拉选择（回退到加假名之前的状态，不加振り仮名）
         let passageWithSelects = pg.passageHtml;
-        // 建立 cloze 编号 -> globalIdx 映射
         pg.questions.forEach((q,qi)=>{
           const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
           const clozeNum = (q.id.split('-')[1]||'').trim();
-          const opts = q.options.map((o,oi)=>`<option value="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</option>`).join('');
+          const opts = q.options.map((o,oi)=>`<option value="${oi}">${String.fromCharCode(65+oi)}. ${stripFurigana(esc(o))}</option>`).join('');
           const selectHtml = `<select class="blank-select reading-blank" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="width:72px;min-width:72px;max-width:72px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;vertical-align:middle;text-overflow:ellipsis;overflow:hidden;white-space:nowrap"><option value="">${esc(clozeNum)}</option>${opts}</select>`;
-          // 替换 cloze-ph 占位
           const re = new RegExp(`<span[^>]*data-cloze=['\"]${clozeNum}['\"][^>]*>[\\s\\S]*?<\\/span>`, 'g');
           passageWithSelects = passageWithSelects.replace(re, selectHtml);
         });
-        // 未被替换的占位兜底清理（防止残留）
         passageWithSelects = passageWithSelects.replace(/<span[^>]*class=['\"]cloze-ph['\"][^>]*>[\s\S]*?<\/span>/g, '＿＿');
-        bankBar = `<div class="reading-passage" style="margin:8px 0;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;line-height:2;word-break:break-word">${passageWithSelects}</div><div class="muted" style="font-size:11px;margin-bottom:6px">在文章空格处直接选择答案，全部选完后显示解析</div>`;
+        bankBar = `<div class="reading-passage" style="margin:8px 0;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;line-height:2;word-break:break-word">${stripFurigana(passageWithSelects)}</div><div class="muted" style="font-size:11px;margin-bottom:6px">在文章空格处直接选择答案，全部选完后显示解析</div>`;
       }
       const qsHtml = pg.questions.map((q,qi)=>{
         const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
-        const qHtml = q.qHtml || esc(q.q);
+        const qHtml = furigana(q.qHtml || esc(q.q));
         const qText = q.qHtml ? q.qHtml : esc(q.q);
         if(pg.type==='star'){
           // Part II 問題2（四空★）加大框体便于置入
-          let qWithBlanks = q.qHtml || esc(q.q);
+          let qWithBlanks = furigana(q.qHtml || esc(q.q));
           let blankIdx=0;
           qWithBlanks = qWithBlanks.replace(/＿/g, ()=>`<span class="blank-drop" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;max-width:100%;padding:8px 14px;margin:0 4px;border:1.5px dashed var(--line);border-radius:10px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all;font-size:14px">\u00A0</span>`);
           qWithBlanks = qWithBlanks.replace(/★/g, ()=>`<span class="blank-drop star-blank" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;max-width:100%;padding:8px 14px;margin:0 4px;border:1.5px dashed var(--accent);border-radius:10px;background:var(--accent-soft);text-align:center;vertical-align:middle;word-break:break-all;font-size:14px"><span style="color:var(--accent);font-weight:700">★</span></span>`);
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}" style="padding:16px 18px;min-height:88px">
             <div class="q" style="font-size:15px;line-height:1.8">${q.id.split("-")[1]}. ${qWithBlanks}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0">${q.options.map((o,oi)=>`<span class="star-card" draggable="true" data-qi="${globalIdx}" data-oi="${oi}" style="padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:14px;min-height:40px;display:inline-flex;align-items:center;cursor:grab;user-select:none;touch-action:none">${String.fromCharCode(65+oi)}. ${esc(o)}</span>`).join('')}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0">${q.options.map((o,oi)=>`<span class="star-card" draggable="true" data-qi="${globalIdx}" data-oi="${oi}" style="padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:14px;min-height:40px;display:inline-flex;align-items:center;cursor:grab;user-select:none;touch-action:none">${String.fromCharCode(65+oi)}. ${furigana(esc(o))}</span>`).join('')}</div>
             <div style="margin-top:8px"><button class="btn primary" data-star-check="${globalIdx}" style="padding:6px 16px;font-size:13px;height:36px">确认</button> <button class="btn" data-star-reset="${globalIdx}" style="padding:6px 16px;font-size:13px;height:36px">重置</button></div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
         if(pg.type==='bank'){
-          const bankOptions = pg.bank.map((b,bi)=>`<option value="${bi}">${String.fromCharCode(65+bi)}. ${esc(b)}</option>`).join('');
+          const bankOptsFuri = pg.bank.map((b,bi)=>`<div class="bank-dd-opt" data-qi="${globalIdx}" data-bi="${bi}">${String.fromCharCode(65+bi)}. ${furigana(esc(b))}</div>`).join('');
           const hasBlank = (q.q||'').includes('__') || (q.qHtml||'').includes('__');
-          const src = q.qHtml || esc(q.q);
-          const qWithBlank = hasBlank ? src.replace('__', `<select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`) : `${src} <select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`;
+          const src = furigana(q.qHtml || esc(q.q));
+          const ddHtml = `<span class="bank-dd" data-qi="${globalIdx}" style="position:relative;display:inline-block"><button type="button" class="bank-dd-toggle" data-qi="${globalIdx}" style="min-width:92px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font-size:13px;cursor:pointer">--</button><div class="bank-dd-menu" data-qi="${globalIdx}" style="display:none;position:absolute;z-index:60;top:100%;left:0;margin-top:3px;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.14);max-height:220px;overflow:auto;min-width:160px;padding:4px 0">${bankOptsFuri}</div></span>`;
+          const qWithBlank = hasBlank ? src.replace('__', ddHtml) : `${src} ${ddHtml}`;
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
             <div class="q">${q.id.split("-")[1]}. ${qWithBlank}</div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
@@ -988,7 +991,7 @@ function renderPracticeDetail(unit){
             <div class="q">${q.id.split("-")[1]}. ${qHtml}</div>
             <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入变形后形式" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
             <div class="muted" style="font-size:11px;margin-top:6px">智能提示（点选填入）：</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${q.options.map((o,oi)=>`<button class="practice-opt large" data-qi="${globalIdx}" data-oi="${oi}" data-input-fill="${globalIdx}" style="flex:1 1 calc(50% - 8px);min-width:120px">${esc(o)}</button>`).join('')}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${q.options.map((o,oi)=>`<button class="practice-opt large" data-qi="${globalIdx}" data-oi="${oi}" data-input-fill="${globalIdx}" style="flex:1 1 calc(50% - 8px);min-width:120px">${furigana(esc(o))}</button>`).join('')}</div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
@@ -1001,7 +1004,7 @@ function renderPracticeDetail(unit){
             <div class="q">${q.id.split("-")[1]}. ${qHtml}</div>
             ${q.passage?`<div class="desc" style="margin:6px 0;padding:8px;background:var(--card);border-radius:8px">${q.passageHtml ? q.passageHtml : esc(q.passage).replace(/\n/g,'<br>')}</div>`:''}
             <div class="practice-opts">
-              ${q.options.map((o,oi)=>`<button class="practice-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')}
+              ${q.options.map((o,oi)=>`<button class="practice-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${furigana(esc(o))}</button>`).join('')}
             </div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
@@ -1049,7 +1052,7 @@ function renderPracticeDetail(unit){
           if(box.dataset.done==='1') return;
           const inp=box.querySelector('[data-input]');
           const oi=parseInt(btn.dataset.oi,10);
-          inp.value = allQs[qi].options[oi];
+          inp.value = stripFurigana(allQs[qi].options[oi]);
           inp.focus();
           // 高亮选中
           box.querySelectorAll('.practice-opt.large').forEach(o=>o.style.borderColor='');
@@ -1074,7 +1077,7 @@ function renderPracticeDetail(unit){
         box.querySelectorAll('.practice-opt.large').forEach(o=>o.disabled=true);
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       };
@@ -1137,7 +1140,7 @@ function renderPracticeDetail(unit){
         const ok = !isNaN(chosenOi) && chosenOi===q.answer;
         const correctText=q.options[q.answer];
         // 直接展示，无需折叠：19．✅ 正解 おくる習慣がある「...」
-        return `<div style="padding:8px 10px; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line)">${esc(q.id.split("-")[1])}．${ok?'<span style="color:var(--ok)">✅ 正解</span>':'<span style="color:#e57373">❌ 正解</span>'} <b>${esc(correctText)}</b><span style="color:var(--ink-soft)">${esc(q.explain)}</span></div>`;
+        return `<div style="padding:8px 10px; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line)">${esc(q.id.split("-")[1])}．${ok?'<span style="color:var(--ok)">✅ 正解</span>':'<span style="color:#e57373">❌ 正解</span>'} <b>${stripFurigana(esc(correctText))}</b><span style="color:var(--ink-soft)">${esc(q.explain)}</span></div>`;
       }).join('');
       inner.innerHTML = html || '<div style="color:var(--muted); font-size:12px; padding:6px">暂无解析</div>';
       summary.style.display='block';
@@ -1188,8 +1191,8 @@ function renderPracticeDetail(unit){
         span.dataset.qi=String(qi);
         span.dataset.oi=String(oi);
         span.dataset.cloze=sel.dataset.cloze||'';
-        span.textContent=q.options[oi];
-        span.title=`空格${sel.dataset.cloze||''}：${q.options[oi]} ${isOk?'✅':'❌'}（点击可重选）`;
+        span.textContent=stripFurigana(q.options[oi]);
+        span.title=`空格${sel.dataset.cloze||''}：${stripFurigana(q.options[oi])} ${isOk?'✅':'❌'}（点击可重选）`;
         span.style.cssText='display:inline; padding:0 1px; margin:0; border-radius:0; font-size:inherit; font-weight:600; vertical-align:baseline; line-height:inherit; max-width:100%; word-break:break-word; cursor:pointer; border-bottom:1.5px solid var(--line); background:transparent; color:var(--ink);';
         // 点击重选
         span.addEventListener('click', ()=>{
@@ -1242,8 +1245,8 @@ function renderPracticeDetail(unit){
           span.dataset.qi=String(qi);
           span.dataset.oi=String(oi);
           span.dataset.cloze=sel.dataset.cloze || '';
-          span.textContent=q.options[oi];
-          span.title=`空格${sel.dataset.cloze||''}：${q.options[oi]} ${ok?'✅':'❌'}（点击可重选）`;
+          span.textContent=stripFurigana(q.options[oi]);
+          span.title=`空格${sel.dataset.cloze||''}：${stripFurigana(q.options[oi])} ${ok?'✅':'❌'}（点击可重选）`;
           span.style.cssText='display:inline; padding:0 1px; margin:0; border-radius:0; font-size:inherit; font-weight:600; vertical-align:baseline; line-height:inherit; max-width:100%; word-break:break-word; cursor:pointer; border-bottom:1.5px solid var(--line); background:transparent; color:var(--ink);';
           span.addEventListener('click', ()=>{
             sel.style.display='';
@@ -1282,13 +1285,47 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         sel.disabled=true;
         sel.style.borderColor = ok ? 'var(--ok)' : '#e57373';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       });
     });
+    // bank 题型自定义下拉：原生 <option> 无法渲染 ruby，改用 div 下拉以支持假名
+    function selectBankAnswer(toggle, qi, oi){
+      const q=allQs[qi];
+      if(!q) return;
+      const box=toggle.closest('.practice-q') || document.querySelector(`.practice-q[data-q="${qi}"]`);
+      if(!box || box.dataset.done==='1') return;
+      const ok = oi===q.answer;
+      box.dataset.done='1';
+      toggle.disabled=true;
+      toggle.style.borderColor = ok ? 'var(--ok)' : '#e57373';
+      toggle.innerHTML = `${String.fromCharCode(65+oi)}. ${furigana(esc(q.options[oi]))}`;
+      const exp=box.querySelector('.practice-explain');
+      exp.style.display='block';
+      exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+      try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+    }
+    document.querySelectorAll('.bank-dd-toggle').forEach(toggle=>{
+      const dd=toggle.closest('.bank-dd');
+      const menu=dd.querySelector('.bank-dd-menu');
+      toggle.addEventListener('click', e=>{
+        e.stopPropagation();
+        const open = menu.style.display==='block';
+        document.querySelectorAll('.bank-dd-menu').forEach(m=>{ if(m!==menu) m.style.display='none'; });
+        menu.style.display = open ? 'none' : 'block';
+      });
+      menu.querySelectorAll('.bank-dd-opt').forEach(opt=>{
+        opt.addEventListener('click', e=>{
+          e.stopPropagation();
+          menu.style.display='none';
+          selectBankAnswer(toggle, parseInt(toggle.dataset.qi,10), parseInt(opt.dataset.bi,10));
+        });
+      });
+    });
+    document.addEventListener('click', ()=>{ document.querySelectorAll('.bank-dd-menu').forEach(m=>m.style.display='none'); });
     document.querySelectorAll('.bank-card').forEach(card=>{
       card.addEventListener('dragstart', e=>{
         e.dataTransfer.setData('text/plain', card.dataset.bank);
@@ -1296,16 +1333,11 @@ function renderPracticeDetail(unit){
       });
       card.addEventListener('click', ()=>{
         const page=card.dataset.page;
-        const bankIdx=card.dataset.bank;
-        const blanks=document.querySelectorAll(`.practice-page[data-practice-page="${page}"] .blank-select`);
-        for(const sel of blanks){
-          const box=sel.closest('.practice-q');
-          if(box.dataset.done==='1') continue;
-          if(!sel.value){
-            sel.value=bankIdx;
-            sel.dispatchEvent(new Event('change'));
-            break;
-          }
+        const bankIdx=parseInt(card.dataset.bank,10);
+        const toggles=document.querySelectorAll(`.practice-page[data-practice-page="${page}"] .bank-dd-toggle`);
+        for(const t of toggles){
+          const box=t.closest('.practice-q');
+          if(box && box.dataset.done!=='1'){ selectBankAnswer(t, parseInt(t.dataset.qi,10), bankIdx); break; }
         }
       });
     });
@@ -1314,12 +1346,11 @@ function renderPracticeDetail(unit){
       box.addEventListener('dragleave', ()=>{ box.style.background=''; });
       box.addEventListener('drop', e=>{
         e.preventDefault(); box.style.background='';
-        const bankIdx=e.dataTransfer.getData('text/plain');
-        if(bankIdx==='') return;
-        const sel=box.querySelector('.blank-select');
-        if(!sel || box.dataset.done==='1') return;
-        sel.value=bankIdx;
-        sel.dispatchEvent(new Event('change'));
+        const bankIdx=parseInt(e.dataTransfer.getData('text/plain'),10);
+        if(isNaN(bankIdx)) return;
+        const t=box.querySelector('.bank-dd-toggle');
+        if(!t || box.dataset.done==='1') return;
+        selectBankAnswer(t, parseInt(t.dataset.qi,10), bankIdx);
       });
     });
     // 排序题
@@ -1403,7 +1434,7 @@ function renderPracticeDetail(unit){
         const blanks=box.querySelectorAll('.blank-drop');
         for(const b of blanks){
           if(!b.dataset.filled){
-            b.textContent=card.textContent.replace(/^[A-D]\.\s*/,'');
+            b.innerHTML=furigana(esc(allQs[card.dataset.qi].options[card.dataset.oi]));
             b.dataset.filled=card.dataset.oi;
             b.style.borderStyle='solid';
             b.style.background='var(--accent-soft)';
@@ -1444,7 +1475,7 @@ function renderPracticeDetail(unit){
             b.style.minWidth='60px';
           }
         });
-        blank.textContent=card.textContent.replace(/^[A-D]\.\s*/,'');
+        blank.innerHTML=furigana(esc(allQs[qi].options[oi]));
         blank.dataset.filled=oi;
         blank.style.borderStyle='solid';
         blank.style.background='var(--accent-soft)';
@@ -1478,7 +1509,7 @@ function renderPracticeDetail(unit){
         const filled=starBlank ? starBlank.dataset.filled : null;
         const ok = filled!==undefined && parseInt(filled,10)===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         box.querySelectorAll('.blank-drop').forEach(b=>b.style.pointerEvents='none');
         box.querySelectorAll('.star-card').forEach(c=>c.draggable=false);
@@ -1516,8 +1547,9 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         if(box.dataset.done==='1') return;
         const val=(inp.value||'').trim();
-        const correct = q.options ? q.options[q.answer] : String(q.answer);
-        const ok = val===correct || val.toLowerCase()===String(correct).toLowerCase();
+        const correctRaw = q.options ? q.options[q.answer] : String(q.answer);
+        const correct = stripFurigana(correctRaw);
+        const ok = stripFurigana(val)===correct || stripFurigana(val).toLowerCase()===correct.toLowerCase();
         exp.style.display='block';
         exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
