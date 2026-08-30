@@ -1,884 +1,2371 @@
 const PRACTICE_DATA = {
-  1: {
-    title: "第1単元 練習",
-    pages: [
+  "1": {
+    "title": "第1単元 練習",
+    "pages": [
       {
-        page: 24, title: "パートI 問題1", type: "choice",
-        questions: [
-          { id:"24-1", pattern:"〜上(に)", q:"彼は背が高い__、ハンサムだ。", qHtml:"<ruby>彼<rt>かれ</rt></ruby>は<ruby>背<rt>せ</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>__、ハンサムだ。", options:["うえに","うえで","うえは","うえも"], answer:0, explain:"「〜うえに」表示递进：又高又帅。" },
-          { id:"24-2", pattern:"〜上で", q:"面接を__上で、採用するかどうかを決める。", qHtml:"<ruby>面接<rt>めんせつ</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で、<ruby>採用<rt>さいよう</rt></ruby>するかどうかを<ruby>決め<rt>きめ</rt></ruby>る。", options:["する","した","している","していた"], answer:1, explain:"「〜た上で」完成后续动作。" },
-          { id:"24-3", pattern:"〜うちに", q:"休み__うちに、部屋を片付けましょう。", qHtml:"<ruby>休み<rt>やすみ</rt></ruby>__うちに、<ruby>部屋<rt>へや</rt></ruby>を<ruby>片付<rt>かたづ</rt></ruby>けましょう。", options:["の","が","を","に"], answer:0, explain:"「〜うちに」趁…期间，固定「休みのうちに」。" },
-          { id:"24-4", pattern:"〜にくい/やすい", q:"新聞の活字が小さいので、読み__。", qHtml:"<ruby>新聞<rt>しんぶん</rt></ruby>の<ruby>活字<rt>かつじ</rt></ruby>が<ruby>小さい<rt>ちいさい</rt></ruby>ので、<ruby>読み<rt>よみ</rt></ruby>__。", options:["にくい","やすい","がたい","ぎみだ"], answer:0, explain:"小字→难以读「読みにくい」。" },
-          { id:"24-5", pattern:"〜以上は", q:"皆の前で約束した__、守らなければならない。", qHtml:"<ruby>皆<rt>みんな</rt></ruby>の<ruby>前<rt>まえ</rt></ruby>で<ruby>約束<rt>やくそく</rt></ruby>した__、<ruby>守ら<rt>まもら</rt></ruby>なければならない。", options:["以上","以上は","以上で","以上に"], answer:1, explain:"「〜以上は」既然…就…。" },
-          { id:"24-6", pattern:"〜一方で", q:"田中先生は学生を叱る__、ほめることも忘れない。", qHtml:"<ruby>田中<rt>たなか</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>は<ruby>学生<rt>がくせい</rt></ruby>を<ruby>叱る<rt>しかる</rt></ruby>__、ほめることも<ruby>忘れ<rt>わすれ</rt></ruby>ない。", options:["一方","一方で","一方だ","一方に"], answer:1, explain:"「〜一方で」一方面…另一方面。" },
-          { id:"24-7", pattern:"〜一方だ", q:"ここ数年、海水の温度が__一方だ。", qHtml:"ここ<ruby>数年<rt>すうねん</rt></ruby>、<ruby>海水<rt>かいすい</rt></ruby>の<ruby>温度<rt>おんど</rt></ruby>が__<ruby>一方<rt>いっぽう</rt></ruby>だ。", options:["高くなる","高くする","高い","高かった"], answer:0, explain:"「〜一方だ」客观趋势「高くなる一方だ」。" },
-          { id:"24-8", pattern:"〜間/間に", q:"友だちと公園を散歩している__、雨が降り出してきた。", qHtml:"<ruby>友だち<rt>ともだち</rt></ruby>と<ruby>公園<rt>こうえん</rt></ruby>を<ruby>散歩<rt>さんぽ</rt></ruby>している__、<ruby>雨<rt>あめ</rt></ruby>が<ruby>降り出して<rt>ふりだして</rt></ruby>きた。", options:["あいだ","あいだに","あいだで","あいだは"], answer:1, explain:"持续中瞬间发生用「あいだに」。" },
-          { id:"24-9", pattern:"〜上で", q:"二人は仕事の__、よきライバルだ。", qHtml:"<ruby>二人<rt>ふたり</rt></ruby>は<ruby>仕事<rt>しごと</rt></ruby>の__、よきライバルだ。", options:["うえで","うえの","あいだで","あいだに"], answer:0, explain:"「仕事のうえで」工作上。" },
-          { id:"24-10", pattern:"〜おかげで", q:"皆の__、無事に頂上までたどりついた。", qHtml:"<ruby>皆<rt>みんな</rt></ruby>の__、<ruby>無事<rt>ぶじ</rt></ruby>に<ruby>頂上<rt>ちょうじょう</rt></ruby>までたどりついた。", options:["おかげで","おかげだ","せいで","せいだ"], answer:0, explain:"「〜おかげで」多亏…（积极）。" }
+        "page": 24,
+        "title": "パートI 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "24-1",
+            "pattern": "〜上(に)",
+            "q": "彼は背が高い__、ハンサムだ。",
+            "qHtml": "<ruby>彼<rt>かれ</rt></ruby>は<ruby>背<rt>せ</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>__、ハンサムだ。",
+            "options": [
+              "うえに",
+              "うえで",
+              "うえは",
+              "うえも"
+            ],
+            "answer": 0,
+            "explain": "「〜うえに」表示递进：又高又帅。"
+          },
+          {
+            "id": "24-2",
+            "pattern": "〜上で",
+            "q": "面接を__上で、採用するかどうかを決める。",
+            "qHtml": "<ruby>面接<rt>めんせつ</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で、<ruby>採用<rt>さいよう</rt></ruby>するかどうかを<ruby>決め<rt>きめ</rt></ruby>る。",
+            "options": [
+              "する",
+              "した",
+              "している",
+              "していた"
+            ],
+            "answer": 1,
+            "explain": "「〜た上で」完成后续动作。"
+          },
+          {
+            "id": "24-3",
+            "pattern": "〜うちに",
+            "q": "休み__うちに、部屋を片付けましょう。",
+            "qHtml": "<ruby>休み<rt>やすみ</rt></ruby>__うちに、<ruby>部屋<rt>へや</rt></ruby>を<ruby>片付<rt>かたづ</rt></ruby>けましょう。",
+            "options": [
+              "の",
+              "が",
+              "を",
+              "に"
+            ],
+            "answer": 0,
+            "explain": "「〜うちに」趁…期间，固定「休みのうちに」。"
+          },
+          {
+            "id": "24-4",
+            "pattern": "〜にくい/やすい",
+            "q": "新聞の活字が小さいので、読み__。",
+            "qHtml": "<ruby>新聞<rt>しんぶん</rt></ruby>の<ruby>活字<rt>かつじ</rt></ruby>が<ruby>小さい<rt>ちいさい</rt></ruby>ので、<ruby>読み<rt>よみ</rt></ruby>__。",
+            "options": [
+              "にくい",
+              "やすい",
+              "がたい",
+              "ぎみだ"
+            ],
+            "answer": 0,
+            "explain": "小字→难以读「読みにくい」。"
+          },
+          {
+            "id": "24-5",
+            "pattern": "〜以上は",
+            "q": "皆の前で約束した__、守らなければならない。",
+            "qHtml": "<ruby>皆<rt>みんな</rt></ruby>の<ruby>前<rt>まえ</rt></ruby>で<ruby>約束<rt>やくそく</rt></ruby>した__、<ruby>守ら<rt>まもら</rt></ruby>なければならない。",
+            "options": [
+              "以上",
+              "以上は",
+              "以上で",
+              "以上に"
+            ],
+            "answer": 1,
+            "explain": "「〜以上は」既然…就…。"
+          },
+          {
+            "id": "24-6",
+            "pattern": "〜一方で",
+            "q": "田中先生は学生を叱る__、ほめることも忘れない。",
+            "qHtml": "<ruby>田中<rt>たなか</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>は<ruby>学生<rt>がくせい</rt></ruby>を<ruby>叱る<rt>しかる</rt></ruby>__、ほめることも<ruby>忘れ<rt>わすれ</rt></ruby>ない。",
+            "options": [
+              "一方",
+              "一方で",
+              "一方だ",
+              "一方に"
+            ],
+            "answer": 1,
+            "explain": "「〜一方で」一方面…另一方面。"
+          },
+          {
+            "id": "24-7",
+            "pattern": "〜一方だ",
+            "q": "ここ数年、海水の温度が__一方だ。",
+            "qHtml": "ここ<ruby>数年<rt>すうねん</rt></ruby>、<ruby>海水<rt>かいすい</rt></ruby>の<ruby>温度<rt>おんど</rt></ruby>が__<ruby>一方<rt>いっぽう</rt></ruby>だ。",
+            "options": [
+              "高くなる",
+              "高くする",
+              "高い",
+              "高かった"
+            ],
+            "answer": 0,
+            "explain": "「〜一方だ」客观趋势「高くなる一方だ」。"
+          },
+          {
+            "id": "24-8",
+            "pattern": "〜間/間に",
+            "q": "友だちと公園を散歩している__、雨が降り出してきた。",
+            "qHtml": "<ruby>友だち<rt>ともだち</rt></ruby>と<ruby>公園<rt>こうえん</rt></ruby>を<ruby>散歩<rt>さんぽ</rt></ruby>している__、<ruby>雨<rt>あめ</rt></ruby>が<ruby>降り出して<rt>ふりだして</rt></ruby>きた。",
+            "options": [
+              "あいだ",
+              "あいだに",
+              "あいだで",
+              "あいだは"
+            ],
+            "answer": 1,
+            "explain": "持续中瞬间发生用「あいだに」。"
+          },
+          {
+            "id": "24-9",
+            "pattern": "〜上で",
+            "q": "二人は仕事の__、よきライバルだ。",
+            "qHtml": "<ruby>二人<rt>ふたり</rt></ruby>は<ruby>仕事<rt>しごと</rt></ruby>の__、よきライバルだ。",
+            "options": [
+              "うえで",
+              "うえの",
+              "あいだで",
+              "あいだに"
+            ],
+            "answer": 0,
+            "explain": "「仕事のうえで」工作上。"
+          },
+          {
+            "id": "24-10",
+            "pattern": "〜おかげで",
+            "q": "皆の__、無事に頂上までたどりついた。",
+            "qHtml": "<ruby>皆<rt>みんな</rt></ruby>の__、<ruby>無事<rt>ぶじ</rt></ruby>に<ruby>頂上<rt>ちょうじょう</rt></ruby>までたどりついた。",
+            "options": [
+              "おかげで",
+              "おかげだ",
+              "せいで",
+              "せいだ"
+            ],
+            "answer": 0,
+            "explain": "「〜おかげで」多亏…（积极）。"
+          }
         ]
       },
       {
-        page: 25, title: "パートI 問題2", type: "bank",
-        bank: ["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"],
-        questions: [
-          { id:"25-11", q:"せっかくこの会社に入った__、一生懸命頑張らなければならない。", qHtml:"せっかくこの<ruby>会社<rt>かいしゃ</rt></ruby>に<ruby>入った<rt>はいった</rt></ruby>__、<ruby>一生懸命<rt>いっしょうけんめい</rt></ruby><ruby>頑張ら<rt>がんばら</rt></ruby>なければならない。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:2, explain:"「〜以上」既然入社就…。" },
-          { id:"25-12", q:"留守の__、吉田さんが訪ねてきたそうだ。", qHtml:"<ruby>留守<rt>るす</rt></ruby>の__、<ruby>吉田<rt>よしだ</rt></ruby>さんが<ruby>訪ねて<rt>たずねて</rt></ruby>きたそうだ。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:0, explain:"「留守の間に」不在期间的瞬间来访。" },
-          { id:"25-13", q:"最近あまり運動していないから、太る__。", qHtml:"<ruby>最近<rt>さいきん</rt></ruby>あまり<ruby>運動<rt>うんどう</rt></ruby>していないから、<ruby>太る<rt>ふとる</rt></ruby>__。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:3, explain:"「太る一方だ」趋势。" },
-          { id:"25-14", q:"彼女は仕事で頑張っている__、家族の面倒も見なければならない。", qHtml:"<ruby>彼女<rt>かのじょ</rt></ruby>は<ruby>仕事<rt>しごと</rt></ruby>で<ruby>頑張って<rt>がんばって</rt></ruby>いる__、<ruby>家族<rt>かぞく</rt></ruby>の<ruby>面倒<rt>めんどう</rt></ruby>も<ruby>見<rt>み</rt></ruby>なければならない。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:4, explain:"「〜一方で」一方面…" },
-          { id:"25-15", q:"この薬は苦味がなく、飲み__。", qHtml:"この<ruby>薬<rt>くすり</rt></ruby>は<ruby>苦味<rt>にがみ</rt></ruby>がなく、<ruby>飲み<rt>のみ</rt></ruby>__。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:1, explain:"「飲みやすい」易于服用。" },
-          { id:"25-16", q:"若い__は、新しい知識をどんどん吸収しなければならない。", qHtml:"<ruby>若い<rt>わかい</rt></ruby>__は、<ruby>新しい<rt>あたらしい</rt></ruby><ruby>知識<rt>ちしき</rt></ruby>をどんどん<ruby>吸収<rt>きゅうしゅう</rt></ruby>しなければならない。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:8, explain:"「若いうち」年轻时。" },
-          { id:"25-17", q:"彼が手伝ってくれた__、締切に間に合った。", qHtml:"<ruby>彼<rt>かれ</rt></ruby>が<ruby>手伝って<rt>てつだって</rt></ruby>くれた__、<ruby>締切<rt>しめきり</rt></ruby>に<ruby>間<rt>ま</rt></ruby>に<ruby>合った<rt>あった</rt></ruby>。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:9, explain:"「〜おかげで」多亏…（积极）。" },
-          { id:"25-18", q:"試験の点数が出た__、志望校を決めたいと思う。", qHtml:"<ruby>試験<rt>しけん</rt></ruby>の<ruby>点数<rt>てんすう</rt></ruby>が<ruby>出た<rt>でた</rt></ruby>__、<ruby>志望校<rt>しぼうこう</rt></ruby>を<ruby>決め<rt>きめ</rt></ruby>たいと<ruby>思う<rt>おもう</rt></ruby>。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:5, explain:"「出た上で」在…后。" },
-          { id:"25-19", q:"夜が明けない__、出発の準備をした。", qHtml:"<ruby>夜<rt>よる</rt></ruby>が<ruby>明けない<rt>あけない</rt></ruby>__、<ruby>出発<rt>しゅっぱつ</rt></ruby>の<ruby>準備<rt>じゅんび</rt></ruby>をした。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:7, explain:"「明けないうちに」天亮前。" },
-          { id:"25-20", q:"梅雨の時期に気温が高い__、湿度も高い。", qHtml:"<ruby>梅雨<rt>つゆ</rt></ruby>の<ruby>時期<rt>じき</rt></ruby>に<ruby>気温<rt>きおん</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>__、<ruby>湿度<rt>しつど</rt></ruby>も<ruby>高い<rt>たかい</rt></ruby>。", options:["間に","やすい","以上","一方だ","一方で","上で","上に","うちに","うち","おかげで"], answer:6, explain:"「〜うえに」递进：不仅気温高，而且湿度也高。此处前后均为消极/积极同向累加，用「うえに」最自然。" }
+        "page": 25,
+        "title": "パートI 問題2",
+        "type": "bank",
+        "bank": [
+          "間に",
+          "やすい",
+          "以上",
+          "一方だ",
+          "一方で",
+          "上で",
+          "上に",
+          "うちに",
+          "うち",
+          "おかげで"
+        ],
+        "questions": [
+          {
+            "id": "25-11",
+            "q": "せっかくこの会社に入った__、一生懸命頑張らなければならない。",
+            "qHtml": "せっかくこの<ruby>会社<rt>かいしゃ</rt></ruby>に<ruby>入った<rt>はいった</rt></ruby>__、<ruby>一生懸命<rt>いっしょうけんめい</rt></ruby><ruby>頑張ら<rt>がんばら</rt></ruby>なければならない。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 2,
+            "explain": "「〜以上」既然入社就…。"
+          },
+          {
+            "id": "25-12",
+            "q": "留守の__、吉田さんが訪ねてきたそうだ。",
+            "qHtml": "<ruby>留守<rt>るす</rt></ruby>の__、<ruby>吉田<rt>よしだ</rt></ruby>さんが<ruby>訪ねて<rt>たずねて</rt></ruby>きたそうだ。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 0,
+            "explain": "「留守の間に」不在期间的瞬间来访。"
+          },
+          {
+            "id": "25-13",
+            "q": "最近あまり運動していないから、太る__。",
+            "qHtml": "<ruby>最近<rt>さいきん</rt></ruby>あまり<ruby>運動<rt>うんどう</rt></ruby>していないから、<ruby>太る<rt>ふとる</rt></ruby>__。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 3,
+            "explain": "「太る一方だ」趋势。"
+          },
+          {
+            "id": "25-14",
+            "q": "彼女は仕事で頑張っている__、家族の面倒も見なければならない。",
+            "qHtml": "<ruby>彼女<rt>かのじょ</rt></ruby>は<ruby>仕事<rt>しごと</rt></ruby>で<ruby>頑張って<rt>がんばって</rt></ruby>いる__、<ruby>家族<rt>かぞく</rt></ruby>の<ruby>面倒<rt>めんどう</rt></ruby>も<ruby>見<rt>み</rt></ruby>なければならない。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 4,
+            "explain": "「〜一方で」一方面…"
+          },
+          {
+            "id": "25-15",
+            "q": "この薬は苦味がなく、飲み__。",
+            "qHtml": "この<ruby>薬<rt>くすり</rt></ruby>は<ruby>苦味<rt>にがみ</rt></ruby>がなく、<ruby>飲み<rt>のみ</rt></ruby>__。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 1,
+            "explain": "「飲みやすい」易于服用。"
+          },
+          {
+            "id": "25-16",
+            "q": "若い__は、新しい知識をどんどん吸収しなければならない。",
+            "qHtml": "<ruby>若い<rt>わかい</rt></ruby>__は、<ruby>新しい<rt>あたらしい</rt></ruby><ruby>知識<rt>ちしき</rt></ruby>をどんどん<ruby>吸収<rt>きゅうしゅう</rt></ruby>しなければならない。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 8,
+            "explain": "「若いうち」年轻时。"
+          },
+          {
+            "id": "25-17",
+            "q": "彼が手伝ってくれた__、締切に間に合った。",
+            "qHtml": "<ruby>彼<rt>かれ</rt></ruby>が<ruby>手伝って<rt>てつだって</rt></ruby>くれた__、<ruby>締切<rt>しめきり</rt></ruby>に<ruby>間<rt>ま</rt></ruby>に<ruby>合った<rt>あった</rt></ruby>。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 9,
+            "explain": "「〜おかげで」多亏…（积极）。"
+          },
+          {
+            "id": "25-18",
+            "q": "試験の点数が出た__、志望校を決めたいと思う。",
+            "qHtml": "<ruby>試験<rt>しけん</rt></ruby>の<ruby>点数<rt>てんすう</rt></ruby>が<ruby>出た<rt>でた</rt></ruby>__、<ruby>志望校<rt>しぼうこう</rt></ruby>を<ruby>決め<rt>きめ</rt></ruby>たいと<ruby>思う<rt>おもう</rt></ruby>。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 5,
+            "explain": "「出た上で」在…后。"
+          },
+          {
+            "id": "25-19",
+            "q": "夜が明けない__、出発の準備をした。",
+            "qHtml": "<ruby>夜<rt>よる</rt></ruby>が<ruby>明けない<rt>あけない</rt></ruby>__、<ruby>出発<rt>しゅっぱつ</rt></ruby>の<ruby>準備<rt>じゅんび</rt></ruby>をした。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 7,
+            "explain": "「明けないうちに」天亮前。"
+          },
+          {
+            "id": "25-20",
+            "q": "梅雨の時期に気温が高い__、湿度も高い。",
+            "qHtml": "<ruby>梅雨<rt>つゆ</rt></ruby>の<ruby>時期<rt>じき</rt></ruby>に<ruby>気温<rt>きおん</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>__、<ruby>湿度<rt>しつど</rt></ruby>も<ruby>高い<rt>たかい</rt></ruby>。",
+            "options": [
+              "間に",
+              "やすい",
+              "以上",
+              "一方だ",
+              "一方で",
+              "上で",
+              "上に",
+              "うちに",
+              "うち",
+              "おかげで"
+            ],
+            "answer": 6,
+            "explain": "「〜うえに」递进：不仅気温高，而且湿度也高。此处前后均为消极/积极同向累加，用「うえに」最自然。"
+          }
         ]
       },
       {
-        page: 25, title: "パートI 問題3", type: "input",
-        questions: [
-          { id:"25-21", q:"この辺は静かで__所だ。（住む）", qHtml:"この<ruby>辺<rt>へん</rt></ruby>は<ruby>静か<rt>しずか</rt></ruby>で__<ruby>所<rt>ところ</rt></ruby>だ。（<ruby>住む<rt>すむ</rt></ruby>）", options:["住みやすい","住みにくい","住みがたい","住みそう"], answer:0, explain:"「住みやすい」易于居住。" },
-          { id:"25-22", q:"__、しっかり勉強しなければならない。（学生）", qHtml:"__、しっかり<ruby>勉強<rt>べんきょう</rt></ruby>しなければならない。（<ruby>学生<rt>がくせい</rt></ruby>）", options:["学生以上","学生以上は","学生以上で","学生以上に"], answer:1, explain:"「学生以上は」既然是学生就…" },
-          { id:"25-23", q:"私が__間に、雪が止んだ。（眠る）", qHtml:"<ruby>私<rt>わたし</rt></ruby>が__<ruby>間<rt>あいだ</rt></ruby>に、<ruby>雪<rt>ゆき</rt></ruby>が<ruby>止んだ<rt>やんだ</rt></ruby>。（<ruby>眠る<rt>ねむる</rt></ruby>）", options:["寝ている","寝た","寝る","寝て"], answer:0, explain:"「寝ている間に」睡着期间。" },
-          { id:"25-24", q:"田中さんは仕事が__、部下の面倒をよく見ている。（できる）", qHtml:"<ruby>田中<rt>たなか</rt></ruby>さんは<ruby>仕事<rt>しごと</rt></ruby>が__、<ruby>部下<rt>ぶか</rt></ruby>の<ruby>面倒<rt>めんどう</rt></ruby>をよく<ruby>見て<rt>みて</rt></ruby>いる。（できる）", options:["できる","できる一方","できる一方で","できる一方だ"], answer:2, explain:"「できる一方で」一方面能干一方面照顾。" },
-          { id:"25-25", q:"注意事項を__上で、署名してください。（読む）", qHtml:"<ruby>注意事項<rt>ちゅういじこう</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で、<ruby>署名<rt>しょめい</rt></ruby>してください。（<ruby>読む<rt>よむ</rt></ruby>）", options:["読んだ","読む","読んで","読むこと"], answer:0, explain:"「読んだ上で」读完后。" },
-          { id:"25-26", q:"登山は健康を__上で役立つ。（保つ）", qHtml:"<ruby>登山<rt>とざん</rt></ruby>は<ruby>健康<rt>けんこう</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で<ruby>役立<rt>やくだ</rt></ruby>つ。（<ruby>保つ<rt>たもつ</rt></ruby>）", options:["保つ","保った","保って","保つこと"], answer:0, explain:"「保つ上で」在保持健康方面。" },
-          { id:"25-27", q:"日本の漫画を__うちに、日本文化に興味を持った。（読む）", qHtml:"<ruby>日本<rt>にほん</rt></ruby>の<ruby>漫画<rt>まんが</rt></ruby>を__うちに、<ruby>日本<rt>にほん</rt></ruby><ruby>文化<rt>ぶんか</rt></ruby>に<ruby>興味<rt>きょうみ</rt></ruby>を<ruby>持った<rt>もった</rt></ruby>。（<ruby>読む<rt>よむ</rt></ruby>）", options:["読む","読んだ","読んでいる","読めば"], answer:2, explain:"「読んでいるうちに」阅读过程中。" }
+        "page": 25,
+        "title": "パートI 問題3",
+        "type": "input",
+        "questions": [
+          {
+            "id": "25-21",
+            "q": "この辺は静かで__所だ。（住む）",
+            "qHtml": "この<ruby>辺<rt>へん</rt></ruby>は<ruby>静か<rt>しずか</rt></ruby>で__<ruby>所<rt>ところ</rt></ruby>だ。（<ruby>住む<rt>すむ</rt></ruby>）",
+            "options": [
+              "住みやすい",
+              "住みにくい",
+              "住みがたい",
+              "住みそう"
+            ],
+            "answer": 0,
+            "explain": "「住みやすい」易于居住。"
+          },
+          {
+            "id": "25-22",
+            "q": "__、しっかり勉強しなければならない。（学生）",
+            "qHtml": "__、しっかり<ruby>勉強<rt>べんきょう</rt></ruby>しなければならない。（<ruby>学生<rt>がくせい</rt></ruby>）",
+            "options": [
+              "学生以上",
+              "学生以上は",
+              "学生以上で",
+              "学生以上に"
+            ],
+            "answer": 1,
+            "explain": "「学生以上は」既然是学生就…"
+          },
+          {
+            "id": "25-23",
+            "q": "私が__間に、雪が止んだ。（眠る）",
+            "qHtml": "<ruby>私<rt>わたし</rt></ruby>が__<ruby>間<rt>あいだ</rt></ruby>に、<ruby>雪<rt>ゆき</rt></ruby>が<ruby>止んだ<rt>やんだ</rt></ruby>。（<ruby>眠る<rt>ねむる</rt></ruby>）",
+            "options": [
+              "寝ている",
+              "寝た",
+              "寝る",
+              "寝て"
+            ],
+            "answer": 0,
+            "explain": "「寝ている間に」睡着期间。"
+          },
+          {
+            "id": "25-24",
+            "q": "田中さんは仕事が__、部下の面倒をよく見ている。（できる）",
+            "qHtml": "<ruby>田中<rt>たなか</rt></ruby>さんは<ruby>仕事<rt>しごと</rt></ruby>が__、<ruby>部下<rt>ぶか</rt></ruby>の<ruby>面倒<rt>めんどう</rt></ruby>をよく<ruby>見て<rt>みて</rt></ruby>いる。（できる）",
+            "options": [
+              "できる",
+              "できる一方",
+              "できる一方で",
+              "できる一方だ"
+            ],
+            "answer": 2,
+            "explain": "「できる一方で」一方面能干一方面照顾。"
+          },
+          {
+            "id": "25-25",
+            "q": "注意事項を__上で、署名してください。（読む）",
+            "qHtml": "<ruby>注意事項<rt>ちゅういじこう</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で、<ruby>署名<rt>しょめい</rt></ruby>してください。（<ruby>読む<rt>よむ</rt></ruby>）",
+            "options": [
+              "読んだ",
+              "読む",
+              "読んで",
+              "読むこと"
+            ],
+            "answer": 0,
+            "explain": "「読んだ上で」读完后。"
+          },
+          {
+            "id": "25-26",
+            "q": "登山は健康を__上で役立つ。（保つ）",
+            "qHtml": "<ruby>登山<rt>とざん</rt></ruby>は<ruby>健康<rt>けんこう</rt></ruby>を__<ruby>上<rt>うえ</rt></ruby>で<ruby>役立<rt>やくだ</rt></ruby>つ。（<ruby>保つ<rt>たもつ</rt></ruby>）",
+            "options": [
+              "保つ",
+              "保った",
+              "保って",
+              "保つこと"
+            ],
+            "answer": 0,
+            "explain": "「保つ上で」在保持健康方面。"
+          },
+          {
+            "id": "25-27",
+            "q": "日本の漫画を__うちに、日本文化に興味を持った。（読む）",
+            "qHtml": "<ruby>日本<rt>にほん</rt></ruby>の<ruby>漫画<rt>まんが</rt></ruby>を__うちに、<ruby>日本<rt>にほん</rt></ruby><ruby>文化<rt>ぶんか</rt></ruby>に<ruby>興味<rt>きょうみ</rt></ruby>を<ruby>持った<rt>もった</rt></ruby>。（<ruby>読む<rt>よむ</rt></ruby>）",
+            "options": [
+              "読む",
+              "読んだ",
+              "読んでいる",
+              "読めば"
+            ],
+            "answer": 2,
+            "explain": "「読んでいるうちに」阅读过程中。"
+          }
         ]
       },
       {
-        page: 26, title: "パートII 問題1", type: "choice",
-        questions: [
-          { id:"26-1", q:"食事をしている__、ドアのチャイムが鳴った。", qHtml:"<ruby>食事<rt>しょくじ</rt></ruby>をしている__、ドアのチャイムが<ruby>鳴った<rt>なった</rt></ruby>。", options:["あいだ","あいだに","あいだで","あいだは"], answer:1, explain:"瞬间动作在持续中发生用「あいだに」。" },
-          { id:"26-2", q:"彼は約束を守る__、熱心な人なので皆に信頼されている。", qHtml:"<ruby>彼<rt>かれ</rt></ruby>は<ruby>約束<rt>やくそく</rt></ruby>を<ruby>守る<rt>まもる</rt></ruby>__、<ruby>熱心<rt>ねっしん</rt></ruby>な<ruby>人<rt>ひと</rt></ruby>なので<ruby>皆<rt>みんな</rt></ruby>に<ruby>信頼<rt>しんらい</rt></ruby>されている。", options:["うえで","うえに","ために","うえを"], answer:0, explain:"「守るうえで」在…方面。" },
-          { id:"26-3", q:"ここ数年、住宅の価格が__一方だ。", qHtml:"ここ<ruby>数年<rt>すうねん</rt></ruby>、<ruby>住宅<rt>じゅうたく</rt></ruby>の<ruby>価格<rt>かかく</rt></ruby>が__<ruby>一方<rt>いっぽう</rt></ruby>だ。", options:["上がる","上がった","上がっている","上がりつつある"], answer:0, explain:"「上がる一方だ」持续上升。" },
-          { id:"26-4", q:"旅行は視野を広げる__役に立つ。", qHtml:"<ruby>旅行<rt>りょこう</rt></ruby>は<ruby>視野<rt>しや</rt></ruby>を<ruby>広げる<rt>ひろげる</rt></ruby>__<ruby>役<rt>やく</rt></ruby>に<ruby>立つ<rt>たつ</rt></ruby>。", options:["うえで","うえに","ために","うえを"], answer:0, explain:"「〜うえで」在…过程中有帮助。" },
-          { id:"26-5", q:"若い__時間の大切さに気づかなかった。", qHtml:"<ruby>若い<rt>わかい</rt></ruby>__<ruby>時間<rt>じかん</rt></ruby>の<ruby>大切<rt>たいせつ</rt></ruby>さに<ruby>気づか<rt>きづか</rt></ruby>なかった。", options:["うちは","うちに","ために","だけで"], answer:0, explain:"「若いうちは」年轻时。" },
-          { id:"26-6", q:"この携帯はボタンが大きくて、お年寄りにも__。", qHtml:"この<ruby>携帯<rt>けいたい</rt></ruby>はボタンが<ruby>大きく<rt>おおきく</rt></ruby>て、お<ruby>年寄り<rt>としより</rt></ruby>にも__。", options:["使いにくい","使いやすい","使いすぎる","使えばいい"], answer:1, explain:"易用「使いやすい」。" },
-          { id:"26-7", q:"本を__、いつの間にか眠ってしまった。", qHtml:"<ruby>本<rt>ほん</rt></ruby>を__、いつの<ruby>間<rt>ま</rt></ruby>にか<ruby>眠って<rt>ねむって</rt></ruby>しまった。", options:["読んでいるうちに","読んだうちに","読むうちに","読んでうちに"], answer:0, explain:"「読んでいるうちに」读着读着。" },
-          { id:"26-8", q:"勉強する時間がない__、ゲームに夢中だ。", qHtml:"<ruby>勉強<rt>べんきょう</rt></ruby>する<ruby>時間<rt>じかん</rt></ruby>がない__、ゲームに<ruby>夢中<rt>むちゅう</rt></ruby>だ。", options:["といいながら","といえば","というと","というのに"], answer:0, explain:"「〜といいながら」嘴上说…却…" },
-          { id:"26-9", q:"田中さんに__、楽しい一日を過ごした。", qHtml:"<ruby>田中<rt>たなか</rt></ruby>さんに__、<ruby>楽しい<rt>たのしい</rt></ruby><ruby>一日<rt>いちにち</rt></ruby>を<ruby>過ごした<rt>すごした</rt></ruby>。", options:["誘ってもらったおかげで","誘ってくれたおかげで","誘ってあげたおかげで","誘ってさしあげたおかげで"], answer:1, explain:"受惠用「〜てくれたおかげで」。" },
-          { id:"26-10", q:"日本への留学__、日本語だけでなく文化にも触れたい。", qHtml:"<ruby>日本<rt>にほん</rt></ruby>への<ruby>留学<rt>りゅうがく</rt></ruby>__、<ruby>日本語<rt>にほんご</rt></ruby>だけでなく<ruby>文化<rt>ぶんか</rt></ruby>にも<ruby>触れ<rt>ふれ</rt></ruby>たい。", options:["をきっかけに","が決まった以上","のために","おかげで"], answer:0, explain:"「〜をきっかけに」以…为契机。" },
-          { id:"26-11", q:"先生が__、この論文を完成した。", qHtml:"<ruby>先生<rt>せんせい</rt></ruby>が__、この<ruby>論文<rt>ろんぶん</rt></ruby>を<ruby>完成<rt>かんせい</rt></ruby>した。", options:["指導したおかげで","指導してくれたおかげで","指導してもらったおかげで","指導したおかげで"], answer:1, explain:"尊敬「指導してくれたおかげで」。" },
-          { id:"26-12", q:"この魚は__、値段も安い。", qHtml:"この<ruby>魚<rt>さかな</rt></ruby>は__、<ruby>値段<rt>ねだん</rt></ruby>も<ruby>安い<rt>やすい</rt></ruby>。", options:["新鮮なうえで","新鮮なうえに","新鮮な一方で","新鮮である以上"], answer:1, explain:"「新鮮なうえに」且…" },
-          { id:"26-13", q:"映画がまだ__うちに、売店に行ってくる。", qHtml:"<ruby>映画<rt>えいが</rt></ruby>がまだ__うちに、<ruby>売店<rt>ばいてん</rt></ruby>に<ruby>行って<rt>いって</rt></ruby>くる。", options:["始まっている","始まった","始まる","始まっていない"], answer:3, explain:"「始まっていないうちに」未开始前。" }
+        "page": 26,
+        "title": "パートII 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "26-1",
+            "q": "食事をしている__、ドアのチャイムが鳴った。",
+            "qHtml": "<ruby>食事<rt>しょくじ</rt></ruby>をしている__、ドアのチャイムが<ruby>鳴った<rt>なった</rt></ruby>。",
+            "options": [
+              "あいだ",
+              "あいだに",
+              "あいだで",
+              "あいだは"
+            ],
+            "answer": 1,
+            "explain": "瞬间动作在持续中发生用「あいだに」。"
+          },
+          {
+            "id": "26-2",
+            "q": "彼は約束を守る__、熱心な人なので皆に信頼されている。",
+            "qHtml": "<ruby>彼<rt>かれ</rt></ruby>は<ruby>約束<rt>やくそく</rt></ruby>を<ruby>守る<rt>まもる</rt></ruby>__、<ruby>熱心<rt>ねっしん</rt></ruby>な<ruby>人<rt>ひと</rt></ruby>なので<ruby>皆<rt>みんな</rt></ruby>に<ruby>信頼<rt>しんらい</rt></ruby>されている。",
+            "options": [
+              "うえで",
+              "うえに",
+              "ために",
+              "うえを"
+            ],
+            "answer": 0,
+            "explain": "「守るうえで」在…方面。"
+          },
+          {
+            "id": "26-3",
+            "q": "ここ数年、住宅の価格が__一方だ。",
+            "qHtml": "ここ<ruby>数年<rt>すうねん</rt></ruby>、<ruby>住宅<rt>じゅうたく</rt></ruby>の<ruby>価格<rt>かかく</rt></ruby>が__<ruby>一方<rt>いっぽう</rt></ruby>だ。",
+            "options": [
+              "上がる",
+              "上がった",
+              "上がっている",
+              "上がりつつある"
+            ],
+            "answer": 0,
+            "explain": "「上がる一方だ」持续上升。"
+          },
+          {
+            "id": "26-4",
+            "q": "旅行は視野を広げる__役に立つ。",
+            "qHtml": "<ruby>旅行<rt>りょこう</rt></ruby>は<ruby>視野<rt>しや</rt></ruby>を<ruby>広げる<rt>ひろげる</rt></ruby>__<ruby>役<rt>やく</rt></ruby>に<ruby>立つ<rt>たつ</rt></ruby>。",
+            "options": [
+              "うえで",
+              "うえに",
+              "ために",
+              "うえを"
+            ],
+            "answer": 0,
+            "explain": "「〜うえで」在…过程中有帮助。"
+          },
+          {
+            "id": "26-5",
+            "q": "若い__時間の大切さに気づかなかった。",
+            "qHtml": "<ruby>若い<rt>わかい</rt></ruby>__<ruby>時間<rt>じかん</rt></ruby>の<ruby>大切<rt>たいせつ</rt></ruby>さに<ruby>気づか<rt>きづか</rt></ruby>なかった。",
+            "options": [
+              "うちは",
+              "うちに",
+              "ために",
+              "だけで"
+            ],
+            "answer": 0,
+            "explain": "「若いうちは」年轻时。"
+          },
+          {
+            "id": "26-6",
+            "q": "この携帯はボタンが大きくて、お年寄りにも__。",
+            "qHtml": "この<ruby>携帯<rt>けいたい</rt></ruby>はボタンが<ruby>大きく<rt>おおきく</rt></ruby>て、お<ruby>年寄り<rt>としより</rt></ruby>にも__。",
+            "options": [
+              "使いにくい",
+              "使いやすい",
+              "使いすぎる",
+              "使えばいい"
+            ],
+            "answer": 1,
+            "explain": "易用「使いやすい」。"
+          },
+          {
+            "id": "26-7",
+            "q": "本を__、いつの間にか眠ってしまった。",
+            "qHtml": "<ruby>本<rt>ほん</rt></ruby>を__、いつの<ruby>間<rt>ま</rt></ruby>にか<ruby>眠って<rt>ねむって</rt></ruby>しまった。",
+            "options": [
+              "読んでいるうちに",
+              "読んだうちに",
+              "読むうちに",
+              "読んでうちに"
+            ],
+            "answer": 0,
+            "explain": "「読んでいるうちに」读着读着。"
+          },
+          {
+            "id": "26-8",
+            "q": "勉強する時間がない__、ゲームに夢中だ。",
+            "qHtml": "<ruby>勉強<rt>べんきょう</rt></ruby>する<ruby>時間<rt>じかん</rt></ruby>がない__、ゲームに<ruby>夢中<rt>むちゅう</rt></ruby>だ。",
+            "options": [
+              "といいながら",
+              "といえば",
+              "というと",
+              "というのに"
+            ],
+            "answer": 0,
+            "explain": "「〜といいながら」嘴上说…却…"
+          },
+          {
+            "id": "26-9",
+            "q": "田中さんに__、楽しい一日を過ごした。",
+            "qHtml": "<ruby>田中<rt>たなか</rt></ruby>さんに__、<ruby>楽しい<rt>たのしい</rt></ruby><ruby>一日<rt>いちにち</rt></ruby>を<ruby>過ごした<rt>すごした</rt></ruby>。",
+            "options": [
+              "誘ってもらったおかげで",
+              "誘ってくれたおかげで",
+              "誘ってあげたおかげで",
+              "誘ってさしあげたおかげで"
+            ],
+            "answer": 1,
+            "explain": "受惠用「〜てくれたおかげで」。"
+          },
+          {
+            "id": "26-10",
+            "q": "日本への留学__、日本語だけでなく文化にも触れたい。",
+            "qHtml": "<ruby>日本<rt>にほん</rt></ruby>への<ruby>留学<rt>りゅうがく</rt></ruby>__、<ruby>日本語<rt>にほんご</rt></ruby>だけでなく<ruby>文化<rt>ぶんか</rt></ruby>にも<ruby>触れ<rt>ふれ</rt></ruby>たい。",
+            "options": [
+              "をきっかけに",
+              "が決まった以上",
+              "のために",
+              "おかげで"
+            ],
+            "answer": 0,
+            "explain": "「〜をきっかけに」以…为契机。"
+          },
+          {
+            "id": "26-11",
+            "q": "先生が__、この論文を完成した。",
+            "qHtml": "<ruby>先生<rt>せんせい</rt></ruby>が__、この<ruby>論文<rt>ろんぶん</rt></ruby>を<ruby>完成<rt>かんせい</rt></ruby>した。",
+            "options": [
+              "指導したおかげで",
+              "指導してくれたおかげで",
+              "指導してもらったおかげで",
+              "指導したおかげで"
+            ],
+            "answer": 1,
+            "explain": "尊敬「指導してくれたおかげで」。"
+          },
+          {
+            "id": "26-12",
+            "q": "この魚は__、値段も安い。",
+            "qHtml": "この<ruby>魚<rt>さかな</rt></ruby>は__、<ruby>値段<rt>ねだん</rt></ruby>も<ruby>安い<rt>やすい</rt></ruby>。",
+            "options": [
+              "新鮮なうえで",
+              "新鮮なうえに",
+              "新鮮な一方で",
+              "新鮮である以上"
+            ],
+            "answer": 1,
+            "explain": "「新鮮なうえに」且…"
+          },
+          {
+            "id": "26-13",
+            "q": "映画がまだ__うちに、売店に行ってくる。",
+            "qHtml": "<ruby>映画<rt>えいが</rt></ruby>がまだ__うちに、<ruby>売店<rt>ばいてん</rt></ruby>に<ruby>行って<rt>いって</rt></ruby>くる。",
+            "options": [
+              "始まっている",
+              "始まった",
+              "始まる",
+              "始まっていない"
+            ],
+            "answer": 3,
+            "explain": "「始まっていないうちに」未开始前。"
+          }
         ]
       },
       {
-        page: 27, title: "パートII 問題2", type: "star",
-        questions: [
-          { id:"27-14", q:"きのう＿ ＿ ★ ＿、眠ってしまった。", qHtml:"きのう＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿、<ruby>眠って<rt>ねむって</rt></ruby>しまった。", options:["うちに","を","見ている","テレビ"], answer:2, explain:"正順：きのうテレビを見ているうちに眠ってしまった。★は3番目の空「見ている」。" },
-          { id:"27-15", q:"バスの＿ ＿ ★ ＿、財布を盗まれた。", qHtml:"バスの＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿、<ruby>財布<rt>さいふ</rt></ruby>を<ruby>盗まれた<rt>ぬすまれた</rt></ruby>。", options:["をしている","居眠り","間に","中で"], answer:0, explain:"正順：バスの[中で][居眠り]★[をしている][間に]→バスの中で居眠りをしている間に財布を盗まれた。★は3番目の空「をしている」(A)。" },
-          { id:"27-16", q:"もう＿ ＿ ★ ＿以上は、誰に勧められても絶対に吸わないよ", qHtml:"もう＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>以上<rt>いじょう</rt></ruby>は、<ruby>誰<rt>だれ</rt></ruby>に<ruby>勧め<rt>すすめ</rt></ruby>られても<ruby>絶対<rt>ぜったい</rt></ruby>に<ruby>吸わ<rt>すわ</rt></ruby>ないよ", options:["吸わない","タバコを","決心した","と"], answer:3, explain:"正順：もうタバコを吸わないと決心した以上は… ★は3番目の空「と」。Dは「と」。题干「＿ 以上は 、誰に勧められても絶対に吸わないよ」。" },
-          { id:"27-17", q:"彼女はきれいな＿ ＿ ★ ＿人気が高い。", qHtml:"<ruby>彼女<rt>かのじょ</rt></ruby>はきれいな＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>人気<rt>にんき</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>。", options:["人","優しい","なので","うえに"], answer:0, explain:"正順：彼女はきれいな[うえに][優しい]★[人][なので]→きれいなうえに優しい人なので人気が高い。★は3番目の空「人」(A)。" },
-          { id:"27-18", q:"鈴木先生が＿ ★ ＿ ＿今回のコンクールに優勝できた", qHtml:"<ruby>鈴木<rt>すずき</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>が＿ <span style=\"color:var(--accent)\">★</span> ＿ ＿<ruby>今回<rt>こんかい</rt></ruby>の<ruby>コンクール<rt>こんくーる</rt></ruby>に<ruby>優勝<rt>ゆうしょう</rt></ruby>できた", options:["おかげで","熱心に","教えて","くださった"], answer:2, explain:"正順：鈴木先生が[熱心に]★[教えて][くださった][おかげで]→熱心に教えてくださったおかげで今回のコンクールに優勝できた。★は2番目の空「教えて」。题干「鈴木先生が＿ ★ ＿ ＿今回のコンクールに優勝できた」。" }
+        "page": 27,
+        "title": "パートII 問題2",
+        "type": "star",
+        "questions": [
+          {
+            "id": "27-14",
+            "q": "きのう＿ ＿ ★ ＿眠ってしまった。",
+            "qHtml": "きのう＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>眠って<rt>ねむって</rt></ruby>しまった。",
+            "options": [
+              "うちに",
+              "を",
+              "見ている",
+              "テレビ"
+            ],
+            "answer": 2,
+            "explain": "正順：きのうテレビを見ているうちに眠ってしまった。★は3番目の空「見ている」。"
+          },
+          {
+            "id": "27-15",
+            "q": "バスの＿ ＿ ★ ＿財布を盗まれた。",
+            "qHtml": "バスの＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>財布<rt>さいふ</rt></ruby>を<ruby>盗まれた<rt>ぬすまれた</rt></ruby>。",
+            "options": [
+              "をしている",
+              "居眠り",
+              "間に",
+              "中で"
+            ],
+            "answer": 0,
+            "explain": "正順：バスの[中で][居眠り]★[をしている][間に]→バスの中で居眠りをしている間に財布を盗まれた。★は3番目の空「をしている」(A)。"
+          },
+          {
+            "id": "27-16",
+            "q": "もう＿ ＿ ★ ＿以上は、誰に勧められても絶対に吸わないよ",
+            "qHtml": "もう＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>以上<rt>いじょう</rt></ruby>は、<ruby>誰<rt>だれ</rt></ruby>に<ruby>勧め<rt>すすめ</rt></ruby>られても<ruby>絶対<rt>ぜったい</rt></ruby>に<ruby>吸わ<rt>すわ</rt></ruby>ないよ",
+            "options": [
+              "吸わない",
+              "タバコを",
+              "決心した",
+              "と"
+            ],
+            "answer": 3,
+            "explain": "正順：もうタバコを吸わないと決心した以上は… ★は3番目の空「と」。Dは「と」。题干「＿ 以上は 、誰に勧められても絶対に吸わないよ」。"
+          },
+          {
+            "id": "27-17",
+            "q": "彼女はきれいな＿ ＿ ★ ＿人気が高い。",
+            "qHtml": "<ruby>彼女<rt>かのじょ</rt></ruby>はきれいな＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>人気<rt>にんき</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>。",
+            "options": [
+              "人",
+              "優しい",
+              "なので",
+              "うえに"
+            ],
+            "answer": 0,
+            "explain": "正順：彼女はきれいな[うえに][優しい]★[人][なので]→きれいなうえに優しい人なので人気が高い。★は3番目の空「人」(A)。"
+          },
+          {
+            "id": "27-18",
+            "q": "鈴木先生が＿ ★ ＿ ＿今回のコンクールに優勝できた",
+            "qHtml": "<ruby>鈴木<rt>すずき</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>が＿ <span style=\"color:var(--accent)\">★</span> ＿ ＿<ruby>今回<rt>こんかい</rt></ruby>の<ruby>コンクール<rt>こんくーる</rt></ruby>に<ruby>優勝<rt>ゆうしょう</rt></ruby>できた",
+            "options": [
+              "おかげで",
+              "熱心に",
+              "教えて",
+              "くださった"
+            ],
+            "answer": 2,
+            "explain": "正順：鈴木先生が[熱心に]★[教えて][くださった][おかげで]→熱心に教えてくださったおかげで今回のコンクールに優勝できた。★は2番目の空「教えて」。题干「鈴木先生が＿ ★ ＿ ＿今回のコンクールに優勝できた」。"
+          }
         ]
       },
       {
-        page: 28, title: "パートII 問題3", type: "reading",
-        passage: "日本には、お盆や正月が近くなると、世話になった人や目上の人に物を|19|。お盆に贈る物を「お中元」、年の終わりに贈る物を「お歳暮」という。これは、むかし、お盆や正月に先祖の祭りをしたことに関係がある。先祖を大切にするの|20|、世話になった人や目上の人にあいさつをし、おくり物をしたのが、この「お中元」や「お歳暮」の始まりである。むかしは生活に必要な物、|21|、米や魚などの食料品をおくることが多かった。その習慣は、今も残っていて、食料品をおくることが一番多い。外国人の中には、「日本人は、物をあげたり、もらったりするのが好きな国民だ。」と言う人もいる。外国の人に日本人のこの習慣を、|22|のは、むずかしいかもしれない。しかし、このようなおくり物には、「いろいろお世話になりました。|23|、ありがとうございました。」という意味があるのである。",
-        passageHtml: "<div style='line-height:2'>\n<p style='text-indent:1em; margin:0 0 0.8em'><ruby>日本<rt>にほん</rt></ruby>には、お<ruby>盆<rt>ぼん</rt></ruby>や<ruby>正月<rt>しょうがつ</rt></ruby>が<ruby>近く<rt>ちかく</rt></ruby>なると、<ruby>世話<rt>せわ</rt></ruby>になった<ruby>人<rt>ひと</rt></ruby>や<ruby>目上<rt>めうえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>などに<ruby>物<rt>もの</rt></ruby>を<span class='cloze-ph' data-cloze='19'>＿＿19＿＿</span> 。お<ruby>盆<rt>ぼん</rt></ruby>に<ruby>贈る<rt>おくる</rt></ruby><ruby>物<rt>もの</rt></ruby>を「お<ruby>中元<rt>ちゅうげん</rt></ruby>」といい、<ruby>年<rt>とし</rt></ruby>の<ruby>終<rt>お</rt></ruby>わりに<ruby>贈る<rt>おくる</rt></ruby><ruby>物<rt>もの</rt></ruby>を「お<ruby>歳暮<rt>せいぼ</rt></ruby>」という。</p>\n<p style='text-indent:1em; margin:0 0 0.8em'>これは、むかし、お<ruby>盆<rt>ぼん</rt></ruby>や<ruby>正月<rt>しょうがつ</rt></ruby>に<ruby>先祖<rt>せんぞ</rt></ruby>の<ruby>祭り<rt>まつり</rt></ruby>をしたことにも<ruby>関係<rt>かんけい</rt></ruby>がある。<ruby>先祖<rt>せんぞ</rt></ruby>を<ruby>大切<rt>たいせつ</rt></ruby>にするの<span class='cloze-ph' data-cloze='20'>＿＿20＿＿</span> 、<ruby>世話<rt>せわ</rt></ruby>になった<ruby>人<rt>ひと</rt></ruby>や<ruby>目上<rt>めうえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>にあいさつをし、おくり<ruby>物<rt>もの</rt></ruby>をしたのが、この「お<ruby>中元<rt>ちゅうげん</rt></ruby>」や「お<ruby>歳暮<rt>せいぼ</rt></ruby>」の<ruby>始まり<rt>はじまり</rt></ruby>である。むかしは<ruby>生活<rt>せいかつ</rt></ruby>に<ruby>必要<rt>ひつよう</rt></ruby>な<ruby>物<rt>もの</rt></ruby>、<span class='cloze-ph' data-cloze='21'>＿＿21＿＿</span> 、<ruby>米<rt>こめ</rt></ruby>や<ruby>魚<rt>さかな</rt></ruby>などの<ruby>食料品<rt>しょくりょうひん</rt></ruby>を<ruby>贈る<rt>おくる</rt></ruby>ことが<ruby>多かった<rt>おおかった</rt></ruby>。その<ruby>習慣<rt>しゅうかん</rt></ruby>は、<ruby>今<rt>いま</rt></ruby>も<ruby>残って<rt>のこって</rt></ruby>いて、<ruby>食料品<rt>しょくりょうひん</rt></ruby>を<ruby>贈る<rt>おくる</rt></ruby>ことが<ruby>一番多<rt>いちばんおお</rt></ruby>い。</p>\n<p style='text-indent:1em; margin:0'><ruby>外国人<rt>がいこくじん</rt></ruby>の<ruby>中<rt>なか</rt></ruby>には、「<ruby>日本人<rt>にほんじん</rt></ruby>は、<ruby>物<rt>もの</rt></ruby>をあげたり、もらったりするのが<ruby>好<rt>す</rt></ruby>きな<ruby>国民<rt>こくみん</rt></ruby>だ。」と<ruby>言<rt>い</rt></ruby>う<ruby>人<rt>ひと</rt></ruby>もいる。<ruby>外国<rt>がいこく</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>に<ruby>日本人<rt>にほんじん</rt></ruby>のこの<ruby>習慣<rt>しゅうかん</rt></ruby>を、<span class='cloze-ph' data-cloze='22'>＿＿22＿＿</span> のは、むずかしいかもしれない。しかし、このようなおくり<ruby>物<rt>もの</rt></ruby>には、「いろいろお<ruby>世話<rt>せわ</rt></ruby>になりました。<span class='cloze-ph' data-cloze='23'>＿＿23＿＿</span> 、ありがとうございました。」という<ruby>意味<rt>いみ</rt></ruby>があるのである。</p>\n</div>",
-        questions: [
-          { id:"28-19", q:"|19| に入る最もよいもの", qHtml:"|19| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの", options:["おくる習慣がある","おくることがある","あげる習慣がある","くれる習慣がある"], answer:0, explain:"「物を贈る習慣がある」固定搭配，表示有赠送物品的习惯。" },
-          { id:"28-20", q:"|20| に入る最もよいもの", qHtml:"|20| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの", options:["というくらいで","といえないので","と同じ気持ちで","と違う形で"], answer:2, explain:"「先祖を大切にするのと同じ気持ちで」表示怀着与重视祖先同样的心情。" },
-          { id:"28-21", q:"|21| に入る最もよいもの", qHtml:"|21| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの", options:["しかし","つまり","それでは","たとえば"], answer:3, explain:"举例提示「たとえば 米や魚など」。" },
-          { id:"28-22", q:"|22| に入る最もよいもの", qHtml:"|22| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの", options:["理解してもらう","理解させる","理解される","理解してくれる"], answer:0, explain:"「理解してもらうのは難しい」让外国人理解是困难的，使役+授受。" },
-          { id:"28-23", q:"|23| に入る最もよいもの", qHtml:"|23| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの", options:["親切で助けてくれて","親切にしてくださって","親切で助けてもらって","親切にしてあげて"], answer:1, explain:"敬语感谢「親切にしてくださって、ありがとうございました」。" }
+        "page": 28,
+        "title": "パートII 問題3",
+        "type": "reading",
+        "passage": "日本には、お盆や正月が近くなると、世話になった人や目上の人に物を|19|。お盆に贈る物を「お中元」、年の終わりに贈る物を「お歳暮」という。これは、むかし、お盆や正月に先祖の祭りをしたことに関係がある。先祖を大切にするの|20|、世話になった人や目上の人にあいさつをし、おくり物をしたのが、この「お中元」や「お歳暮」の始まりである。むかしは生活に必要な物、|21|、米や魚などの食料品をおくることが多かった。その習慣は、今も残っていて、食料品をおくることが一番多い。外国人の中には、「日本人は、物をあげたり、もらったりするのが好きな国民だ。」と言う人もいる。外国の人に日本人のこの習慣を、|22|のは、むずかしいかもしれない。しかし、このようなおくり物には、「いろいろお世話になりました。|23|、ありがとうございました。」という意味があるのである。",
+        "passageHtml": "<div style='line-height:2'>\n<p style='text-indent:1em; margin:0 0 0.8em'><ruby>日本<rt>にほん</rt></ruby>には、お<ruby>盆<rt>ぼん</rt></ruby>や<ruby>正月<rt>しょうがつ</rt></ruby>が<ruby>近く<rt>ちかく</rt></ruby>なると、<ruby>世話<rt>せわ</rt></ruby>になった<ruby>人<rt>ひと</rt></ruby>や<ruby>目上<rt>めうえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>などに<ruby>物<rt>もの</rt></ruby>を<span class='cloze-ph' data-cloze='19'>＿＿19＿＿</span> 。お<ruby>盆<rt>ぼん</rt></ruby>に<ruby>贈る<rt>おくる</rt></ruby><ruby>物<rt>もの</rt></ruby>を「お<ruby>中元<rt>ちゅうげん</rt></ruby>」といい、<ruby>年<rt>とし</rt></ruby>の<ruby>終<rt>お</rt></ruby>わりに<ruby>贈る<rt>おくる</rt></ruby><ruby>物<rt>もの</rt></ruby>を「お<ruby>歳暮<rt>せいぼ</rt></ruby>」という。</p>\n<p style='text-indent:1em; margin:0 0 0.8em'>これは、むかし、お<ruby>盆<rt>ぼん</rt></ruby>や<ruby>正月<rt>しょうがつ</rt></ruby>に<ruby>先祖<rt>せんぞ</rt></ruby>の<ruby>祭り<rt>まつり</rt></ruby>をしたことにも<ruby>関係<rt>かんけい</rt></ruby>がある。<ruby>先祖<rt>せんぞ</rt></ruby>を<ruby>大切<rt>たいせつ</rt></ruby>にするの<span class='cloze-ph' data-cloze='20'>＿＿20＿＿</span> 、<ruby>世話<rt>せわ</rt></ruby>になった<ruby>人<rt>ひと</rt></ruby>や<ruby>目上<rt>めうえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>にあいさつをし、おくり<ruby>物<rt>もの</rt></ruby>をしたのが、この「お<ruby>中元<rt>ちゅうげん</rt></ruby>」や「お<ruby>歳暮<rt>せいぼ</rt></ruby>」の<ruby>始まり<rt>はじまり</rt></ruby>である。むかしは<ruby>生活<rt>せいかつ</rt></ruby>に<ruby>必要<rt>ひつよう</rt></ruby>な<ruby>物<rt>もの</rt></ruby>、<span class='cloze-ph' data-cloze='21'>＿＿21＿＿</span> 、<ruby>米<rt>こめ</rt></ruby>や<ruby>魚<rt>さかな</rt></ruby>などの<ruby>食料品<rt>しょくりょうひん</rt></ruby>を<ruby>贈る<rt>おくる</rt></ruby>ことが<ruby>多かった<rt>おおかった</rt></ruby>。その<ruby>習慣<rt>しゅうかん</rt></ruby>は、<ruby>今<rt>いま</rt></ruby>も<ruby>残って<rt>のこって</rt></ruby>いて、<ruby>食料品<rt>しょくりょうひん</rt></ruby>を<ruby>贈る<rt>おくる</rt></ruby>ことが<ruby>一番多<rt>いちばんおお</rt></ruby>い。</p>\n<p style='text-indent:1em; margin:0'><ruby>外国人<rt>がいこくじん</rt></ruby>の<ruby>中<rt>なか</rt></ruby>には、「<ruby>日本人<rt>にほんじん</rt></ruby>は、<ruby>物<rt>もの</rt></ruby>をあげたり、もらったりするのが<ruby>好<rt>す</rt></ruby>きな<ruby>国民<rt>こくみん</rt></ruby>だ。」と<ruby>言<rt>い</rt></ruby>う<ruby>人<rt>ひと</rt></ruby>もいる。<ruby>外国<rt>がいこく</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>に<ruby>日本人<rt>にほんじん</rt></ruby>のこの<ruby>習慣<rt>しゅうかん</rt></ruby>を、<span class='cloze-ph' data-cloze='22'>＿＿22＿＿</span> のは、むずかしいかもしれない。しかし、このようなおくり<ruby>物<rt>もの</rt></ruby>には、「いろいろお<ruby>世話<rt>せわ</rt></ruby>になりました。<span class='cloze-ph' data-cloze='23'>＿＿23＿＿</span> 、ありがとうございました。」という<ruby>意味<rt>いみ</rt></ruby>があるのである。</p>\n</div>",
+        "questions": [
+          {
+            "id": "28-19",
+            "q": "|19| に入る最もよいもの",
+            "qHtml": "|19| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの",
+            "options": [
+              "おくる習慣がある",
+              "おくることがある",
+              "あげる習慣がある",
+              "くれる習慣がある"
+            ],
+            "answer": 0,
+            "explain": "「物を贈る習慣がある」固定搭配，表示有赠送物品的习惯。"
+          },
+          {
+            "id": "28-20",
+            "q": "|20| に入る最もよいもの",
+            "qHtml": "|20| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの",
+            "options": [
+              "というくらいで",
+              "といえないので",
+              "と同じ気持ちで",
+              "と違う形で"
+            ],
+            "answer": 2,
+            "explain": "「先祖を大切にするのと同じ気持ちで」表示怀着与重视祖先同样的心情。"
+          },
+          {
+            "id": "28-21",
+            "q": "|21| に入る最もよいもの",
+            "qHtml": "|21| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの",
+            "options": [
+              "しかし",
+              "つまり",
+              "それでは",
+              "たとえば"
+            ],
+            "answer": 3,
+            "explain": "举例提示「たとえば 米や魚など」。"
+          },
+          {
+            "id": "28-22",
+            "q": "|22| に入る最もよいもの",
+            "qHtml": "|22| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの",
+            "options": [
+              "理解してもらう",
+              "理解させる",
+              "理解される",
+              "理解してくれる"
+            ],
+            "answer": 0,
+            "explain": "「理解してもらうのは難しい」让外国人理解是困难的，使役+授受。"
+          },
+          {
+            "id": "28-23",
+            "q": "|23| に入る最もよいもの",
+            "qHtml": "|23| に<ruby>入る<rt>はいる</rt></ruby><ruby>最も<rt>もっとも</rt></ruby>よいもの",
+            "options": [
+              "親切で助けてくれて",
+              "親切にしてくださって",
+              "親切で助けてもらって",
+              "親切にしてあげて"
+            ],
+            "answer": 1,
+            "explain": "敬语感谢「親切にしてくださって、ありがとうございました」。"
+          }
         ]
       }
     ]
   },
-  2: {
-  "title": "第2単元 練習",
-  "pages": [
-    {
-      "page": 33,
-      "title": "パートI 問題1",
-      "type": "choice",
-      "questions": [
-        {
-          "id": "33-1",
-          "pattern": "〜がする",
-          "q": "このお酒は変なにおい（ ）する。",
-          "qHtml": "このお酒《さけ》は変《へん》なにおい（ <span class=\"blank-ph\">__</span> ）する。",
-          "options": [
-            "で",
-            "を",
-            "の",
-            "が"
-          ],
-          "answer": 3,
-          "explain": "「〜がする」表示感觉/气味，「においがする」有气味。 〔中〕这酒有股怪味。"
-        },
-        {
-          "id": "33-2",
-          "pattern": "〜かどうか",
-          "q": "電話番号が合っている（ ）、ちょっと確認してみる。",
-          "qHtml": "電話《でんわ》番号《ばんごう》が合《あ》っている（ <span class=\"blank-ph\">__</span> ）、ちょっと確認《かくにん》してみる。",
-          "options": [
-            "から",
-            "ために",
-            "かどうか",
-            "なら"
-          ],
-          "answer": 2,
-          "explain": "「〜かどうか」是否，表示确认电话号码是否正确。 〔中〕我确认一下电话号码对不对。"
-        },
-        {
-          "id": "33-3",
-          "pattern": "〜がちだ",
-          "q": "近ごろ彼女は授業に（ ）がちだ。",
-          "qHtml": "近《ちか》ごろ彼女《かのじょ》は授業《じゅぎょう》に（ <span class=\"blank-ph\">__</span> ）がちだ。",
-          "options": [
-            "遅《おく》れる",
-            "遅《おく》れ",
-            "遅《おく》れない",
-            "遅《おく》れた"
-          ],
-          "answer": 1,
-          "explain": "「〜がちだ」前接动词ます形去ます，「遅れがちだ」容易迟到。 〔中〕最近她老是上课迟到。"
-        },
-        {
-          "id": "33-4",
-          "pattern": "〜おきに",
-          "q": "3分（ ）電車がホームに入る。",
-          "qHtml": "3分《ぷん》（ <span class=\"blank-ph\">__</span> ）電車《でんしゃ》がホームに入《はい》る。",
-          "options": [
-            "おきに",
-            "うちに",
-            "によれば",
-            "までに"
-          ],
-          "answer": 0,
-          "explain": "「〜おきに」每隔……，「3分おきに」每3分钟。 〔中〕每3分钟有一班电车进站。"
-        },
-        {
-          "id": "33-5",
-          "pattern": "〜か何か",
-          "q": "暑いですね。ビールか（ ）か冷たい物が飲みたいですね。",
-          "qHtml": "暑《あつ》いですね。ビールか（ <span class=\"blank-ph\">__</span> ）か冷《つめ》たい物《もの》が飲《の》みたいですね。",
-          "options": [
-            "どこ",
-            "だれ",
-            "なに",
-            "どれ"
-          ],
-          "answer": 2,
-          "explain": "「〜か何か」……之类的，「ビールか何か」啤酒什么的。 〔中〕好热啊，想喝点啤酒之类凉的东西。"
-        },
-        {
-          "id": "33-6",
-          "pattern": "〜がたい",
-          "q": "最近の若者の行動は、大人たちにはなかなか理解し（ ）。",
-          "qHtml": "最近《さいきん》の若者《わかもの》の行動《こうどう》は、大人《おとな》たちにはなかなか理解《りかい》し（ <span class=\"blank-ph\">__</span> ）。",
-          "options": [
-            "にくい",
-            "がたい",
-            "すぎる",
-            "はじめる"
-          ],
-          "answer": 1,
-          "explain": "「〜がたい」难以……（主观感受），「理解しがたい」难以理解。 〔中〕现在的年轻人行为，大人们很难理解。"
-        },
-        {
-          "id": "33-7",
-          "pattern": "〜かもしれない",
-          "q": "走っていけば終電に間に合う（ ）しれない。",
-          "qHtml": "走《はし》っていけば終電《しゅうでん》に間《ま》に合《あ》う（ <span class=\"blank-ph\">__</span> ）しれない。",
-          "options": [
-            "かな",
-            "かも",
-            "かしら",
-            "から"
-          ],
-          "answer": 1,
-          "explain": "「〜かもしれない」也许……，「間に合うかもしれない」。 〔中〕跑着去的话，也许能赶上末班车。"
-        },
-        {
-          "id": "33-8",
-          "pattern": "〜恐れがある",
-          "q": "この問題を解決しないと、大変なことが（ ）。",
-          "qHtml": "この問題《もんだい》を解決《かいけつ》しないと、大変《たいへん》なことが（ <span class=\"blank-ph\">__</span> ）。",
-          "options": [
-            "起《お》こるはずがない",
-            "起《お》こらないようになった",
-            "起《お》こる恐《おそ》れがある",
-            "起《お》こらないかもしれない"
-          ],
-          "answer": 2,
-          "explain": "「〜恐れがある」有……危险/可能，用于消极事态。 〔中〕这个问题不解决，可能会发生不得了的事。"
-        },
-        {
-          "id": "33-9",
-          "pattern": "〜から（なっている）",
-          "q": "この論文は5つのパート（ ）なっている。",
-          "qHtml": "この論文《ろんぶん》は5つのパート（ <span class=\"blank-ph\">__</span> ）なっている。",
-          "options": [
-            "しか",
-            "まで",
-            "でも",
-            "から"
-          ],
-          "answer": 3,
-          "explain": "「〜からなっている」由……组成。 〔中〕这篇论文由5个部分组成。"
-        },
-        {
-          "id": "33-10",
-          "pattern": "〜から言うと",
-          "q": "値段から（ ）、この店のほうがお得だ。",
-          "qHtml": "値段《ねだん》から（ <span class=\"blank-ph\">__</span> ）、この店《みせ》のほうがお得《とく》だ。",
-          "options": [
-            "言っては",
-            "言うと",
-            "言え",
-            "言っても"
-          ],
-          "answer": 1,
-          "explain": "「〜から言うと」从……来说。 〔中〕从价格来说，这家店更划算。"
-        }
-      ]
-    },
-    {
-      "page": 34,
-      "title": "パートI 問題2",
-      "type": "bank",
-      "bank": [
-        "おきに",
-        "恐《おそ》れ",
-        "がする",
-        "がたい",
-        "がちだ",
-        "か",
-        "か何か",
-        "かもしれない",
-        "から",
-        "から言うと"
-      ],
-      "questions": [
-        {
-          "id": "34-11",
-          "q": "パン屋さんの前を通ると、いつもいいにおい__。",
-          "qHtml": "パン屋《や》さんの前《まえ》を通《とお》ると、いつもいいにおい__。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 2,
-          "explain": "正确选项：がする。 〔中〕路过面包店前时，总能闻到好闻的味道。"
-        },
-        {
-          "id": "34-12",
-          "q": "A「見舞いに何を持っていけばいいですか。」\nB「そうですね。本__時間を潰すものがいいと思います。」",
-          "qHtml": "A「見舞《みま》いに何《なに》を持《も》っていけばいいですか。」<br>B「そうですね。本《ほん》__時間《じかん》を潰《つぶ》すものがいいと考《かんが》えます。」",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 6,
-          "explain": "正确选项：か何か。 〔中〕A：去探望带什么好？B：带本书之类打发时间的东西不错。"
-        },
-        {
-          "id": "34-13",
-          "q": "すみませんが、駅はどこにある__教えてください。",
-          "qHtml": "すみませんが、駅《えき》はどこにある__教《おし》えてください。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 5,
-          "explain": "正确选项：か。 〔中〕请问车站在哪，请告诉我。"
-        },
-        {
-          "id": "34-14",
-          "q": "3軒__不動産屋さんがある。",
-          "qHtml": "3軒《けん》__不動産屋《ふどうさんや》さんがある。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 0,
-          "explain": "正确选项：おきに。 〔中〕每隔3家就有一间房产中介。"
-        },
-        {
-          "id": "34-15",
-          "q": "冬は寒くて、ともすると風邪を引き__。",
-          "qHtml": "冬《ふゆ》は寒《さむ》くて、ともすると風邪《かぜ》を引《ひ》き__。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 4,
-          "explain": "正确选项：がちだ。 〔中〕冬天冷，一不小心就容易感冒。"
-        },
-        {
-          "id": "34-16",
-          "q": "A「あの二人は仲がいいね。」\nB「そうね。もしかして来年結婚する__。」",
-          "qHtml": "A「あの二人《ふたり》は仲《なか》がいいね。」<br>B「そうね。もしかして来年《らいねん》結婚《けっこん》する__。」",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 7,
-          "explain": "正确选项：かもしれない。 〔中〕A：那两人关系真好。B：说不定明年就结婚了。"
-        },
-        {
-          "id": "34-17",
-          "q": "無計画に捕獲すると、この種の魚は絶滅する__がある。",
-          "qHtml": "無計画《むけいかく》に捕獲《ほかく》すると、この種《しゅ》の魚《さかな》は絶滅《ぜつめつ》する__がある。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 1,
-          "explain": "正确选项：恐れ。 〔中〕毫无计划地捕捞，这种鱼有灭绝的危险。"
-        },
-        {
-          "id": "34-18",
-          "q": "大学の学長先生が賄賂を受け取るなんて、ちょっと信じ__ことだ。",
-          "qHtml": "大学《だいがく》の学長《がくちょう》先生《せんせい》が賄賂《わいろ》を受《う》け取《と》るなんて、ちょっと信《しん》じ__ことだ。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 3,
-          "explain": "正确选项：がたい。 〔中〕大学校长收受贿赂，真是让人难以置信。"
-        },
-        {
-          "id": "34-19",
-          "q": "彼の性格__、この仕事に向いていないと思う。",
-          "qHtml": "彼《かれ》の性格《せいかく》__、この仕事《しごと》に向《む》いていないと思《おも》う。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 9,
-          "explain": "正确选项：から言うと。 〔中〕从他的性格来看，我觉得不适合这份工作。"
-        },
-        {
-          "id": "34-20",
-          "q": "あしたは日曜日だ__、会社に来なくてもいいよ。",
-          "qHtml": "あしたは日曜日《にちようび》だ__、会社《かいしゃ》に来《く》なくてもいいよ。",
-          "options": [
-            "おきに",
-            "恐《おそ》れ",
-            "がする",
-            "がたい",
-            "がちだ",
-            "か",
-            "か何か",
-            "かもしれない",
-            "から",
-            "から言うと"
-          ],
-          "answer": 8,
-          "explain": "正确选项：から。 〔中〕明天是周日，所以不用去公司哦。"
-        }
-      ]
-    },
-    {
-      "page": 34,
-      "title": "パートI 問題3",
-      "type": "input",
-      "questions": [
-        {
-          "id": "34-21",
-          "q": "2年間の留学生活は本当にがたい。（忘れる）",
-          "qHtml": "2年間《ねんかん》の留学《りゅうがく》生活《せいかつ》は本当《ほんとう》に__がたい。（忘《わす》れる）",
-          "options": [
-            "忘《わす》れ",
-            "忘《わす》れた",
-            "忘《わす》れる",
-            "忘《わす》れて"
-          ],
-          "answer": 0,
-          "explain": "正确变形：忘れ。 〔中〕两年的留学生活真是令人难忘。（忘れる）"
-        },
-        {
-          "id": "34-22",
-          "q": "子どもが生まれたら、この仕事はかどうか分かりません。（続ける）",
-          "qHtml": "子《こ》どもが生《う》まれたら、この仕事《しごと》は__かどうか分《わ》かりません。（続《つづ》ける）",
-          "options": [
-            "続《つづ》けられる",
-            "続《つづ》ける",
-            "続《つづ》けた",
-            "続《つづ》けて"
-          ],
-          "answer": 0,
-          "explain": "正确变形：続けられる。 〔中〕孩子出生后，不知道还能不能继续这份工作。（続ける）"
-        },
-        {
-          "id": "34-23",
-          "q": "きのう遊園地に行ったが、カメラを持っていくのをので、写真を撮らなかった。（忘れる）",
-          "qHtml": "きのう遊園地《ゆうえんち》に行《い》ったが、カメラを持《も》っていくのを__ので、写真《しゃしん》を撮《と》らなかった。（忘《わす》れる）",
-          "options": [
-            "忘《わす》れた",
-            "忘《わす》れて",
-            "忘《わす》れる",
-            "忘《わす》れなかった"
-          ],
-          "answer": 0,
-          "explain": "正确变形：忘れた。 〔中〕昨天去了游乐园，但因为忘了带相机，所以没拍照。（忘れる）"
-        },
-        {
-          "id": "34-24",
-          "q": "今回のスポーツ大会はいつか知っていますか。（行う）",
-          "qHtml": "今回《こんかい》のスポーツ大会《たいかい》はいつ__か知《し》っていますか。（行《おこな》う）",
-          "options": [
-            "行《おこな》われる",
-            "行《おこな》う",
-            "行《おこな》った",
-            "行《おこな》って"
-          ],
-          "answer": 0,
-          "explain": "正确变形：行われる。 〔中〕这次运动会的举办时间，你知道吗？（行う）"
-        },
-        {
-          "id": "34-25",
-          "q": "余震が続いたら、この建物が恐れがある。（倒壊する）",
-          "qHtml": "余震《よしん》が続《つづ》いたら、この建物《たてもの》が__恐《おそ》れがある。（倒壊《とうかい》する）",
-          "options": [
-            "倒壊《とうかい》する",
-            "倒壊《とうかい》した",
-            "倒壊《とうかい》して",
-            "倒壊《とうかい》される"
-          ],
-          "answer": 0,
-          "explain": "正确变形：倒壊する。 〔中〕如果余震持续，这栋建筑有倒塌的危险。（倒壊する）"
-        },
-        {
-          "id": "34-26",
-          "q": "この料理を作るとき、何の調味料をか、母に聞いてみます。（入れる）",
-          "qHtml": "この料理《りょうり》を作《つく》るとき、何《なん》の調味料《ちょうみりょう》を__か、母《はは》に聞《き》いてみます。（入《い》れる）",
-          "options": [
-            "入《い》れる",
-            "入《い》れた",
-            "入《い》れて",
-            "入《い》れられる"
-          ],
-          "answer": 0,
-          "explain": "正确变形：入れる。 〔中〕做这道菜时，我问问妈妈放什么调料。（入れる）"
-        },
-        {
-          "id": "34-27",
-          "q": "彼の話はもしかしてかもしれない。（本当だ）",
-          "qHtml": "彼《かれ》の話《はなし》はもしかして__かもしれない。（本当《ほんとう》だ）",
-          "options": [
-            "本当《ほんとう》",
-            "本当《ほんとう》に",
-            "本当《ほんとう》だ",
-            "本当《ほんとう》で"
-          ],
-          "answer": 0,
-          "explain": "正确变形：本当。 〔中〕他的话，说不定是真的。（本当だ）"
-        }
-      ]
-    },
-    {
-      "page": 35,
-      "title": "パートII 問題1",
-      "type": "choice",
-      "questions": [
-        {
-          "id": "35-1",
-          "pattern": "〜おきに",
-          "q": "10メートルおき（ ）木を植える。",
-          "qHtml": "10メートルおき（ <span class=\"blank-ph\">__</span> ）木《き》を植《う》える。",
-          "options": [
-            "と",
-            "で",
-            "に",
-            "が"
-          ],
-          "answer": 2,
-          "explain": "「〜おきに」每隔……。 〔中〕每隔10米种一棵树。"
-        },
-        {
-          "id": "35-2",
-          "pattern": "〜がする",
-          "q": "熱があるので、寒気（ ）する。",
-          "qHtml": "熱《ねつ》があるので、寒気《さむけ》（ <span class=\"blank-ph\">__</span> ）する。",
-          "options": [
-            "を",
-            "に",
-            "が",
-            "で"
-          ],
-          "answer": 2,
-          "explain": "「寒気がする」发冷、感觉冷。 〔中〕因为发烧，感觉发冷。"
-        },
-        {
-          "id": "35-3",
-          "pattern": "〜かどうか",
-          "q": "このプレゼントは（ ）かどうか分かりませんが、どうぞお受け取りください。",
-          "qHtml": "このプレゼントは（ <span class=\"blank-ph\">__</span> ）かどうか分《わ》かりませんが、どうぞお受《う》け取《と》りください。",
-          "options": [
-            "お気をつける",
-            "お気にする",
-            "お気になる",
-            "お気に入《い》る"
-          ],
-          "answer": 3,
-          "explain": "「お気に入る」喜欢，「〜かどうか」是否喜欢。 〔中〕我不知道这份礼物您是否中意，请务必收下。"
-        },
-        {
-          "id": "35-4",
-          "pattern": "〜がちだ",
-          "q": "これはよくあり（ ）失敗だから、あまり気にしないでください。",
-          "qHtml": "これはよくあり（ <span class=\"blank-ph\">__</span> ）失敗《しっぱい》だから、あまり気《き》にしないでください。",
-          "options": [
-            "がちで",
-            "がちな",
-            "がちだ",
-            "がちに"
-          ],
-          "answer": 1,
-          "explain": "「よくありがちな」常见的，后接名词用「がちな」。 〔中〕这是常有的失误，所以别太在意。"
-        },
-        {
-          "id": "35-5",
-          "pattern": "〜か何か",
-          "q": "ライターか（ ）火をつけるものを貸してください。",
-          "qHtml": "ライターか（ <span class=\"blank-ph\">__</span> ）火《ひ》をつけるものを貸《か》してください。",
-          "options": [
-            "なにか",
-            "なにも",
-            "なんでも",
-            "なに"
-          ],
-          "answer": 0,
-          "explain": "「〜か何か」……之类的，表示不确定。 〔中〕借我打火机之类能点火的东西。"
-        },
-        {
-          "id": "35-6",
-          "pattern": "〜かもしれない",
-          "q": "あした晴れたら、友だちは遊びに（ ）。",
-          "qHtml": "あした晴《は》れたら、友《とも》だちは遊《あそ》びに（ <span class=\"blank-ph\">__</span> ）。",
-          "options": [
-            "出かけたことがある",
-            "出かけるかもしれない",
-            "出かけたところだ",
-            "出かけることにする"
-          ],
-          "answer": 1,
-          "explain": "「〜かもしれない」也许。 〔中〕明天若天晴，朋友也许会出去玩。"
-        },
-        {
-          "id": "35-7",
-          "pattern": "〜がたい",
-          "q": "だれでも（ ）思い出が一つや二つはあるだろう。",
-          "qHtml": "だれでも（ <span class=\"blank-ph\">__</span> ）思《おも》い出《で》が一《ひと》つや二《ふた》つはあるだろう。",
-          "options": [
-            "忘《わす》れがる",
-            "忘《わす》れるような",
-            "忘《わす》れたまま",
-            "忘《わす》れがたい"
-          ],
-          "answer": 3,
-          "explain": "「〜がたい」难以……，「忘れがたい」难忘。 〔中〕无论是谁，大概都有一两件难忘的回忆。"
-        },
-        {
-          "id": "35-8",
-          "pattern": "〜から（なっている）",
-          "q": "日本という国は四つの大きな島（ ）。",
-          "qHtml": "日本《にほん》という国《くに》は四《よっ》つの大《おお》きな島《しま》（ <span class=\"blank-ph\">__</span> ）。",
-          "options": [
-            "からなっている",
-            "までになっている",
-            "ようになっている",
-            "そうになっている"
-          ],
-          "answer": 0,
-          "explain": "「〜からなっている」由……组成。 〔中〕日本这个国家由四个大岛组成。"
-        },
-        {
-          "id": "35-9",
-          "pattern": "〜恐れがある",
-          "q": "甘いものを食べ過ぎると、虫歯になる（ ）ので、十分注意してください。",
-          "qHtml": "甘《あま》いものを食《た》べ過《す》ぎると、虫歯《むしば》になる（ <span class=\"blank-ph\">__</span> ）ので、十《じゅう》分《ぶん》注《ちゅう》意《い》してください。",
-          "options": [
-            "ことがない",
-            "恐《おそ》れがある",
-            "ようとする",
-            "こともあれば"
-          ],
-          "answer": 1,
-          "explain": "「〜恐れがある」有……的危险，「虫歯になる恐れがある」。 〔中〕甜食吃太多，有得蛀牙的危险，请注意。"
-        },
-        {
-          "id": "35-10",
-          "pattern": "〜からすると",
-          "q": "今の状況（ ）、週末には観客が百万人を超えると予想される。",
-          "qHtml": "今の状況《じょうきょう》（ <span class=\"blank-ph\">__</span> ）、週末《しゅうまつ》には観客《かんきゃく》が百万人《ひゃくまんにん》を超《こ》えると予想《よそう》される。",
-          "options": [
-            "うちに",
-            "だけあり",
-            "によっては",
-            "からすると"
-          ],
-          "answer": 3,
-          "explain": "「〜からすると」从……来看/来说。 〔中〕照目前的情况，预计周末观众会超过一百万人。"
-        },
-        {
-          "id": "35-11",
-          "pattern": "〜がちだ",
-          "q": "この1ヶ月間、（ ）天気が多かった。",
-          "qHtml": "この1ヶ月《つき》間（ <span class=\"blank-ph\">__</span> ）、天気《てんき》が多《おお》かった。",
-          "options": [
-            "曇《くも》りがちだ",
-            "曇《くも》りがちの",
-            "曇《くも》ったうちの",
-            "曇《くも》りうちな"
-          ],
-          "answer": 1,
-          "explain": "「〜がちの」前接名词，修饰「天気」。 〔中〕这一个月来，多是阴天。"
-        },
-        {
-          "id": "35-12",
-          "pattern": "〜かどうか",
-          "q": "彼は足を（ ）で、学校を休んでいる。",
-          "qHtml": "彼《かれ》は足《あし》を（ <span class=\"blank-ph\">__</span> ）で、学校《がっこう》を休《やす》んでいる。",
-          "options": [
-            "怪我《けが》したかなにか",
-            "怪我《けが》しているかどうか",
-            "怪我《けが》したかどうか",
-            "怪我《けが》しているかなにか"
-          ],
-          "answer": 1,
-          "explain": "「〜かどうか」是否……，「怪我しているかどうか」是否受伤。 〔中〕他因为脚受了伤之类的原因，请假没去学校。"
-        },
-        {
-          "id": "36-13",
-          "pattern": "〜かもしれない",
-          "q": "もう30分も待っているんだ。もしかして彼女は（ ）。",
-          "qHtml": "もう30分《ふん》も待《ま》っているんだ。もしかして彼女《かのじょ》は（ <span class=\"blank-ph\">__</span> ）。",
-          "options": [
-            "来なくてはいけない",
-            "来てもいいだろう",
-            "来ないかもしれない",
-            "来ていただろう"
-          ],
-          "answer": 2,
-          "explain": "「〜かもしれない」也许不来了。 〔中〕都已经等了30分钟了，说不定她不来了。"
-        }
-      ]
-    },
-    {
-      "page": 36,
-      "title": "パートII 問題2",
-      "type": "star",
-      "questions": [
-        {
-          "id": "36-14",
-          "q": "彼女は5ヶ国語も話せる。貿易会社＿ ＿ ★ ＿だ。",
-          "qHtml": "彼女《かのじょ》は5ヶ国語《こくご》も話《はな》せる。貿易《ぼうえき》会社《がいしゃ》＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿だ。",
-          "options": [
-            "人材《じんざい》",
-            "実《じつ》に",
-            "得《え》がたい",
-            "には"
-          ],
-          "answer": 2,
-          "explain": "正順：彼女は5ヶ国語も話せる。貿易会社 4には 2実に 3得がたい 1人材 だ。★は3番目の空「得がたい」。 〔中〕她会说5国语言，在贸易公司可是难得的人才。"
-        },
-        {
-          "id": "36-15",
-          "q": "家から空港までどのぐらい＿ ＿ ★ ＿で調べます。",
-          "qHtml": "家《いえ》から空港《くうこう》までどのぐらい＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿で調《しら》べます。",
-          "options": [
-            "かかる",
-            "か",
-            "インターネット",
-            "時《じ》間《かん》が"
-          ],
-          "answer": 1,
-          "explain": "正順：家から空港までどのぐらい 4時間が 1かかる 2か 3インターネット で調べます。★は3番目の空「か」。 〔中〕从家到机场大概要花多少时间，我用网络查一下。"
-        },
-        {
-          "id": "36-16",
-          "q": "彼の実力から言えば、＿ ＿ ★ ＿の努力が必要だ。",
-          "qHtml": "彼《かれ》の実力《じつりょく》から言《い》えば、＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿の努《ど》力《りょく》が必要《ひつよう》だ。",
-          "options": [
-            "には",
-            "なる",
-            "一《いつ》流《りゅう》選手《せんしゅ》に",
-            "相《そう》当《とう》"
-          ],
-          "answer": 0,
-          "explain": "正順：彼の実力から言えば、3一流選手に 2なる 1には 4相当 の努力が必要だ。★は3番目の空「には」。 〔中〕从他的实力来看，要成为一流选手需要相应的努力。"
-        },
-        {
-          "id": "36-17",
-          "q": "運転免許証＿ ＿ ★ ＿証明するものを見せてください。",
-          "qHtml": "運転《うんてん》免許証《めんきょしょう》＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿証明《しょうめい》するものを見《み》せてください。",
-          "options": [
-            "なにか",
-            "あなたの",
-            "か",
-            "身分《みぶん》を"
-          ],
-          "answer": 1,
-          "explain": "正順：運転免許証 3か 1なにか 2あなたの 4身分を 証明するものを見せてください。★は3番目の空「あなたの」。 〔中〕请出示驾照之类的能证明您身份的东西。"
-        },
-        {
-          "id": "36-18",
-          "q": "今夜台風が上陸するそうだ。強風＿ ★ ＿ ＿、鉢植えなどはベランダに置かないでください。",
-          "qHtml": "今夜《こんや》台風《たいふう》が上陸《じょうりく》するそうだ。強風《きょうふう》＿ <span style=\"color:var(--accent)\">★</span> ＿ ＿、鉢《はち》植《う》えなどはベランダに置《お》かないでください。",
-          "options": [
-            "ある",
-            "恐《おそ》れが",
-            "ので",
-            "の"
-          ],
-          "answer": 1,
-          "explain": "正順：今夜台風が上陸するそうだ。強風 4の 2恐れが 1ある 3ので 、鉢植えなどはベランダに置かないでください。★は2番目の空「恐れが」。 〔中〕听说台风今晚会登陆，因为有强风的可能，请把盆栽等不要放在阳台上。"
-        }
-      ]
-    },
-    {
-      "page": 36,
-      "title": "パートII 問題3",
-      "type": "reading",
-      "passage": "ヤンさんへの手紙拝啓お元気ですか。日本に来てからもう3か月たちました。本当に早いです。今、私は中村さんという人の家で19、大学で日本語を勉強しています。中村さんの家は、お父さんとお母さんと息子さんの3人家族です。皆英語が少し分かるので、初めは英語と日本語を使っていましたが、今はたいてい日本語だけで話しています。息子さんの誠君は大学の2年生で、一週間に3日家庭教師のアルバイトをしています。アルバイトをしながら勉強するのは20、日本の大学はアメリカの大学より宿題がずっとすくないので大丈夫だ、と誠君が言っていました。日本の大学生はアメリカの大学生21。週末だけでなく、普通の日でもよくお酒を飲んだり、コンサートへ行ったりして遊びます。誠君の話では、日本人は大学受験のためによく勉強しますし、会社に入ったらよく仕事をしますから、大学の4年間はよく遊んだそうです。アメリカとずいぶん違いますね。今度の夏休みに私の両親が日本に遊びに来るかもしれません。両親をいろいろなところへ連れて22。ヤンさんは夏休みに何をするつもりですか。予定を教えて下さい。これから暑くなりますが、23。敬具スミス",
-      "passageHtml": "<div style=\"line-height:2\">\n<p style=\"text-indent:1em;margin:0 0 0.8em\">ヤンさんへの手紙《てがみ》</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">拝啓《はいけい》</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">お元気ですか。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">日本《にほん》に来《き》てからもう3か月《さんかげつ》たちました。本当《ほんとう》に早《はや》いです。今《いま》、私《わたし》は中村《なかむら》さんという人《ひと》の家《いえ》で<span class=\"cloze-ph\" data-cloze=\"19\">＿＿19＿＿</span>、大学《だいがく》で日本語《にほんご》を勉強《べんきょう》しています。中村《なかむら》さんの家《いえ》は、お父《とう》さんとお母《はは》さんと息子《むすこ》さんの3人《さんにん》家族《かぞく》です。皆《みな》英語《えいご》が少《すこ》し分《わ》かるので、初《はじ》めは英語《えいご》と日本語《にほんご》を使《つか》っていましたが、今《いま》はたいてい日本語《にほんご》だけで話《はな》しています。息子《むすこ》さんの誠《まこと》君《くん》は大学《だいがく》の2年生《にねんせい》で、一週間《いっしゅうかん》に3日《みっか》家庭教師《かていきょうし》のアルバイトをしています。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">アルバイトをしながら勉強《べんきょう》するのは<span class=\"cloze-ph\" data-cloze=\"20\">＿＿20＿＿</span>、日本《にほん》の大学《だいがく》はアメリカの大学《だいがく》より宿題《しゅくだい》がずっと少《すく》ないので大丈夫《だいじょうぶ》だ、と誠《まこと》君《くん》が言《い》っていました。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">日本《にほん》の大学生《がくせい》はアメリカの大学生《がくせい》<span class=\"cloze-ph\" data-cloze=\"21\">＿＿21＿＿</span>。週末《しゅうまつ》だけでなく、普《ふ》通《つう》の日《ひ》でもよくお酒《さけ》を飲《の》んだり、コンサートへ行《い》ったりして遊《あそ》びます。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">誠《まこと》君《くん》の話《はなし》では、日本《にほん》人《じん》は大学《だいがく》受験《じゅけん》の為《ため》によく勉強《べんきょう》しますし、会社《かいしゃ》に入《はい》ったらよく仕事《しごと》をしますから、大学《だいがく》の4年間《よねんかん》はよく遊《あそ》んだそうです。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">アメリカとずいぶん違《ちが》いますね。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">今度《こんど》の夏休《なつやす》みに私《わたし》の両親《りょうしん》が日本《にほん》に遊《あそ》びに来《く》るかもしれません。両親《りょうしん》をいろいろなところへ連《つ》れて<span class=\"cloze-ph\" data-cloze=\"22\">＿＿22＿＿</span>。ヤンさんは夏休《なつやす》みに何《なに》をするつもりですか。予定《よてい》を教《おし》えて下《くだ》さい。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">これから暑《あつ》くなりますが、<span class=\"cloze-ph\" data-cloze=\"23\">＿＿23＿＿</span>。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">敬具《けいぐ》</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">スミス</p>\n</div>",
-      "questions": [
-        {
-          "id": "36-19",
-          "q": "|19| に入る最もよいもの",
-          "qHtml": "|19| に入る最もよいもの",
-          "options": [
-            "ホームステイをしても",
-            "ホームステイをしたら",
-            "ホームステイをしながら",
-            "ホームステイをすれば"
-          ],
-          "answer": 2,
-          "explain": "正确选项：ホームステイをしながら。 〔中〕（19）我住在姓中村的人家里，边寄宿边在大学学日语。"
-        },
-        {
-          "id": "36-20",
-          "q": "|20| に入る最もよいもの",
-          "qHtml": "|20| に入る最もよいもの",
-          "options": [
-            "大変《たいへん》ではないと 思《おも》いましたが",
-            "大変《たいへん》ではないかと 言《い》いますが",
-            "大変《たいへん》だろうと 言《い》いますが",
-            "大変《たいへん》だろうと 思《おも》いましたが"
-          ],
-          "answer": 3,
-          "explain": "正确选项：大変だろうと思いましたが。 〔中〕（20）边打工边学习不算辛苦，因为日本大学作业比美国少很多。"
-        },
-        {
-          "id": "36-21",
-          "q": "|21| に入る最もよいもの",
-          "qHtml": "|21| に入る最もよいもの",
-          "options": [
-            "ほどよく 勉強《べんきょう》しません",
-            "と同じように 勉強《べんきょう》します",
-            "あまり 勉強《べんきょう》しません",
-            "よりよく 勉強《べんきょう》します"
-          ],
-          "answer": 0,
-          "explain": "正确选项：ほどよく勉強しません。 〔中〕（21）日本的大学生不怎么学习（不像美国学生那样用功）。"
-        },
-        {
-          "id": "36-22",
-          "q": "|22| に入る最もよいもの",
-          "qHtml": "|22| に入る最もよいもの",
-          "options": [
-            "行《い》くと 思《おも》います",
-            "行《い》こうと 思《おも》っています",
-            "行《い》けると 思《おも》います",
-            "行《い》けばと 思《おも》っています"
-          ],
-          "answer": 1,
-          "explain": "正确选项：行こうと思っています。 〔中〕（22）我打算带父母去各处逛逛。"
-        },
-        {
-          "id": "36-23",
-          "q": "|23| に入る最もよいもの",
-          "qHtml": "|23| に入る最もよいもの",
-          "options": [
-            "体《からだ》に 気《き》をつけなさい",
-            "体《からだ》にお 気《き》をつけなさい",
-            "お 体《からだ》に 気《き》をつけください",
-            "お 体《からだ》に 気《き》をつけてください"
-          ],
-          "answer": 3,
-          "explain": "正确选项：お体に気をつけてください。 〔中〕（23）天气会变热，请注意身体。"
-        }
-      ]
-    }
-  ]
-}
+  "2": {
+    "title": "第2単元 練習",
+    "pages": [
+      {
+        "page": 33,
+        "title": "パートI 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "33-1",
+            "pattern": "〜がする",
+            "q": "このお酒は変なにおい（ ）する。",
+            "qHtml": "このお酒《さけ》は変《へん》なにおい（ <span class=\"blank-ph\">__</span> ）する。",
+            "options": [
+              "で",
+              "を",
+              "の",
+              "が"
+            ],
+            "answer": 3,
+            "explain": "「〜がする」表示感觉/气味，「においがする」有气味。 〔中〕这酒有股怪味。"
+          },
+          {
+            "id": "33-2",
+            "pattern": "〜かどうか",
+            "q": "電話番号が合っている（ ）、ちょっと確認してみる。",
+            "qHtml": "電話《でんわ》番号《ばんごう》が合《あ》っている（ <span class=\"blank-ph\">__</span> ）、ちょっと確認《かくにん》してみる。",
+            "options": [
+              "から",
+              "ために",
+              "かどうか",
+              "なら"
+            ],
+            "answer": 2,
+            "explain": "「〜かどうか」是否，表示确认电话号码是否正确。 〔中〕我确认一下电话号码对不对。"
+          },
+          {
+            "id": "33-3",
+            "pattern": "〜がちだ",
+            "q": "近ごろ彼女は授業に（ ）がちだ。",
+            "qHtml": "近《ちか》ごろ彼女《かのじょ》は授業《じゅぎょう》に（ <span class=\"blank-ph\">__</span> ）がちだ。",
+            "options": [
+              "遅《おく》れる",
+              "遅《おく》れ",
+              "遅《おく》れない",
+              "遅《おく》れた"
+            ],
+            "answer": 1,
+            "explain": "「〜がちだ」前接动词ます形去ます，「遅れがちだ」容易迟到。 〔中〕最近她老是上课迟到。"
+          },
+          {
+            "id": "33-4",
+            "pattern": "〜おきに",
+            "q": "3分（ ）電車がホームに入る。",
+            "qHtml": "3分《ぷん》（ <span class=\"blank-ph\">__</span> ）電車《でんしゃ》がホームに入《はい》る。",
+            "options": [
+              "おきに",
+              "うちに",
+              "によれば",
+              "までに"
+            ],
+            "answer": 0,
+            "explain": "「〜おきに」每隔……，「3分おきに」每3分钟。 〔中〕每3分钟有一班电车进站。"
+          },
+          {
+            "id": "33-5",
+            "pattern": "〜か何か",
+            "q": "暑いですね。ビールか（ ）か冷たい物が飲みたいですね。",
+            "qHtml": "暑《あつ》いですね。ビールか（ <span class=\"blank-ph\">__</span> ）か冷《つめ》たい物《もの》が飲《の》みたいですね。",
+            "options": [
+              "どこ",
+              "だれ",
+              "なに",
+              "どれ"
+            ],
+            "answer": 2,
+            "explain": "「〜か何か」……之类的，「ビールか何か」啤酒什么的。 〔中〕好热啊，想喝点啤酒之类凉的东西。"
+          },
+          {
+            "id": "33-6",
+            "pattern": "〜がたい",
+            "q": "最近の若者の行動は、大人たちにはなかなか理解し（ ）。",
+            "qHtml": "最近《さいきん》の若者《わかもの》の行動《こうどう》は、大人《おとな》たちにはなかなか理解《りかい》し（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "にくい",
+              "がたい",
+              "すぎる",
+              "はじめる"
+            ],
+            "answer": 1,
+            "explain": "「〜がたい」难以……（主观感受），「理解しがたい」难以理解。 〔中〕现在的年轻人行为，大人们很难理解。"
+          },
+          {
+            "id": "33-7",
+            "pattern": "〜かもしれない",
+            "q": "走っていけば終電に間に合う（ ）しれない。",
+            "qHtml": "走《はし》っていけば終電《しゅうでん》に間《ま》に合《あ》う（ <span class=\"blank-ph\">__</span> ）しれない。",
+            "options": [
+              "かな",
+              "かも",
+              "かしら",
+              "から"
+            ],
+            "answer": 1,
+            "explain": "「〜かもしれない」也许……，「間に合うかもしれない」。 〔中〕跑着去的话，也许能赶上末班车。"
+          },
+          {
+            "id": "33-8",
+            "pattern": "〜恐れがある",
+            "q": "この問題を解決しないと、大変なことが（ ）。",
+            "qHtml": "この問題《もんだい》を解決《かいけつ》しないと、大変《たいへん》なことが（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "起《お》こるはずがない",
+              "起《お》こらないようになった",
+              "起《お》こる恐《おそ》れがある",
+              "起《お》こらないかもしれない"
+            ],
+            "answer": 2,
+            "explain": "「〜恐れがある」有……危险/可能，用于消极事态。 〔中〕这个问题不解决，可能会发生不得了的事。"
+          },
+          {
+            "id": "33-9",
+            "pattern": "〜から（なっている）",
+            "q": "この論文は5つのパート（ ）なっている。",
+            "qHtml": "この論文《ろんぶん》は5つのパート（ <span class=\"blank-ph\">__</span> ）なっている。",
+            "options": [
+              "しか",
+              "まで",
+              "でも",
+              "から"
+            ],
+            "answer": 3,
+            "explain": "「〜からなっている」由……组成。 〔中〕这篇论文由5个部分组成。"
+          },
+          {
+            "id": "33-10",
+            "pattern": "〜から言うと",
+            "q": "値段から（ ）、この店のほうがお得だ。",
+            "qHtml": "値段《ねだん》から（ <span class=\"blank-ph\">__</span> ）、この店《みせ》のほうがお得《とく》だ。",
+            "options": [
+              "言っては",
+              "言うと",
+              "言え",
+              "言っても"
+            ],
+            "answer": 1,
+            "explain": "「〜から言うと」从……来说。 〔中〕从价格来说，这家店更划算。"
+          }
+        ]
+      },
+      {
+        "page": 34,
+        "title": "パートI 問題2",
+        "type": "bank",
+        "bank": [
+          "おきに",
+          "恐《おそ》れ",
+          "がする",
+          "がたい",
+          "がちだ",
+          "か",
+          "か何か",
+          "かもしれない",
+          "から",
+          "から言うと"
+        ],
+        "questions": [
+          {
+            "id": "34-11",
+            "q": "パン屋さんの前を通ると、いつもいいにおい__。",
+            "qHtml": "パン屋《や》さんの前《まえ》を通《とお》ると、いつもいいにおい__。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 2,
+            "explain": "正确选项：がする。 〔中〕路过面包店前时，总能闻到好闻的味道。"
+          },
+          {
+            "id": "34-12",
+            "q": "A「見舞いに何を持っていけばいいですか。」\nB「そうですね。本__時間を潰すものがいいと思います。」",
+            "qHtml": "A「見舞《みま》いに何《なに》を持《も》っていけばいいですか。」<br>B「そうですね。本《ほん》__時間《じかん》を潰《つぶ》すものがいいと考《かんが》えます。」",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 6,
+            "explain": "正确选项：か何か。 〔中〕A：去探望带什么好？B：带本书之类打发时间的东西不错。"
+          },
+          {
+            "id": "34-13",
+            "q": "すみませんが、駅はどこにある__教えてください。",
+            "qHtml": "すみませんが、駅《えき》はどこにある__教《おし》えてください。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 5,
+            "explain": "正确选项：か。 〔中〕请问车站在哪，请告诉我。"
+          },
+          {
+            "id": "34-14",
+            "q": "3軒__不動産屋さんがある。",
+            "qHtml": "3軒《けん》__不動産屋《ふどうさんや》さんがある。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 0,
+            "explain": "正确选项：おきに。 〔中〕每隔3家就有一间房产中介。"
+          },
+          {
+            "id": "34-15",
+            "q": "冬は寒くて、ともすると風邪を引き__。",
+            "qHtml": "冬《ふゆ》は寒《さむ》くて、ともすると風邪《かぜ》を引《ひ》き__。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 4,
+            "explain": "正确选项：がちだ。 〔中〕冬天冷，一不小心就容易感冒。"
+          },
+          {
+            "id": "34-16",
+            "q": "A「あの二人は仲がいいね。」\nB「そうね。もしかして来年結婚する__。」",
+            "qHtml": "A「あの二人《ふたり》は仲《なか》がいいね。」<br>B「そうね。もしかして来年《らいねん》結婚《けっこん》する__。」",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 7,
+            "explain": "正确选项：かもしれない。 〔中〕A：那两人关系真好。B：说不定明年就结婚了。"
+          },
+          {
+            "id": "34-17",
+            "q": "無計画に捕獲すると、この種の魚は絶滅する__がある。",
+            "qHtml": "無計画《むけいかく》に捕獲《ほかく》すると、この種《しゅ》の魚《さかな》は絶滅《ぜつめつ》する__がある。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 1,
+            "explain": "正确选项：恐れ。 〔中〕毫无计划地捕捞，这种鱼有灭绝的危险。"
+          },
+          {
+            "id": "34-18",
+            "q": "大学の学長先生が賄賂を受け取るなんて、ちょっと信じ__ことだ。",
+            "qHtml": "大学《だいがく》の学長《がくちょう》先生《せんせい》が賄賂《わいろ》を受《う》け取《と》るなんて、ちょっと信《しん》じ__ことだ。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 3,
+            "explain": "正确选项：がたい。 〔中〕大学校长收受贿赂，真是让人难以置信。"
+          },
+          {
+            "id": "34-19",
+            "q": "彼の性格__、この仕事に向いていないと思う。",
+            "qHtml": "彼《かれ》の性格《せいかく》__、この仕事《しごと》に向《む》いていないと思《おも》う。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 9,
+            "explain": "正确选项：から言うと。 〔中〕从他的性格来看，我觉得不适合这份工作。"
+          },
+          {
+            "id": "34-20",
+            "q": "あしたは日曜日だ__、会社に来なくてもいいよ。",
+            "qHtml": "あしたは日曜日《にちようび》だ__、会社《かいしゃ》に来《く》なくてもいいよ。",
+            "options": [
+              "おきに",
+              "恐《おそ》れ",
+              "がする",
+              "がたい",
+              "がちだ",
+              "か",
+              "か何か",
+              "かもしれない",
+              "から",
+              "から言うと"
+            ],
+            "answer": 8,
+            "explain": "正确选项：から。 〔中〕明天是周日，所以不用去公司哦。"
+          }
+        ]
+      },
+      {
+        "page": 34,
+        "title": "パートI 問題3",
+        "type": "input",
+        "questions": [
+          {
+            "id": "34-21",
+            "q": "2年間の留学生活は本当にがたい。（忘れる）",
+            "qHtml": "2年間《ねんかん》の留学《りゅうがく》生活《せいかつ》は本当《ほんとう》に__がたい。（忘《わす》れる）",
+            "options": [
+              "忘《わす》れ",
+              "忘《わす》れた",
+              "忘《わす》れる",
+              "忘《わす》れて"
+            ],
+            "answer": 0,
+            "explain": "正确变形：忘れ。 〔中〕两年的留学生活真是令人难忘。（忘れる）"
+          },
+          {
+            "id": "34-22",
+            "q": "子どもが生まれたら、この仕事はかどうか分かりません。（続ける）",
+            "qHtml": "子《こ》どもが生《う》まれたら、この仕事《しごと》は__かどうか分《わ》かりません。（続《つづ》ける）",
+            "options": [
+              "続《つづ》けられる",
+              "続《つづ》ける",
+              "続《つづ》けた",
+              "続《つづ》けて"
+            ],
+            "answer": 0,
+            "explain": "正确变形：続けられる。 〔中〕孩子出生后，不知道还能不能继续这份工作。（続ける）"
+          },
+          {
+            "id": "34-23",
+            "q": "きのう遊園地に行ったが、カメラを持っていくのをので、写真を撮らなかった。（忘れる）",
+            "qHtml": "きのう遊園地《ゆうえんち》に行《い》ったが、カメラを持《も》っていくのを__ので、写真《しゃしん》を撮《と》らなかった。（忘《わす》れる）",
+            "options": [
+              "忘《わす》れた",
+              "忘《わす》れて",
+              "忘《わす》れる",
+              "忘《わす》れなかった"
+            ],
+            "answer": 0,
+            "explain": "正确变形：忘れた。 〔中〕昨天去了游乐园，但因为忘了带相机，所以没拍照。（忘れる）"
+          },
+          {
+            "id": "34-24",
+            "q": "今回のスポーツ大会はいつか知っていますか。（行う）",
+            "qHtml": "今回《こんかい》のスポーツ大会《たいかい》はいつ__か知《し》っていますか。（行《おこな》う）",
+            "options": [
+              "行《おこな》われる",
+              "行《おこな》う",
+              "行《おこな》った",
+              "行《おこな》って"
+            ],
+            "answer": 0,
+            "explain": "正确变形：行われる。 〔中〕这次运动会的举办时间，你知道吗？（行う）"
+          },
+          {
+            "id": "34-25",
+            "q": "余震が続いたら、この建物が恐れがある。（倒壊する）",
+            "qHtml": "余震《よしん》が続《つづ》いたら、この建物《たてもの》が__恐《おそ》れがある。（倒壊《とうかい》する）",
+            "options": [
+              "倒壊《とうかい》する",
+              "倒壊《とうかい》した",
+              "倒壊《とうかい》して",
+              "倒壊《とうかい》される"
+            ],
+            "answer": 0,
+            "explain": "正确变形：倒壊する。 〔中〕如果余震持续，这栋建筑有倒塌的危险。（倒壊する）"
+          },
+          {
+            "id": "34-26",
+            "q": "この料理を作るとき、何の調味料をか、母に聞いてみます。（入れる）",
+            "qHtml": "この料理《りょうり》を作《つく》るとき、何《なん》の調味料《ちょうみりょう》を__か、母《はは》に聞《き》いてみます。（入《い》れる）",
+            "options": [
+              "入《い》れる",
+              "入《い》れた",
+              "入《い》れて",
+              "入《い》れられる"
+            ],
+            "answer": 0,
+            "explain": "正确变形：入れる。 〔中〕做这道菜时，我问问妈妈放什么调料。（入れる）"
+          },
+          {
+            "id": "34-27",
+            "q": "彼の話はもしかしてかもしれない。（本当だ）",
+            "qHtml": "彼《かれ》の話《はなし》はもしかして__かもしれない。（本当《ほんとう》だ）",
+            "options": [
+              "本当《ほんとう》",
+              "本当《ほんとう》に",
+              "本当《ほんとう》だ",
+              "本当《ほんとう》で"
+            ],
+            "answer": 0,
+            "explain": "正确变形：本当。 〔中〕他的话，说不定是真的。（本当だ）"
+          }
+        ]
+      },
+      {
+        "page": 35,
+        "title": "パートII 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "35-1",
+            "pattern": "〜おきに",
+            "q": "10メートルおき（ ）木を植える。",
+            "qHtml": "10メートルおき（ <span class=\"blank-ph\">__</span> ）木《き》を植《う》える。",
+            "options": [
+              "と",
+              "で",
+              "に",
+              "が"
+            ],
+            "answer": 2,
+            "explain": "「〜おきに」每隔……。 〔中〕每隔10米种一棵树。"
+          },
+          {
+            "id": "35-2",
+            "pattern": "〜がする",
+            "q": "熱があるので、寒気（ ）する。",
+            "qHtml": "熱《ねつ》があるので、寒気《さむけ》（ <span class=\"blank-ph\">__</span> ）する。",
+            "options": [
+              "を",
+              "に",
+              "が",
+              "で"
+            ],
+            "answer": 2,
+            "explain": "「寒気がする」发冷、感觉冷。 〔中〕因为发烧，感觉发冷。"
+          },
+          {
+            "id": "35-3",
+            "pattern": "〜かどうか",
+            "q": "このプレゼントは（ ）かどうか分かりませんが、どうぞお受け取りください。",
+            "qHtml": "このプレゼントは（ <span class=\"blank-ph\">__</span> ）かどうか分《わ》かりませんが、どうぞお受《う》け取《と》りください。",
+            "options": [
+              "お気をつける",
+              "お気にする",
+              "お気になる",
+              "お気に入《い》る"
+            ],
+            "answer": 3,
+            "explain": "「お気に入る」喜欢，「〜かどうか」是否喜欢。 〔中〕我不知道这份礼物您是否中意，请务必收下。"
+          },
+          {
+            "id": "35-4",
+            "pattern": "〜がちだ",
+            "q": "これはよくあり（ ）失敗だから、あまり気にしないでください。",
+            "qHtml": "これはよくあり（ <span class=\"blank-ph\">__</span> ）失敗《しっぱい》だから、あまり気《き》にしないでください。",
+            "options": [
+              "がちで",
+              "がちな",
+              "がちだ",
+              "がちに"
+            ],
+            "answer": 1,
+            "explain": "「よくありがちな」常见的，后接名词用「がちな」。 〔中〕这是常有的失误，所以别太在意。"
+          },
+          {
+            "id": "35-5",
+            "pattern": "〜か何か",
+            "q": "ライターか（ ）火をつけるものを貸してください。",
+            "qHtml": "ライターか（ <span class=\"blank-ph\">__</span> ）火《ひ》をつけるものを貸《か》してください。",
+            "options": [
+              "なにか",
+              "なにも",
+              "なんでも",
+              "なに"
+            ],
+            "answer": 0,
+            "explain": "「〜か何か」……之类的，表示不确定。 〔中〕借我打火机之类能点火的东西。"
+          },
+          {
+            "id": "35-6",
+            "pattern": "〜かもしれない",
+            "q": "あした晴れたら、友だちは遊びに（ ）。",
+            "qHtml": "あした晴《は》れたら、友《とも》だちは遊《あそ》びに（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "出かけたことがある",
+              "出かけるかもしれない",
+              "出かけたところだ",
+              "出かけることにする"
+            ],
+            "answer": 1,
+            "explain": "「〜かもしれない」也许。 〔中〕明天若天晴，朋友也许会出去玩。"
+          },
+          {
+            "id": "35-7",
+            "pattern": "〜がたい",
+            "q": "だれでも（ ）思い出が一つや二つはあるだろう。",
+            "qHtml": "だれでも（ <span class=\"blank-ph\">__</span> ）思《おも》い出《で》が一《ひと》つや二《ふた》つはあるだろう。",
+            "options": [
+              "忘《わす》れがる",
+              "忘《わす》れるような",
+              "忘《わす》れたまま",
+              "忘《わす》れがたい"
+            ],
+            "answer": 3,
+            "explain": "「〜がたい」难以……，「忘れがたい」难忘。 〔中〕无论是谁，大概都有一两件难忘的回忆。"
+          },
+          {
+            "id": "35-8",
+            "pattern": "〜から（なっている）",
+            "q": "日本という国は四つの大きな島（ ）。",
+            "qHtml": "日本《にほん》という国《くに》は四《よっ》つの大《おお》きな島《しま》（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "からなっている",
+              "までになっている",
+              "ようになっている",
+              "そうになっている"
+            ],
+            "answer": 0,
+            "explain": "「〜からなっている」由……组成。 〔中〕日本这个国家由四个大岛组成。"
+          },
+          {
+            "id": "35-9",
+            "pattern": "〜恐れがある",
+            "q": "甘いものを食べ過ぎると、虫歯になる（ ）ので、十分注意してください。",
+            "qHtml": "甘《あま》いものを食《た》べ過《す》ぎると、虫歯《むしば》になる（ <span class=\"blank-ph\">__</span> ）ので、十《じゅう》分《ぶん》注《ちゅう》意《い》してください。",
+            "options": [
+              "ことがない",
+              "恐《おそ》れがある",
+              "ようとする",
+              "こともあれば"
+            ],
+            "answer": 1,
+            "explain": "「〜恐れがある」有……的危险，「虫歯になる恐れがある」。 〔中〕甜食吃太多，有得蛀牙的危险，请注意。"
+          },
+          {
+            "id": "35-10",
+            "pattern": "〜からすると",
+            "q": "今の状況（ ）、週末には観客が百万人を超えると予想される。",
+            "qHtml": "今の状況《じょうきょう》（ <span class=\"blank-ph\">__</span> ）、週末《しゅうまつ》には観客《かんきゃく》が百万人《ひゃくまんにん》を超《こ》えると予想《よそう》される。",
+            "options": [
+              "うちに",
+              "だけあり",
+              "によっては",
+              "からすると"
+            ],
+            "answer": 3,
+            "explain": "「〜からすると」从……来看/来说。 〔中〕照目前的情况，预计周末观众会超过一百万人。"
+          },
+          {
+            "id": "35-11",
+            "pattern": "〜がちだ",
+            "q": "この1ヶ月間、（ ）天気が多かった。",
+            "qHtml": "この1ヶ月《つき》間（ <span class=\"blank-ph\">__</span> ）、天気《てんき》が多《おお》かった。",
+            "options": [
+              "曇《くも》りがちだ",
+              "曇《くも》りがちの",
+              "曇《くも》ったうちの",
+              "曇《くも》りうちな"
+            ],
+            "answer": 1,
+            "explain": "「〜がちの」前接名词，修饰「天気」。 〔中〕这一个月来，多是阴天。"
+          },
+          {
+            "id": "35-12",
+            "pattern": "〜かどうか",
+            "q": "彼は足を（ ）で、学校を休んでいる。",
+            "qHtml": "彼《かれ》は足《あし》を（ <span class=\"blank-ph\">__</span> ）で、学校《がっこう》を休《やす》んでいる。",
+            "options": [
+              "怪我《けが》したかなにか",
+              "怪我《けが》しているかどうか",
+              "怪我《けが》したかどうか",
+              "怪我《けが》しているかなにか"
+            ],
+            "answer": 1,
+            "explain": "「〜かどうか」是否……，「怪我しているかどうか」是否受伤。 〔中〕他因为脚受了伤之类的原因，请假没去学校。"
+          },
+          {
+            "id": "36-13",
+            "pattern": "〜かもしれない",
+            "q": "もう30分も待っているんだ。もしかして彼女は（ ）。",
+            "qHtml": "もう30分《ふん》も待《ま》っているんだ。もしかして彼女《かのじょ》は（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "来なくてはいけない",
+              "来てもいいだろう",
+              "来ないかもしれない",
+              "来ていただろう"
+            ],
+            "answer": 2,
+            "explain": "「〜かもしれない」也许不来了。 〔中〕都已经等了30分钟了，说不定她不来了。"
+          }
+        ]
+      },
+      {
+        "page": 36,
+        "title": "パートII 問題2",
+        "type": "star",
+        "questions": [
+          {
+            "id": "36-14",
+            "q": "彼女は5ヶ国語も話せる。貿易会社＿ ＿ ★ ＿だ。",
+            "qHtml": "彼女《かのじょ》は5ヶ国語《こくご》も話《はな》せる。貿易《ぼうえき》会社《がいしゃ》＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿だ。",
+            "options": [
+              "人材《じんざい》",
+              "実《じつ》に",
+              "得《え》がたい",
+              "には"
+            ],
+            "answer": 2,
+            "explain": "正順：彼女は5ヶ国語も話せる。貿易会社 4には 2実に 3得がたい 1人材 だ。★は3番目の空「得がたい」。 〔中〕她会说5国语言，在贸易公司可是难得的人才。"
+          },
+          {
+            "id": "36-15",
+            "q": "家から空港までどのぐらい＿ ＿ ★ ＿で調べます。",
+            "qHtml": "家《いえ》から空港《くうこう》までどのぐらい＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿で調《しら》べます。",
+            "options": [
+              "かかる",
+              "か",
+              "インターネット",
+              "時《じ》間《かん》が"
+            ],
+            "answer": 1,
+            "explain": "正順：家から空港までどのぐらい 4時間が 1かかる 2か 3インターネット で調べます。★は3番目の空「か」。 〔中〕从家到机场大概要花多少时间，我用网络查一下。"
+          },
+          {
+            "id": "36-16",
+            "q": "彼の実力から言えば、＿ ＿ ★ ＿の努力が必要だ。",
+            "qHtml": "彼《かれ》の実力《じつりょく》から言《い》えば、＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿の努《ど》力《りょく》が必要《ひつよう》だ。",
+            "options": [
+              "には",
+              "なる",
+              "一《いつ》流《りゅう》選手《せんしゅ》に",
+              "相《そう》当《とう》"
+            ],
+            "answer": 0,
+            "explain": "正順：彼の実力から言えば、3一流選手に 2なる 1には 4相当 の努力が必要だ。★は3番目の空「には」。 〔中〕从他的实力来看，要成为一流选手需要相应的努力。"
+          },
+          {
+            "id": "36-17",
+            "q": "運転免許証＿ ＿ ★ ＿証明するものを見せてください。",
+            "qHtml": "運転《うんてん》免許証《めんきょしょう》＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿証明《しょうめい》するものを見《み》せてください。",
+            "options": [
+              "なにか",
+              "あなたの",
+              "か",
+              "身分《みぶん》を"
+            ],
+            "answer": 1,
+            "explain": "正順：運転免許証 3か 1なにか 2あなたの 4身分を 証明するものを見せてください。★は3番目の空「あなたの」。 〔中〕请出示驾照之类的能证明您身份的东西。"
+          },
+          {
+            "id": "36-18",
+            "q": "今夜台風が上陸するそうだ。強風＿ ★ ＿ ＿、鉢植えなどはベランダに置かないでください。",
+            "qHtml": "今夜《こんや》台風《たいふう》が上陸《じょうりく》するそうだ。強風《きょうふう》＿ <span style=\"color:var(--accent)\">★</span> ＿ ＿、鉢《はち》植《う》えなどはベランダに置《お》かないでください。",
+            "options": [
+              "ある",
+              "恐《おそ》れが",
+              "ので",
+              "の"
+            ],
+            "answer": 1,
+            "explain": "正順：今夜台風が上陸するそうだ。強風 4の 2恐れが 1ある 3ので 、鉢植えなどはベランダに置かないでください。★は2番目の空「恐れが」。 〔中〕听说台风今晚会登陆，因为有强风的可能，请把盆栽等不要放在阳台上。"
+          }
+        ]
+      },
+      {
+        "page": 36,
+        "title": "パートII 問題3",
+        "type": "reading",
+        "passage": "ヤンさんへの手紙拝啓お元気ですか。日本に来てからもう3か月たちました。本当に早いです。今、私は中村さんという人の家で19、大学で日本語を勉強しています。中村さんの家は、お父さんとお母さんと息子さんの3人家族です。皆英語が少し分かるので、初めは英語と日本語を使っていましたが、今はたいてい日本語だけで話しています。息子さんの誠君は大学の2年生で、一週間に3日家庭教師のアルバイトをしています。アルバイトをしながら勉強するのは20、日本の大学はアメリカの大学より宿題がずっとすくないので大丈夫だ、と誠君が言っていました。日本の大学生はアメリカの大学生21。週末だけでなく、普通の日でもよくお酒を飲んだり、コンサートへ行ったりして遊びます。誠君の話では、日本人は大学受験のためによく勉強しますし、会社に入ったらよく仕事をしますから、大学の4年間はよく遊んだそうです。アメリカとずいぶん違いますね。今度の夏休みに私の両親が日本に遊びに来るかもしれません。両親をいろいろなところへ連れて22。ヤンさんは夏休みに何をするつもりですか。予定を教えて下さい。これから暑くなりますが、23。敬具スミス",
+        "passageHtml": "<div style=\"line-height:2\">\n<p style=\"text-align:center;margin:0 0 0.8em\">ヤンさんへの手紙《てがみ》</p>\n<p style=\"text-indent:0;margin:0 0 0.8em\">拝啓《はいけい》</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">お元気ですか。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">日本《にほん》に来《き》てからもう3か月《さんかげつ》たちました。本当《ほんとう》に早《はや》いです。今《いま》、私《わたし》は中村《なかむら》さんという人《ひと》の家《いえ》で<span class=\"cloze-ph\" data-cloze=\"19\">＿＿19＿＿</span>、大学《だいがく》で日本語《にほんご》を勉強《べんきょう》しています。中村《なかむら》さんの家《いえ》は、お父《とう》さんとお母《はは》さんと息子《むすこ》さんの3人《さんにん》家族《かぞく》です。皆《みな》英語《えいご》が少《すこ》し分《わ》かるので、初《はじ》めは英語《えいご》と日本語《にほんご》を使《つか》っていましたが、今《いま》はたいてい日本語《にほんご》だけで話《はな》しています。息子《むすこ》さんの誠《まこと》君《くん》は大学《だいがく》の2年生《にねんせい》で、一週間《いっしゅうかん》に3日《みっか》家庭教師《かていきょうし》のアルバイトをしています。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">アルバイトをしながら勉強《べんきょう》するのは<span class=\"cloze-ph\" data-cloze=\"20\">＿＿20＿＿</span>、日本《にほん》の大学《だいがく》はアメリカの大学《だいがく》より宿題《しゅくだい》がずっと少《すく》ないので大丈夫《だいじょうぶ》だ、と誠《まこと》君《くん》が言《い》っていました。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">日本《にほん》の大学生《がくせい》はアメリカの大学生《がくせい》<span class=\"cloze-ph\" data-cloze=\"21\">＿＿21＿＿</span>。週末《しゅうまつ》だけでなく、普《ふ》通《つう》の日《ひ》でもよくお酒《さけ》を飲《の》んだり、コンサートへ行《い》ったりして遊《あそ》びます。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">誠《まこと》君《くん》の話《はなし》では、日本《にほん》人《じん》は大学《だいがく》受験《じゅけん》の為《ため》によく勉強《べんきょう》しますし、会社《かいしゃ》に入《はい》ったらよく仕事《しごと》をしますから、大学《だいがく》の4年間《よねんかん》はよく遊《あそ》んだそうです。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">アメリカとずいぶん違《ちが》いますね。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">今度《こんど》の夏休《なつやす》みに私《わたし》の両親《りょうしん》が日本《にほん》に遊《あそ》びに来《く》るかもしれません。両親《りょうしん》をいろいろなところへ連《つ》れて<span class=\"cloze-ph\" data-cloze=\"22\">＿＿22＿＿</span>。ヤンさんは夏休《なつやす》みに何《なに》をするつもりですか。予定《よてい》を教《おし》えて下《くだ》さい。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">これから暑《あつ》くなりますが、<span class=\"cloze-ph\" data-cloze=\"23\">＿＿23＿＿</span>。</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">敬具《けいぐ》</p>\n<p style=\"text-indent:1em;margin:0 0 0.8em\">スミス</p>\n</div>",
+        "questions": [
+          {
+            "id": "36-19",
+            "q": "|19| に入る最もよいもの",
+            "qHtml": "|19| に入る最もよいもの",
+            "options": [
+              "ホームステイをしても",
+              "ホームステイをしたら",
+              "ホームステイをしながら",
+              "ホームステイをすれば"
+            ],
+            "answer": 2,
+            "explain": "正确选项：ホームステイをしながら。 〔中〕（19）我住在姓中村的人家里，边寄宿边在大学学日语。"
+          },
+          {
+            "id": "36-20",
+            "q": "|20| に入る最もよいもの",
+            "qHtml": "|20| に入る最もよいもの",
+            "options": [
+              "大変《たいへん》ではないと 思《おも》いましたが",
+              "大変《たいへん》ではないかと 言《い》いますが",
+              "大変《たいへん》だろうと 言《い》いますが",
+              "大変《たいへん》だろうと 思《おも》いましたが"
+            ],
+            "answer": 3,
+            "explain": "正确选项：大変だろうと思いましたが。 〔中〕（20）边打工边学习不算辛苦，因为日本大学作业比美国少很多。"
+          },
+          {
+            "id": "36-21",
+            "q": "|21| に入る最もよいもの",
+            "qHtml": "|21| に入る最もよいもの",
+            "options": [
+              "ほどよく 勉強《べんきょう》しません",
+              "と同じように 勉強《べんきょう》します",
+              "あまり 勉強《べんきょう》しません",
+              "よりよく 勉強《べんきょう》します"
+            ],
+            "answer": 0,
+            "explain": "正确选项：ほどよく勉強しません。 〔中〕（21）日本的大学生不怎么学习（不像美国学生那样用功）。"
+          },
+          {
+            "id": "36-22",
+            "q": "|22| に入る最もよいもの",
+            "qHtml": "|22| に入る最もよいもの",
+            "options": [
+              "行《い》くと 思《おも》います",
+              "行《い》こうと 思《おも》っています",
+              "行《い》けると 思《おも》います",
+              "行《い》けばと 思《おも》っています"
+            ],
+            "answer": 1,
+            "explain": "正确选项：行こうと思っています。 〔中〕（22）我打算带父母去各处逛逛。"
+          },
+          {
+            "id": "36-23",
+            "q": "|23| に入る最もよいもの",
+            "qHtml": "|23| に入る最もよいもの",
+            "options": [
+              "体《からだ》に 気《き》をつけなさい",
+              "体《からだ》にお 気《き》をつけなさい",
+              "お 体《からだ》に 気《き》をつけください",
+              "お 体《からだ》に 気《き》をつけてください"
+            ],
+            "answer": 3,
+            "explain": "正确选项：お体に気をつけてください。 〔中〕（23）天气会变热，请注意身体。"
+          }
+        ]
+      }
+    ]
+  },
+  "3": {
+    "title": "第3単元 練習",
+    "pages": [
+      {
+        "page": 44,
+        "title": "パートI 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "44-1",
+            "pattern": "〜から〜にかけて",
+            "q": "明日の天気予報です。近畿地方から関東地方（ ）かけて、午後から天気が悪くなるでしょう。",
+            "qHtml": "明日《あした》の天気《てんき》予報《よほう》です。近畿《きんき》地方《ちほう》から関東《かんとう》地方《ちほう》（ <span class=\"blank-ph\">__</span> ）かけて、午後《ごご》から天気《てんき》が悪《わる》くなるでしょう。",
+            "options": [
+              "を",
+              "まで",
+              "が",
+              "に"
+            ],
+            "answer": 3,
+            "explain": "「〜から〜にかけて」表示范围，近畿地方から関東地方にかけて意为从近畿到关东一带。〔中〕这是天气预报。从近畿地区到关东地区，下午起天气将转坏。"
+          },
+          {
+            "id": "44-2",
+            "pattern": "〜からすると",
+            "q": "話し方（ ）すると、彼は地元の人ではないようだ。",
+            "qHtml": "話《はな》し方《かた》（ <span class=\"blank-ph\">__</span> ）すると、彼《かれ》は地元《じもと》の人《ひと》ではないようだ。",
+            "options": [
+              "より",
+              "ほど",
+              "から",
+              "でも"
+            ],
+            "answer": 2,
+            "explain": "「〜からすると」从…来看，話し方からすると从说话方式来看。〔中〕从说话方式来看，他似乎不是本地人。"
+          },
+          {
+            "id": "44-3",
+            "pattern": "〜がる（ナ形）",
+            "q": "嫌い（ ）がる子どもが多い。",
+            "qHtml": "嫌《きら》い（ <span class=\"blank-ph\">__</span> ）がる子《こ》どもが多《おお》い。",
+            "options": [
+              "嫌《きら》だ",
+              "嫌《きら》な",
+              "嫌《きら》で",
+              "嫌《きら》"
+            ],
+            "answer": 3,
+            "explain": "「嫌い」是ナ形容词，表示第三人称的喜好用「嫌がる」。〔中〕讨厌老鼠的孩子很多。"
+          },
+          {
+            "id": "44-4",
+            "pattern": "〜かわりに",
+            "q": "引越しを手伝ってくれた（ ）、ごちそうしてあげましょう。",
+            "qHtml": "引越《ひっこ》しを手伝《てつだ》ってくれた（ <span class=\"blank-ph\">__</span> ）、ごちそうしてあげましょう。",
+            "options": [
+              "かわりに",
+              "かどうか",
+              "おかげで",
+              "うえに"
+            ],
+            "answer": 0,
+            "explain": "「〜かわりに」表示作为回报，手伝ってくれたかわりに作为帮忙搬家的回报。〔中〕你帮我搬了家，作为回报我请你吃顿饭吧。"
+          },
+          {
+            "id": "44-5",
+            "pattern": "〜気味",
+            "q": "ゆうべ窓を開けたまま寝たので、どうも風邪（ ）だ。",
+            "qHtml": "ゆうべ窓《まど》を開《あ》けたまま寝《ね》たので、どうも風邪《かぜ》（ <span class=\"blank-ph\">__</span> ）だ。",
+            "options": [
+              "はず",
+              "よう",
+              "ところ",
+              "ぎみ"
+            ],
+            "answer": 3,
+            "explain": "「〜気味」表示有点…的状态，風邪気味觉得有点感冒。〔中〕昨晚开着窗睡的，总觉得有点感冒。"
+          },
+          {
+            "id": "44-6",
+            "pattern": "〜て/ば見る",
+            "q": "外国人から（ ）、私たちの習慣には不思議なものもあるだろう。",
+            "qHtml": "外国《がいこく》人《じん》から（ <span class=\"blank-ph\">__</span> ）、私《わたし》たちの習慣《しゅうかん》には不思議《ふしぎ》なものもあるだろう。",
+            "options": [
+              "見《み》よう",
+              "見《み》た",
+              "見《み》れば",
+              "見《み》るなら"
+            ],
+            "answer": 2,
+            "explain": "「〜て/ば見る」试着…；外国人から見れば从外国人角度来看。〔中〕从外国人看来，我们的习惯里也有不少不可思议的东西吧。"
+          },
+          {
+            "id": "44-7",
+            "pattern": "〜からして",
+            "q": "あの人の話し方（ ）、役に立つ人だ。",
+            "qHtml": "あの人《ひと》の話《はな》し方《かた》（ <span class=\"blank-ph\">__</span> ）、役《やく》に立《た》つ人《ひと》だ。",
+            "options": [
+              "からして",
+              "と言《い》って",
+              "として",
+              "かどうか"
+            ],
+            "answer": 0,
+            "explain": "「〜からして」仅从这点就可判断，話し方からして仅从说话方式看。〔中〕从那个人的说话方式来看，是个有用的人。"
+          },
+          {
+            "id": "44-8",
+            "pattern": "〜くせに",
+            "q": "兄は元気な（ ）、病気のふりをしている。",
+            "qHtml": "兄《あに》は元気《げんき》な（ <span class=\"blank-ph\">__</span> ）、病気《びょうき》のふりをしている。",
+            "options": [
+              "くせに",
+              "ことで",
+              "うえに",
+              "くせで"
+            ],
+            "answer": 0,
+            "explain": "「〜くせに」明明…却…，表示不满或意外，元気なくせに明明很有精神却。〔中〕哥哥明明很有精神，却装病。"
+          },
+          {
+            "id": "44-9",
+            "pattern": "〜ぐらい",
+            "q": "彼は箱根（ ）住みやすい所はないと信じている。",
+            "qHtml": "彼《かれ》は箱根《はこね》（ <span class=\"blank-ph\">__</span> ）住《す》みやすい所《ところ》はないと信《しん》じている。",
+            "options": [
+              "より",
+              "ぐらい",
+              "ごろ",
+              "ばかり"
+            ],
+            "answer": 1,
+            "explain": "「〜ぐらい」表示程度比较的基准，箱根ぐらい没有比箱根更…的。〔中〕他相信没有比箱根更适合居住的地方了。"
+          },
+          {
+            "id": "44-10",
+            "pattern": "〜きる",
+            "q": "他人に何を言われても、彼女のことを信じて（ ）います。",
+            "qHtml": "他人《たにん》に何《なに》を言《い》われても、彼女《かのじょ》のことを信《しん》じて（ <span class=\"blank-ph\">__</span> ）います。",
+            "options": [
+              "きって",
+              "たい",
+              "おわって",
+              "はじめて"
+            ],
+            "answer": 0,
+            "explain": "「信じきる」完全相信，〜きっている状态持续。〔中〕不管别人说什么，我都完全相信她。"
+          }
+        ]
+      },
+      {
+        "page": 45,
+        "title": "パートI 問題2",
+        "type": "bank",
+        "bank": [
+          "かなにか",
+          "からして",
+          "から",
+          "から見ると",
+          "がる",
+          "かわりに",
+          "気味",
+          "きれない",
+          "くせに",
+          "ぐらい"
+        ],
+        "questions": [
+          {
+            "id": "45-11",
+            "q": "病気になった母の（ ）、姉が料理を作ってくれた。",
+            "qHtml": "病気《びょうき》になった母《はは》の（ <span class=\"blank-ph\">__</span> ）、姉《ねえ》が料理《りょうり》を作《つく》ってくれた。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 5,
+            "explain": "「かわりに」代替，母のかわりに代替生病的母亲。〔中〕姐姐代替生病的妈妈做了饭。"
+          },
+          {
+            "id": "45-12",
+            "q": "一人だけなので、料理をたくさん作ったら食べ（ ）よ。",
+            "qHtml": "一人《ひとり》だけなので、料理《りょうり》をたくさん作《つく》ったら食《た》べ（ <span class=\"blank-ph\">__</span> ）よ。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 7,
+            "explain": "「〜きれない」无法…，食べきれない吃不完。〔中〕只有一个人的话，做太多菜会吃不完的。"
+          },
+          {
+            "id": "45-13",
+            "q": "時計の音（ ）、古い感じがする。",
+            "qHtml": "時計《とけい》の音《おと》（ <span class=\"blank-ph\">__</span> ）、古《ふる》い感《かん》じがする。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 1,
+            "explain": "「〜からして」仅从…就可判断，音からして仅从声音就可判断。〔中〕光听时钟的声音，就觉得是个老物件。"
+          },
+          {
+            "id": "45-14",
+            "q": "雨の日（ ）温かいものを食べましょう。",
+            "qHtml": "雨《あめ》の日《ひ》（ <span class=\"blank-ph\">__</span> ）温《あたた》かいものを食《た》べましょう。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 0,
+            "explain": "「かなにか」…之类的，雨の日かなにか下雨天之类的时候。〔中〕下雨天之类的日子里，我们吃点热乎的东西吧。"
+          },
+          {
+            "id": "45-15",
+            "q": "部長はどうも無理（ ）だ。",
+            "qHtml": "部長《ぶちょう》はどうも無理《むり》（ <span class=\"blank-ph\">__</span> ）だ。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 6,
+            "explain": "「〜気味」有点…的样子，無理気味有点勉强/过度。〔中〕部长好像有点太拼了。"
+          },
+          {
+            "id": "45-16",
+            "q": "大人の（ ）、こんな簡単な計算もできないなんて。",
+            "qHtml": "大人《おとな》の（ <span class=\"blank-ph\">__</span> ）、こんな簡単《かんたん》な計算《けいさん》もできないなんて。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 8,
+            "explain": "「〜くせに」明明…却…，大人のくせに明明是个大人却。〔中〕明明是个大人，居然连这么简单的计算都不会。"
+          },
+          {
+            "id": "45-17",
+            "q": "彼（ ）から見ると、こんな複雑な計算もできないなんて。",
+            "qHtml": "彼《かれ》（ <span class=\"blank-ph\">__</span> ）から見《み》ると、こんな複雑《ふくざつ》な計算《けいさん》もできないなんて。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 3,
+            "explain": "「〜から見ると」从…来看，彼から見ると从他的角度来看。〔中〕从他的角度看，连这么复杂的计算都不会。"
+          },
+          {
+            "id": "45-18",
+            "q": "20分（ ）公園を散歩します。",
+            "qHtml": "20分《にじゅっぷん》（ <span class=\"blank-ph\">__</span> ）公園《こうえん》を散歩《さんぽ》します。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 9,
+            "explain": "「〜ぐらい」大约…，20分ぐらい大约20分钟。〔中〕散步大约20分钟到公园。"
+          },
+          {
+            "id": "45-19",
+            "q": "秋（ ）冬にかけて日本にやってきます。",
+            "qHtml": "秋《あき》（ <span class=\"blank-ph\">__</span> ）冬《ふゆ》にかけて日本《にほん》にやってきます。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 2,
+            "explain": "「〜から〜にかけて」从…到…，秋から冬にかけて从秋天到冬天。〔中〕从秋天到冬天来到日本。"
+          },
+          {
+            "id": "45-20",
+            "q": "脂っぽいものを嫌（ ）子が多くなった。",
+            "qHtml": "脂《あぶ》らっぽいものを嫌《きら》（ <span class=\"blank-ph\">__</span> ）子《こ》が多《おお》くなった。",
+            "options": [
+              "かなにか",
+              "からして",
+              "から",
+              "から見《み》ると",
+              "がる",
+              "かわりに",
+              "気味《ぎみ》",
+              "きれない",
+              "くせに",
+              "ぐらい"
+            ],
+            "answer": 4,
+            "explain": "「〜がる」表示第三人称流露某种样子，嫌がる嫌恶、不爱吃油腻的东西。〔中〕讨厌油腻东西的孩子变多了。"
+          }
+        ]
+      },
+      {
+        "page": 45,
+        "title": "パートI 問題3",
+        "type": "input",
+        "questions": [
+          {
+            "id": "45-21",
+            "q": "そんな（ 分かる→ ）こと、言わなくてもいい。",
+            "qHtml": "そんな（ <span class=\"blank-ph\">__</span> ）こと、言《い》わなくてもいい。（分《わ》かる）",
+            "options": [
+              "分《わ》かり",
+              "分《わ》かる",
+              "分《わ》から",
+              "分《わ》かった"
+            ],
+            "answer": 0,
+            "explain": "「分かる」連用形「分かり」，用作连体修饰。〔中〕那种显而易见的事，不说也行。"
+          },
+          {
+            "id": "45-22",
+            "q": "ネズミを（ 嫌い→ ）がる子どもが多い。",
+            "qHtml": "ネズミを（ <span class=\"blank-ph\">__</span> ）がる子《こ》どもが多《おお》い。（嫌《きら》い）",
+            "options": [
+              "嫌《きら》",
+              "嫌《きら》い",
+              "嫌《きら》って",
+              "嫌《きら》われ"
+            ],
+            "answer": 0,
+            "explain": "「嫌い」是ナ形容词，第三人称的喜好/嫌恶用「嫌がる」，ナ形容词去「い」加「がる」。〔中〕讨厌老鼠的孩子很多。"
+          },
+          {
+            "id": "45-23",
+            "q": "彼は仕事が（ する→ ）かわりに、遅刻や欠席などが多い。",
+            "qHtml": "彼《かれ》は仕事《しごと》が（ <span class=\"blank-ph\">__</span> ）かわりに、遅刻《ちこく》や欠席《けっせき》などが多《おお》い。（する）",
+            "options": [
+              "できる",
+              "しない",
+              "した",
+              "して"
+            ],
+            "answer": 0,
+            "explain": "「する」可能形「できる」，仕事ができるかわりに能力好但常迟到。〔中〕他工作能力强，但经常迟到缺席。"
+          },
+          {
+            "id": "45-24",
+            "q": "彼が書いた字はよく（ 見える→ ）ない小さい。",
+            "qHtml": "彼《かれ》が書《か》いた字《じ》はよく（ <span class=\"blank-ph\">__</span> ）ない小《ちい》さい。（見《み》える）",
+            "options": [
+              "見《み》え",
+              "見《み》えない",
+              "見《み》えて",
+              "見《み》えた"
+            ],
+            "answer": 0,
+            "explain": "「見える」可能形，去「る」取連用形「見え」＋「ない」。〔中〕他写的字小得几乎看不清。"
+          },
+          {
+            "id": "45-25",
+            "q": "その小説、鈴木さんも（ 読む→ ）たがっているみたいよ。",
+            "qHtml": "その小説《しょうせつ》、鈴木《すずき》さんも（ <span class=\"blank-ph\">__</span> ）たがっているみたいよ。（読《よ》む）",
+            "options": [
+              "読《よ》み",
+              "読《よ》む",
+              "読《よ》んで",
+              "読《よ》んだ"
+            ],
+            "answer": 0,
+            "explain": "「〜たがる」表示第三人称的意愿，前接ます形去ます「読み」。〔中〕那本小说，铃木好像也想读呢。"
+          },
+          {
+            "id": "45-26",
+            "q": "この（ きつい→ ）かわりに、自分でやるのがいい。",
+            "qHtml": "この（ <span class=\"blank-ph\">__</span> ）かわりに、自分《じぶん》でやるのがいい。（きつい）",
+            "options": [
+              "きつ",
+              "きつい",
+              "きつく",
+              "きつさ"
+            ],
+            "answer": 0,
+            "explain": "「きつい」去掉「い」取连体形词干「きつ」，接「かわりに」等。〔中〕这么费劲的话，不如自己做。"
+          },
+          {
+            "id": "45-27",
+            "q": "売品はたった1時間で（ 売る→ ）きれてしまった。",
+            "qHtml": "売品《ばいひん》はたった1時間《じかん》で（ <span class=\"blank-ph\">__</span> ）きれてしまった。（売《う》る）",
+            "options": [
+              "売《う》り",
+              "売《う》る",
+              "売《う》って",
+              "売《う》った"
+            ],
+            "answer": 0,
+            "explain": "「売る」ます形去ます「売り」，接「きれる」表彻底完成，売りきれる全部售罄。〔中〕商品只用了1小时就全部卖光了。"
+          }
+        ]
+      },
+      {
+        "page": 46,
+        "title": "パートII 問題1",
+        "type": "choice",
+        "questions": [
+          {
+            "id": "46-1",
+            "pattern": "〜から〜にかけて",
+            "q": "昨夜（ ）今朝にかけて雪が降り続けている。",
+            "qHtml": "昨夜《さくや》（ <span class=\"blank-ph\">__</span> ）今朝《けさ》にかけて雪《ゆき》が降《ふ》り続《つづ》けている。",
+            "options": [
+              "も",
+              "から",
+              "は",
+              "ほど"
+            ],
+            "answer": 1,
+            "explain": "「〜から〜にかけて」从…到…，昨夜から今朝にかけて从昨夜到今晨。〔中〕从昨晚到今早雪一直下。"
+          },
+          {
+            "id": "46-2",
+            "pattern": "〜からすると",
+            "q": "彼女の表情（ ）、何かがあったみたい。",
+            "qHtml": "彼女《かのじょ》の表情《ひょうじょう》（ <span class=\"blank-ph\">__</span> ）、何《なに》かがあったみたい。",
+            "options": [
+              "からすれば",
+              "からでは",
+              "によって",
+              "のでは"
+            ],
+            "answer": 0,
+            "explain": "「〜からすると/からすれば」从…来看，表情からすれば从表情来看。〔中〕从她的表情看，好像发生了什么事。"
+          },
+          {
+            "id": "46-3",
+            "pattern": "〜のかわりに",
+            "q": "今、ちょっと手が離せないので、僕の（ ）会議に出てくれない？",
+            "qHtml": "今《いま》、ちょっと手《て》が離《はな》せないので、僕《ぼく》の（ <span class=\"blank-ph\">__</span> ）会議《かいぎ》に出《で》てくれない？",
+            "options": [
+              "ために",
+              "かわりに",
+              "ように",
+              "ところに"
+            ],
+            "answer": 1,
+            "explain": "「〜のかわりに」代替…，僕のかわりに代替我。〔中〕我现在走不开，你能替我开会吗？"
+          },
+          {
+            "id": "46-4",
+            "pattern": "〜気味",
+            "q": "きのうは夜遅くまでサッカー試合を見ていたので、少し（ ）気味だ。",
+            "qHtml": "きのうは夜《よる》遅《おそ》くまでサッカー試合《しあい》を見ていたので、少《すこ》し（ <span class=\"blank-ph\">__</span> ）気味《ぎみ》だ。",
+            "options": [
+              "疲《つか》れる",
+              "疲《つか》れて",
+              "疲《つか》れ",
+              "疲《つか》れの"
+            ],
+            "answer": 2,
+            "explain": "「〜気味」有点…的状态，前接名詞/語幹，疲れ気味有点累。〔中〕昨晚看球赛到很晚，有点累。"
+          },
+          {
+            "id": "46-5",
+            "pattern": "〜ことからして",
+            "q": "ゲームばかり（ ）、彼はまじめに受験勉強していないことがわかる。",
+            "qHtml": "ゲームばかり（ <span class=\"blank-ph\">__</span> ）、彼《かれ》はまじめに受験《じゅけん》勉強《べんきょう》していないことがわかる。",
+            "options": [
+              "やっていないと 思《おも》うが",
+              "やっていないことからして",
+              "やっていると 思《おも》うが",
+              "やっていることからして"
+            ],
+            "answer": 3,
+            "explain": "「〜ことからして」从…来看，ゲームばかりやっていることからして从他老是打游戏来看。〔中〕从他光玩游戏这点来看，就知道他没认真备考。"
+          },
+          {
+            "id": "46-6",
+            "pattern": "〜てしまう",
+            "q": "彼は最近、競馬に夢中で、長年の貯金を（ ）。",
+            "qHtml": "彼《かれ》は最近《さいきん》、競馬《けいば》に夢中《むちゅう》で、長年《ちょうねん》の貯金《ちょきん》を（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "使《つか》いきってしまった",
+              "使《つか》いたくはない",
+              "使《つか》われてしまった",
+              "使《つか》わないでください"
+            ],
+            "answer": 0,
+            "explain": "「〜てしまう」完成/不可挽回，使いきってしまった把…全花光了。〔中〕他最近沉迷赛马，把多年的积蓄都花光了。"
+          },
+          {
+            "id": "46-7",
+            "pattern": "〜がる（第三人称）",
+            "q": "（彼女は）新しいかばんを（ ）みたいよ。",
+            "qHtml": "（彼女《かのじょ》は）新《あたら》しいかばんを（ <span class=\"blank-ph\">__</span> ）みたいよ。",
+            "options": [
+              "ほしい",
+              "ほしがっている",
+              "ほしくない",
+              "ほしがらない"
+            ],
+            "answer": 1,
+            "explain": "第三人称的欲望用「〜がる」，ほしがっている想要。〔中〕她说她好像想要个新包。"
+          },
+          {
+            "id": "46-8",
+            "pattern": "〜くせに",
+            "q": "山田さんは本当のことを（ ）、何も教えてくれなかった。",
+            "qHtml": "山田《やまだ》さんは本当《ほんとう》のことを（ <span class=\"blank-ph\">__</span> ）、何《なに》も教《おし》えてくれなかった。",
+            "options": [
+              "知《し》っているくせに",
+              "知《し》っているおかげで",
+              "知《し》るかどうかについて",
+              "知《し》ることだけでなく"
+            ],
+            "answer": 0,
+            "explain": "「〜くせに」明明…却…，知っているくせに明明知道却不告诉。〔中〕山田明明知道真相，却什么都没说。"
+          },
+          {
+            "id": "46-9",
+            "pattern": "〜くせに",
+            "q": "今度引っ越してきたところは、家賃が安い（ ）、交通が不便だ。",
+            "qHtml": "今度《こんど》引《ひ》っ越《こ》してきたところは、家賃《やちん》が安《やす》い（ <span class=\"blank-ph\">__</span> ）、交通《こうつう》が不便《ふべん》だ。",
+            "options": [
+              "くせに",
+              "かわりに",
+              "につれて",
+              "からして"
+            ],
+            "answer": 0,
+            "explain": "「〜くせに」明明…却…，安いくせに明明便宜却。〔中〕新搬来的地方房租虽然便宜，交通却不方便。"
+          },
+          {
+            "id": "46-10",
+            "pattern": "〜ぐらい",
+            "q": "毎日仕事に追われていて、せめて日曜日（ ）。",
+            "qHtml": "毎日《まいにち》仕事《しごと》に追《お》われていて、せめて日曜日《にちようび》（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "ぐらい 休《やす》まなくてもいい",
+              "ほど 休《やす》まなくてもいい",
+              "ぐらいは 休《やす》みたい",
+              "ほど 休《やす》みたい"
+            ],
+            "answer": 2,
+            "explain": "「〜ぐらい」表示最低限度，せめて日曜日ぐらいは休みたい至少想休个周日。〔中〕每天被工作追着，至少想休息个星期天。"
+          },
+          {
+            "id": "46-11",
+            "pattern": "〜てもらうかわりに",
+            "q": "遊園地に（ ）かわりに、部屋の掃除を手伝うね。",
+            "qHtml": "遊園地《ゆうえんち》に（ <span class=\"blank-ph\">__</span> ）かわりに、部屋《へや》の掃除《そうじ》を手伝《てつだ》うね。",
+            "options": [
+              "連《つ》れて行《い》ってもらう",
+              "連《つ》れてきてあげる",
+              "連《つ》れてきてくれる",
+              "連《つ》れて行《い》ってほしい"
+            ],
+            "answer": 0,
+            "explain": "「〜てもらうかわりに」作为受惠的回报，遊園地に連れて行ってもらうかわりに作为被带去游乐园的回报。〔中〕作为你带我去游乐园的回报，我帮你打扫房间。"
+          },
+          {
+            "id": "46-12",
+            "pattern": "〜ぎみ",
+            "q": "最近、食べすぎで少し（ ）。",
+            "qHtml": "最近《さいきん》、食《た》べすぎで少《すこ》し（ <span class=\"blank-ph\">__</span> ）。",
+            "options": [
+              "ふとるらしい",
+              "ふとりぎみだ",
+              "ふとくなったみたい",
+              "ふとっていくようだ"
+            ],
+            "answer": 1,
+            "explain": "「〜ぎみ」有点…的样子，前接名詞/語幹，ふとり気味有点发胖。〔中〕最近吃太多，有点胖了。"
+          },
+          {
+            "id": "46-13",
+            "pattern": "〜で（て形理由）",
+            "q": "中村さんは加藤さんのことが（ ）、一言も彼女と話さない。",
+            "qHtml": "中村《なかむら》さんは加藤《かとう》さんのことが（ <span class=\"blank-ph\">__</span> ）、一言《ひとこと》も彼女《かのじょ》と話《はな》さない。",
+            "options": [
+              "嫌《きら》いで",
+              "嫌《きら》いだから",
+              "嫌《きら》いなので",
+              "嫌《きら》いとは"
+            ],
+            "answer": 0,
+            "explain": "「嫌いで」て形表原因，连接后句，嫌いで、一言も話さない因为讨厌所以一句话也不说。〔中〕中村因为讨厌加藤，一句话也不和她讲。"
+          }
+        ]
+      },
+      {
+        "page": 47,
+        "title": "パートII 問題2",
+        "type": "star",
+        "questions": [
+          {
+            "id": "47-14",
+            "q": "今回入社した新人は礼儀正しい＿ ＿ ★ ＿可愛がられている。",
+            "qHtml": "今回《こんかい》入社《にゅうしゃ》した新人《しんじん》は礼儀《れいぎ》正《ただ》しい＿ ＿ ★ ＿可愛《かわい》がられている。",
+            "options": [
+              "うえに",
+              "気《き》が利《き》く",
+              "皆《みな》に",
+              "ので"
+            ],
+            "answer": 3,
+            "explain": "正順：今回入社した新人は礼儀正しいうえに気が利くので皆に可愛がられている。★は3番目の空「ので」。〔中〕这次入职的新人既有礼貌又机灵，所以很受大家喜爱。"
+          },
+          {
+            "id": "47-15",
+            "q": "日本人は初対面の人とあいさつをする時、＿ ＿ ★ ＿。",
+            "qHtml": "日本《にほん》人《じん》は初対面《しょたいめん》の人《ひと》とあいさつをする時《とき》、＿ ＿ ★ ＿。",
+            "options": [
+              "かわりに",
+              "握手《あくしゅ》の",
+              "お辞儀《じぎ》を",
+              "する"
+            ],
+            "answer": 2,
+            "explain": "正順：日本人は初対面の人とあいさつをする時、握手のかわりにお辞儀をする。★は3番目の空「お辞儀を」。〔中〕日本人与初次见面的人打招呼时，不握手而是鞠躬。"
+          },
+          {
+            "id": "47-16",
+            "q": "客の＿ ＿ ★ ＿値段がちょっと高い。",
+            "qHtml": "客《きゃく》の＿ ＿ ★ ＿値段《ねだん》がちょっと高《たか》い。",
+            "options": [
+              "いうと",
+              "から",
+              "立場《たちば》",
+              "この商品《しょうひん》の"
+            ],
+            "answer": 0,
+            "explain": "正順：客の立場からいうとこの商品の値段がちょっと高い。★は3番目の空「いうと」。〔中〕从顾客的角度来说，这个商品的价格有点高。"
+          },
+          {
+            "id": "47-17",
+            "q": "この二週間、＿ ＿ ★ ＿しまった。",
+            "qHtml": "この二週《にしゅう》間《かん》、＿ ＿ ★ ＿しまった。",
+            "options": [
+              "無理《むり》な",
+              "して",
+              "仕事《しごと》を",
+              "疲《つか》れきって"
+            ],
+            "answer": 1,
+            "explain": "正順：この二週間、無理な仕事をして疲れきってしまった。★は3番目の空「して」。〔中〕这两周来，做太勉强的工作，累垮了。"
+          },
+          {
+            "id": "47-18",
+            "q": "渋谷の＿ ★ ＿ ＿落ち着いている。",
+            "qHtml": "渋谷《しぶや》の＿ ★ ＿ ＿落《お》ち着《つ》いている。",
+            "options": [
+              "くらい",
+              "前《まえ》に",
+              "彼女《かのじょ》は",
+              "不思議《ふしぎ》な"
+            ],
+            "answer": 2,
+            "explain": "正順：渋谷の前に彼女は不思議なくらい落ち着いている。★は2番目の空「彼女は」。〔中〕在涩谷之前，她出乎意料地很冷静。"
+          }
+        ]
+      },
+      {
+        "page": 47,
+        "title": "パートII 問題3",
+        "type": "reading",
+        "passage": "日本には古い町がたくさんあります。京都や奈良は、たいへん古い町ですが、鎌倉も古い町です。鎌倉は、東京の南、50キロ|19|。町の北と東と西には山があって、南には海があります。木や花がたくさんあって、静かで、きれいな町です。今から800年ぐらい前に、ここで将軍の政治が始まりました。長い間、日本の経済、政治の中心は、西日本にありましたが、この時、|20|、東日本に、新しい政治の中心をつくりました。そして、侍たちは、中国の仏教の勉強をして、お寺をたくさんたてました。|21|、いまも、鎌倉には古いお寺がたくさんあります。鎌倉は、歴史の古い町ですから、日本人も、外国人も、おおぜい見物に行きます。春や秋には若い人たちがハイキングに行きます。夏には海で泳ぎます。つりもします。鎌倉は、東京|22|から、休みの日には、人がおおぜい遊びに行きます。鎌倉には古い大仏があります。前はお寺のたてものの中にありましたが、1500年ごろ海から大きい津波が来て、|23|。いまも、大仏は、たてものの中にはありません。雨の日も、風の日も、天気のいい日も、外で人びとをむかえています。",
+        "passageHtml": "<div style='line-height:2'><p style='text-align:center;margin:0 0 0.8em'>鎌倉について</p><p style='text-indent:1em;margin:0 0 0.8em'>日本《にほん》には古《ふる》い町《まち》がたくさんあります。</p><p style='text-indent:1em;margin:0 0 0.8em'>京都《きょうと》や奈良《なら》は、たいへん古《ふる》い町《まち》ですが、鎌倉《かまくら》も古《ふる》い町《まち》です。</p><p style='text-indent:1em;margin:0 0 0.8em'>鎌倉《かまくら》は、東京《とうきょう》の南《みなみ》、50キロ<span class='cloze-ph' data-cloze='19'>＿＿19＿＿</span>。町《まち》の北《きた》と東《ひがし》と西《にし》には山《やま》があって、南《みなみ》には海《うみ》があります。木《き》や花《はな》がたくさんあって、静《しず》かで、きれいな町《まち》です。</p><p style='text-indent:1em;margin:0 0 0.8em'>今《いま》から800年《はっぴゃくねん》ぐらい前《まえ》に、ここで将軍《しょうぐん》の政治《せいじ》が始《はじ》まりました。長《なが》い間《あいだ》、日本《にほん》の経済《けいざい》、政治《せいじ》の中心《ちゅうしん》は、西日本《にしにほん》にありましたが、この時《とき》、<span class='cloze-ph' data-cloze='20'>＿＿20＿＿</span>、東日本《ひがしにほん》に、新《あたら》しい政治《せいじ》の中心《ちゅうしん》をつくりました。そして、侍《さむらい》たちは、中国《ちゅうごく》の仏教《ぶっきょう》の勉強《べんきょう》をして、お寺《おてら》をたくさんたてました。</p><p style='text-indent:1em;margin:0 0 0.8em'><span class='cloze-ph' data-cloze='21'>＿＿21＿＿</span>、いまも、鎌倉《かまくら》には古《ふる》いお寺《おてら》がたくさんあります。</p><p style='text-indent:1em;margin:0 0 0.8em'>鎌倉《かまくら》は、歴史《れきし》の古《ふる》い町《まち》ですから、日本《にほん》人《じん》も、外国《がいこく》人《じん》も、おおぜい見物《けんぶつ》に行《い》きます。春《はる》や秋《あき》には若《わか》い人《ひと》たちがハイキングに行《い》きます。夏《なつ》には海《うみ》で泳《およ》ぎます。つりもします。鎌倉《かまくら》は、東京《とうきょう》<span class='cloze-ph' data-cloze='22'>＿＿22＿＿</span>から、休《やす》みの日《ひ》には、人《ひと》がおおぜい遊《あそ》びに行《い》きます。</p><p style='text-indent:1em;margin:0 0 0.8em'>鎌倉《かまくら》には古《ふる》い大仏《だいぶつ》があります。前《まえ》はお寺《おてら》のたてものの中《なか》にありましたが、1500年《せんごひゃくねん》ごろ海《うみ》から大《おお》きい津波《つなみ》が来《き》て、<span class='cloze-ph' data-cloze='23'>＿＿23＿＿</span>。いまも、大仏《だいぶつ》は、たてものの中《なか》にはありません。雨《あめ》の日《ひ》も、風《かぜ》の日《ひ》も、天気《てんき》のいい日《ひ》も、外《そと》で人《ひと》びとを迎《むか》えています。</p></div>",
+        "questions": [
+          {
+            "id": "47-19",
+            "q": "|19| に入《い》る最《もっと》もよ《よ》いもの",
+            "qHtml": "|19| に入《い》る最《もっと》もよ《よ》いもの",
+            "options": [
+              "ぐらいのところにあります",
+              "だけのところです",
+              "しか遠《とお》くないです",
+              "ほどのところに近《ちか》いです"
+            ],
+            "answer": 0,
+            "explain": "正确选项：ぐらいのところにあります。〔中〕（19）镰仓位于东京以南约50公里处。"
+          },
+          {
+            "id": "47-20",
+            "q": "|20| に入《い》る最《もっと》もよ《よ》いもの",
+            "qHtml": "|20| に入《い》る最《もっと》もよ《よ》いもの",
+            "options": [
+              "侍《さむらい》たちが弱《よわ》くして",
+              "侍《さむらい》たちが古《ふる》くなり",
+              "侍《さむらい》たちが強《つよ》くなって",
+              "侍《さむらい》たちが新《あたら》しくなって"
+            ],
+            "answer": 2,
+            "explain": "正确选项：侍たちが強くなって。〔中〕（20）此时武士们逐渐强大，在关东建立了新的政治中心。"
+          },
+          {
+            "id": "47-21",
+            "q": "|21| に入《い》る最《もっと》もよ《よ》いもの",
+            "qHtml": "|21| に入《い》る最《もっと》もよ《よ》いもの",
+            "options": [
+              "しかし",
+              "それに",
+              "そこで",
+              "だから"
+            ],
+            "answer": 3,
+            "explain": "正确选项：だから。〔中〕（21）因此，如今镰仓仍保留许多古寺。"
+          },
+          {
+            "id": "47-22",
+            "q": "|22| に入《い》る最《もっと》もよ《よ》いもの",
+            "qHtml": "|22| に入《い》る最《もっと》もよ《よ》いもの",
+            "options": [
+              "より近《ちか》い",
+              "から近《ちか》い",
+              "を近《ちか》くする",
+              "と近《ちか》づいている"
+            ],
+            "answer": 1,
+            "explain": "正确选项：から近い。〔中〕（22）镰仓离东京很近，休息日有很多人去游玩。"
+          },
+          {
+            "id": "47-23",
+            "q": "|23| に入《い》る最《もっと》もよ《よ》いもの",
+            "qHtml": "|23| に入《い》る最《もっと》もよ《よ》いもの",
+            "options": [
+              "たてものをおとしました",
+              "たてものをなくしました",
+              "たてものがなくなりました",
+              "たてものがこわしました"
+            ],
+            "answer": 2,
+            "explain": "正确选项：たてものがなくなりました。〔中〕（23）约1500年前的大海啸使佛堂建筑消失，大佛至今仍露天迎接众人。"
+          }
+        ]
+      }
+    ]
+  }
 };

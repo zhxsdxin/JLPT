@@ -209,6 +209,11 @@
   .ex.hide-ja .ja > span{filter:blur(4px);user-select:none;pointer-events:none}
   .bank-dd-opt{padding:6px 12px;font-size:13px;cursor:pointer;white-space:nowrap;line-height:1.6}
   .bank-dd-opt:hover{background:var(--accent-soft);color:var(--accent)}
+  .cloze-dd{text-indent:0}
+  .cloze-dd-opt{display:block;padding:6px 10px 6px 6px;font-size:13px;cursor:pointer;white-space:nowrap;line-height:1.7}
+  .cloze-dd-opt:hover{background:var(--accent-soft);color:var(--accent)}
+  .cloze-dd-opt ruby{font-weight:400}
+  .cloze-dd-toggle:hover{filter:brightness(.97)}
   .ex.reveal-ja .ja > span{filter:none}
 
   .note{
@@ -271,6 +276,7 @@
   .practice-opt:disabled{opacity:.6;cursor:default}
   .practice-opt.large{padding:14px 18px;font-size:16px}
   .practice-explain{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--card);border:1px dashed var(--line);font-size:13px;line-height:1.6}
+  .cn-tr{display:block;margin-top:6px;padding-left:8px;border-left:2px solid var(--line);color:var(--ink-soft)}
   .practice-tag{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:6px}
 
   /* utility */
@@ -672,6 +678,14 @@ function renderList(){
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 // 振り仮名：将「漢字《かな》」标注转换为 <ruby> 标签；基字为紧邻《》前的连续汉字（不含送假名）
 function furigana(s){return (s||'').replace(/([\u3005\u4e00-\u9fff]+)《([^》]+)》/g,'<ruby>$1<rt>$2</rt></ruby>')}
+// 解析：日语说明与〔中〕中文翻译分行，中文翻译单独成行并加左侧细线，便于阅读
+function explainHtml(t){
+  if(!t) return '';
+  const e = esc(t);
+  const i = e.indexOf('〔中〕');
+  if(i === -1) return e;
+  return e.slice(0,i) + '<br><span class="cn-tr">〔中〕' + e.slice(i+3) + '</span>';
+}
 // 去掉「漢字《かな》」标注中的振り仮名，仅保留汉字/假名本体（用于 input 题的填入与判定）
 function stripFurigana(s){return (s||'').replace(/《[^》]*》/g,'')}
 
@@ -750,6 +764,12 @@ function bindExInteractions(){
 
 /* ========== 详情渲染 ========== */
 function renderDetail(){
+  // 练习卡片不显示 中文/日文，非练习恢复显示
+  const _zhSw = document.getElementById('hideZh')?.closest('.sw');
+  const _jaSw = document.getElementById('hideJa')?.closest('.sw');
+  const isPractice = typeof state.current === 'string' && state.current.startsWith(PRACTICE_PREFIX);
+  if(_zhSw) _zhSw.hidden = !!isPractice;
+  if(_jaSw) _jaSw.hidden = !!isPractice;
   if(typeof state.current === 'string' && state.current.startsWith(PRACTICE_PREFIX)){
     const u = parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
     renderPracticeDetail(u);
@@ -910,6 +930,14 @@ function renderPracticeDetail(unit){
     const pages = data.pages || (Array.isArray(data) ? [{page:24, title:"", questions:data}] : []);
     const title = data.title || `第${unit}単元 練習`;
     const totalQ = pages.reduce((s,p)=>s+p.questions.length,0);
+    // 练习卡片内不显示 中文/日文 选框
+    const _zhSwPr = document.getElementById('hideZh')?.closest('.sw');
+    const _jaSwPr = document.getElementById('hideJa')?.closest('.sw');
+    if(_zhSwPr) _zhSwPr.hidden = true;
+    if(_jaSwPr) _jaSwPr.hidden = true;
+    // 文章填空自定义下拉（支持 ruby 假名）的样式常量
+    const CLOZE_TOGGLE_STYLE = "padding:2px 4px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;vertical-align:middle;cursor:pointer;text-indent:0";
+    const CLOZE_MENU_STYLE = "display:none;position:absolute;z-index:90;top:100%;left:0;margin-top:3px;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.14);max-height:240px;overflow:auto;min-width:210px;padding:4px;text-indent:0 0";
     document.getElementById('title').textContent = title;
     document.getElementById('progress').textContent = `${totalQ} 問 · ${pages.length} 页`;
     // 页签：分栏成 パートI / パートII 两栏，按钮仅 問題
@@ -936,18 +964,25 @@ function renderPracticeDetail(unit){
       if(pg.type==='bank' && pg.bank){
         bankBar = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;padding:8px;background:var(--card);border:1px dashed var(--line);border-radius:10px">${pg.bank.map((b,bi)=>`<span class="bank-card" draggable="true" data-bank="${bi}" data-page="${pi}" style="padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;cursor:grab;user-select:none">${String.fromCharCode(65+bi)}. ${furigana(esc(b))}</span>`).join('')}</div><div class="muted" style="font-size:11px">可拖动 A-J 小卡片到空格，或直接在空格内下拉选择</div>`;
       } else if(pg.type==='reading' && pg.passageHtml){
-        // 文章填空：原生下拉选择（回退到加假名之前的状态，不加振り仮名）
+        // 文章填空：所有空格（19–23）统一用自定义下拉，与整篇《》假名风格一致；纯假名题 furigana() 不改写
         let passageWithSelects = pg.passageHtml;
         pg.questions.forEach((q,qi)=>{
           const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
           const clozeNum = (q.id.split('-')[1]||'').trim();
-          const opts = q.options.map((o,oi)=>`<option value="${oi}">${String.fromCharCode(65+oi)}. ${stripFurigana(esc(o))}</option>`).join('');
-          const selectHtml = `<select class="blank-select reading-blank" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="width:72px;min-width:72px;max-width:72px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;vertical-align:middle;text-overflow:ellipsis;overflow:hidden;white-space:nowrap"><option value="">${esc(clozeNum)}</option>${opts}</select>`;
+          const useFuri = ['19','20','21','22','23'].includes(clozeNum);
+          let selectHtml;
+          if(useFuri){
+            const furiOpts = q.options.map((o,oi)=>`<span class="cloze-dd-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${furigana(esc(o))}</span>`).join('');
+            selectHtml = `<span class="cloze-dd" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="position:relative;display:inline-block;text-indent:0"><button type="button" class="cloze-dd-toggle" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="${CLOZE_TOGGLE_STYLE}">${esc(clozeNum)}</button><span class="cloze-dd-menu" data-qi="${globalIdx}" style="${CLOZE_MENU_STYLE}">${furiOpts}</span></span>`;
+          } else {
+            const opts = q.options.map((o,oi)=>`<option value="${oi}">${String.fromCharCode(65+oi)}. ${stripFurigana(esc(o))}</option>`).join('');
+            selectHtml = `<select class="blank-select reading-blank" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="width:72px;min-width:72px;max-width:72px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;vertical-align:middle;text-overflow:ellipsis;overflow:hidden;white-space:nowrap"><option value="">${esc(clozeNum)}</option>${opts}</select>`;
+          }
           const re = new RegExp(`<span[^>]*data-cloze=['\"]${clozeNum}['\"][^>]*>[\\s\\S]*?<\\/span>`, 'g');
           passageWithSelects = passageWithSelects.replace(re, selectHtml);
         });
         passageWithSelects = passageWithSelects.replace(/<span[^>]*class=['\"]cloze-ph['\"][^>]*>[\s\S]*?<\/span>/g, '＿＿');
-        bankBar = `<div class="reading-passage" style="margin:8px 0;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;line-height:2;word-break:break-word">${stripFurigana(passageWithSelects)}</div><div class="muted" style="font-size:11px;margin-bottom:6px">在文章空格处直接选择答案，全部选完后显示解析</div>`;
+        bankBar = `<div class="reading-passage" style="margin:8px 0;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;line-height:2;word-break:break-word">${furigana(passageWithSelects)}</div><div class="muted" style="font-size:11px;margin-bottom:6px">在文章空格处直接选择答案，全部选完后显示解析</div>`;
       }
       const qsHtml = pg.questions.map((q,qi)=>{
         const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
@@ -1077,7 +1112,7 @@ function renderPracticeDetail(unit){
         box.querySelectorAll('.practice-opt.large').forEach(o=>o.disabled=true);
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
         box.dataset.done='1';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       };
@@ -1140,7 +1175,7 @@ function renderPracticeDetail(unit){
         const ok = !isNaN(chosenOi) && chosenOi===q.answer;
         const correctText=q.options[q.answer];
         // 直接展示，无需折叠：19．✅ 正解 おくる習慣がある「...」
-        return `<div style="padding:8px 10px; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line)">${esc(q.id.split("-")[1])}．${ok?'<span style="color:var(--ok)">✅ 正解</span>':'<span style="color:#e57373">❌ 正解</span>'} <b>${stripFurigana(esc(correctText))}</b><span style="color:var(--ink-soft)">${esc(q.explain)}</span></div>`;
+        return `<div style="padding:8px 10px; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line)">${esc(q.id.split("-")[1])}．${ok?'<span style="color:var(--ok)">✅ 正解</span>':'<span style="color:#e57373">❌ 正解</span>'} <b>${stripFurigana(esc(correctText))}</b><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span></div>`;
       }).join('');
       inner.innerHTML = html || '<div style="color:var(--muted); font-size:12px; padding:6px">暂无解析</div>';
       summary.style.display='block';
@@ -1214,6 +1249,19 @@ function renderPracticeDetail(unit){
         sel.parentNode.insertBefore(span, sel.nextSibling);
       });
     }catch(e){}
+    // 恢复自定义下拉文章空格
+    try{
+      const k='practice_done_'+unit;
+      const saved=JSON.parse(localStorage.getItem(k)||'{}');
+      document.querySelectorAll('.cloze-dd').forEach(dd=>{
+        const qi=parseInt(dd.dataset.qi,10);
+        const val=saved[qi];
+        const oi=(val && typeof val==='object' && typeof val.oi==='number') ? val.oi : null;
+        if(oi===null || isNaN(oi)) return;
+        const toggle=dd.querySelector('.cloze-dd-toggle');
+        if(toggle) selectClozeAnswer(toggle, qi, oi);
+      });
+    }catch(e){}
     // 初始化进度；仅当全部完成才构建并显示折叠汇总
     pages.forEach((pg,pi)=>{
       if(pg.type==='reading'){
@@ -1285,13 +1333,15 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
         box.dataset.done='1';
         sel.disabled=true;
         sel.style.borderColor = ok ? 'var(--ok)' : '#e57373';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       });
     });
+    // 文章填空自定义下拉（带 ruby 假名）：绑定开关与选择
+    document.querySelectorAll('.cloze-dd').forEach(dd=>{ bindClozeDropdown(dd); });
     // bank 题型自定义下拉：原生 <option> 无法渲染 ruby，改用 div 下拉以支持假名
     function selectBankAnswer(toggle, qi, oi){
       const q=allQs[qi];
@@ -1305,8 +1355,78 @@ function renderPracticeDetail(unit){
       toggle.innerHTML = `${String.fromCharCode(65+oi)}. ${furigana(esc(q.options[oi]))}`;
       const exp=box.querySelector('.practice-explain');
       exp.style.display='block';
-      exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+      exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
       try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+    }
+    // 文章填空自定义下拉（支持 ruby 假名）选择/重选逻辑
+    function rebuildClozeDropdown(qi){
+      const q = allQs[qi];
+      if(!q) return null;
+      const clozeNum = (q.id.split('-')[1]||'').trim();
+      const dd = document.createElement('span');
+      dd.className = 'cloze-dd';
+      dd.dataset.qi = String(qi);
+      dd.dataset.cloze = clozeNum;
+      dd.style.cssText = 'position:relative;display:inline-block;text-indent:0';
+      dd.innerHTML = `<button type="button" class="cloze-dd-toggle" data-qi="${qi}" data-cloze="${esc(clozeNum)}" style="${CLOZE_TOGGLE_STYLE}">${esc(clozeNum)}</button><span class="cloze-dd-menu" data-qi="${qi}" style="${CLOZE_MENU_STYLE}">${q.options.map((o,oi)=>`<span class="cloze-dd-opt" data-qi="${qi}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${furigana(esc(o))}</span>`).join('')}</span>`;
+      return dd;
+    }
+    function bindClozeDropdown(dd){
+      const toggle = dd.querySelector('.cloze-dd-toggle');
+      const menu = dd.querySelector('.cloze-dd-menu');
+      if(!toggle || !menu) return;
+      toggle.addEventListener('click', e=>{
+        e.stopPropagation();
+        const open = menu.style.display==='block';
+        document.querySelectorAll('.cloze-dd-menu').forEach(m=>{ if(m!==menu) m.style.display='none'; });
+        document.querySelectorAll('.bank-dd-menu').forEach(m=>{ m.style.display='none'; });
+        menu.style.display = open ? 'none' : 'block';
+      });
+      menu.querySelectorAll('.cloze-dd-opt').forEach(opt=>{
+        opt.addEventListener('click', e=>{
+          e.stopPropagation();
+          menu.style.display='none';
+          selectClozeAnswer(toggle, parseInt(toggle.dataset.qi,10), parseInt(opt.dataset.oi,10));
+        });
+      });
+    }
+    function selectClozeAnswer(toggle, qi, oi){
+      const q = allQs[qi];
+      if(!q) return;
+      const dd = toggle.closest('.cloze-dd');
+      if(!dd) return;
+      const ok = oi === q.answer;
+      const span = document.createElement('span');
+      span.className = 'cloze-answered';
+      span.dataset.qi = String(qi);
+      span.dataset.oi = String(oi);
+      span.dataset.cloze = dd.dataset.cloze || '';
+      span.innerHTML = furigana(esc(q.options[oi]));
+      span.title = `空格${dd.dataset.cloze||''}：${stripFurigana(q.options[oi])} ${ok?'✅':'❌'}（点击可重选）`;
+      span.style.cssText = 'display:inline; padding:0 1px; margin:0; border-radius:0; font-size:inherit; font-weight:600; vertical-align:baseline; line-height:inherit; max-width:100%; word-break:break-word; cursor:pointer; border-bottom:1.5px solid var(--line); background:transparent; color:var(--ink);';
+      span.addEventListener('click', ()=>{
+        const newDd = rebuildClozeDropdown(qi);
+        if(newDd){ span.parentNode.insertBefore(newDd, span); bindClozeDropdown(newDd); }
+        span.remove();
+        try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); delete cur[qi]; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+        const pageEl = newDd ? newDd.closest('.practice-page') : null;
+        const pi = pageEl ? pageEl.dataset.practicePage : null;
+        if(pi!==null){ updateReadingProgress(pi); buildReadingSummary(pi); }
+      });
+      dd.parentNode.insertBefore(span, dd.nextSibling);
+      dd.remove();
+      try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]={oi, ok}; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+      const pageEl = span.closest('.practice-page');
+      const pi = pageEl ? pageEl.dataset.practicePage : null;
+      if(pi!==null){
+        updateReadingProgress(pi);
+        buildReadingSummary(pi);
+        const pg = pages[pi];
+        const done = getReadingDoneCount(pi);
+        if(pg && done>=pg.questions.length){
+          setTimeout(()=>{ document.getElementById(`reading-summary-${pi}`)?.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 180);
+        }
+      }
     }
     document.querySelectorAll('.bank-dd-toggle').forEach(toggle=>{
       const dd=toggle.closest('.bank-dd');
@@ -1325,7 +1445,7 @@ function renderPracticeDetail(unit){
         });
       });
     });
-    document.addEventListener('click', ()=>{ document.querySelectorAll('.bank-dd-menu').forEach(m=>m.style.display='none'); });
+    document.addEventListener('click', ()=>{ document.querySelectorAll('.bank-dd-menu').forEach(m=>m.style.display='none'); document.querySelectorAll('.cloze-dd-menu').forEach(m=>m.style.display='none'); });
     document.querySelectorAll('.bank-card').forEach(card=>{
       card.addEventListener('dragstart', e=>{
         e.dataTransfer.setData('text/plain', card.dataset.bank);
@@ -1397,7 +1517,7 @@ function renderPracticeDetail(unit){
         const ok = JSON.stringify(curOrder)===JSON.stringify(correct);
         exp.style.display='block';
         const correctText=correct.map(i=>q.words[i]).join(' ');
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(correctText)}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(correctText)}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
         box.dataset.done='1';
         drop.style.borderColor = ok ? 'var(--ok)' : '#e57373';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
@@ -1509,7 +1629,7 @@ function renderPracticeDetail(unit){
         const filled=starBlank ? starBlank.dataset.filled : null;
         const ok = filled!==undefined && parseInt(filled,10)===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${furigana(esc(q.options[q.answer]))}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
         box.dataset.done='1';
         box.querySelectorAll('.blank-drop').forEach(b=>b.style.pointerEvents='none');
         box.querySelectorAll('.star-card').forEach(c=>c.draggable=false);
@@ -1551,7 +1671,7 @@ function renderPracticeDetail(unit){
         const correct = stripFurigana(correctRaw);
         const ok = stripFurigana(val)===correct || stripFurigana(val).toLowerCase()===correct.toLowerCase();
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${explainHtml(q.explain)}</span>`;
         box.dataset.done='1';
         inp.disabled=true; btn.disabled=true;
         if(ok) inp.style.borderColor='var(--ok)'; else inp.style.borderColor='#e57373';
