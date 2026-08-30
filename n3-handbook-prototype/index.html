@@ -128,7 +128,7 @@
   .card-item .num{font-size:11px;color:var(--muted)}
   .card-item .pat{font-size:16px;font-weight:600;line-height:1.3;word-break:break-all}
   .card-item .zh{font-size:12px;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .card-item .badge{align-self:flex-start;font-size:10px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+  .card-item .badge{align-self:flex-start;font-size:10px;padding:0;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
   .card-item.done{border-color:var(--ok);background:var(--ok-bg)}
 
   .empty{text-align:center;color:var(--muted);padding:60px 20px}
@@ -202,7 +202,7 @@
   .ex .ja > span{flex:0 1 auto}   /* 不撑满：喇叭紧跟句子文字，不靠最右 */
   .ex .ja .speak{margin-top:2px;width:22px;height:22px;flex:none}
   .ex .ja .speak svg{width:12px;height:12px}
-  .ex .ja .target{color:var(--ruby);font-weight:600;background:rgba(192,57,43,.08);padding:0 2px;border-radius:3px}
+  .ex .ja .target{color:var(--ruby);font-weight:600;background:rgba(192,57,43,.08);padding:0;border-radius:3px}
   :root.dark .ex .ja .target{background:rgba(255,138,128,.18)}
   .ex .zh{font-size:13px;color:var(--ink-soft);margin-top:4px}
   .ex.hide-zh .zh{display:none}
@@ -414,6 +414,67 @@ function keigoBadge(pg){
   if(p.includes('丁寧')) return '丁寧';
   return '概論';
 }
+function keigoSeqForPage(page){
+  const idx=(typeof N3_KEIGO!=='undefined'? N3_KEIGO.findIndex(p=>p.page===page) : -1);
+  return idx>=0 ? idx+1 : null;
+}
+function keigoPageForSeq(seq){
+  return (typeof N3_KEIGO!=='undefined' && seq>=1 && seq<=N3_KEIGO.length) ? N3_KEIGO[seq-1] : null;
+}
+function piToPartProblem(unit, pi){
+  if(typeof PRACTICE_DATA==='undefined' || !PRACTICE_DATA[unit] || !PRACTICE_DATA[unit].pages) return null;
+  const pages=PRACTICE_DATA[unit].pages;
+  if(pi<0 || pi>=pages.length) return null;
+  // 按 title 的パート分组顺序确定 part 编号，组内顺序为 problem 编号
+  let partCounter=0, lastPart=null;
+  const partMap=new Map();
+  for(let i=0;i<pages.length;i++){
+    const t=pages[i].title||'';
+    const m=t.match(/^(パート[^ ]+)/);
+    const cur=m?m[1]:'その他';
+    if(cur!==lastPart){ partCounter++; lastPart=cur; partMap.set(cur, partCounter); }
+  }
+  const targetTitle=pages[pi].title||'';
+  const tm=targetTitle.match(/^(パート[^ ]+)/);
+  const targetPartStr=tm?tm[1]:'その他';
+  const partNum=partMap.get(targetPartStr)||1;
+  // 统计同 part 内到 pi 为止的数量
+  let problemNum=0;
+  for(let i=0;i<=pi;i++){
+    const t=pages[i].title||'';
+    const m=t.match(/^(パート[^ ]+)/);
+    const cur=m?m[1]:'その他';
+    if(cur===targetPartStr) problemNum++;
+  }
+  return {part: partNum, problem: problemNum};
+}
+function partProblemToPi(unit, part, problem){
+  if(typeof PRACTICE_DATA==='undefined' || !PRACTICE_DATA[unit] || !PRACTICE_DATA[unit].pages) return null;
+  const pages=PRACTICE_DATA[unit].pages;
+  let partCounter=0, lastPart=null;
+  const partMap=new Map();
+  const partOrder=[];
+  for(let i=0;i<pages.length;i++){
+    const t=pages[i].title||'';
+    const m=t.match(/^(パート[^ ]+)/);
+    const cur=m?m[1]:'その他';
+    if(cur!==lastPart){ partCounter++; lastPart=cur; partMap.set(cur, partCounter); partOrder.push(cur); }
+  }
+  // 找到 part 对应的字符串
+  let targetPartStr=null;
+  for(const [k,v] of partMap.entries()){ if(v===part){ targetPartStr=k; break; } }
+  if(!targetPartStr) return null;
+  let cnt=0;
+  for(let i=0;i<pages.length;i++){
+    const t=pages[i].title||'';
+    const m=t.match(/^(パート[^ ]+)/);
+    const cur=m?m[1]:'その他';
+    if(cur!==targetPartStr) continue;
+    cnt++;
+    if(cnt===problem) return i;
+  }
+  return null;
+}
 // 卡片覆盖：SWR 旧数据保持，后台拉新后平滑更新
 async function loadCardOverrides(){
   try{
@@ -452,6 +513,34 @@ function loadFavs(){ try{ return new Set(JSON.parse(localStorage.getItem('n3.fav
 function saveFavs(){ localStorage.setItem('n3.favs', JSON.stringify([...state.favs])) }
 function loadDone(){ try{ return new Set(JSON.parse(localStorage.getItem('n3.done')||'[]')) }catch(e){ return new Set() } }
 function saveDone(){ localStorage.setItem('n3.done', JSON.stringify([...state.done])) }
+
+// 练习卡片内页签持久化（unit -> tabIndex）
+function practiceTabKey(unit){ return 'n3.practiceTab_'+unit; }
+function getPracticeTab(unit, max){
+  try{
+    const v=parseInt(localStorage.getItem(practiceTabKey(unit)),10);
+    if(!isNaN(v) && v>=0 && v < max) return v;
+  }catch(e){}
+  return 0;
+}
+function setPracticeTab(unit, idx){
+  try{ localStorage.setItem(practiceTabKey(unit), String(idx)); }catch(e){}
+  // 同步到 hash: #practice-1/1/1 形式（part/problem），刷新也能恢复（replaceState 不产生历史）
+  if(typeof unit==='number' && state.current === PRACTICE_PREFIX+unit){
+    const base='#'+PRACTICE_PREFIX+unit;
+    const pp=piToPartProblem(unit, idx);
+    const hashWithTab = pp ? base + '/' + pp.part + '/' + pp.problem : base + '/' + idx;
+    if(location.hash !== hashWithTab){
+      try{ history.replaceState(null,'', hashWithTab); }catch(e){ location.hash=hashWithTab; }
+    }
+    // 同时更新 n3.nav 保存，刷新用 localStorage 恢复
+    try{
+      const nav=JSON.parse(localStorage.getItem('n3.nav')||'{}');
+      nav.practiceTab = idx;
+      localStorage.setItem('n3.nav', JSON.stringify({view:state.view, current:state.current, query:state.query, onlyFav:state.onlyFav, practiceTab: idx}));
+    }catch(e){}
+  }
+}
 
 function stripTags(s){return (s||'').replace(/<[^>]+>/g,'')}
 
@@ -523,12 +612,9 @@ function renderList(){
   const html = [...grouped.entries()].map(([unit, items])=>{
     const cards = items.map(it=>{
       if(it._practice){
-        return `<div class="card-item" data-id="${PRACTICE_PREFIX+it.unit}" title="第${it.unit}単元 練習">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="badge">練習</span>
-          </div>
-          <div class="pat">${esc(it.title.replace(' 練習問題',' 練習'))}</div>
-          <div class="zh">${it.pages ? it.pages.length+' 页 · 每页对应题型' : ''}</div>
+        return `<div class="card-item" data-id="${PRACTICE_PREFIX+it.unit}" title="第${it.unit}単元">
+          <div class="pat">${esc(it.title.replace(' 練習問題','').replace(' 練習','').replace('練習','').trim() || `第${it.unit}単元`)}</div>
+          <div class="zh"></div>
         </div>`;
       }
       if(it._unit){
@@ -542,7 +628,8 @@ function renderList(){
         </div>`;
       }
       if(it._keigo){
-        return `<div class="card-item keigo" data-id="${KEIGO_PAGE_PREFIX+it.page}">
+        const seq=keigoSeqForPage(it.page) || it.page;
+        return `<div class="card-item keigo" data-id="${KEIGO_PAGE_PREFIX+seq}">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span class="badge">${keigoBadge(it)}</span>
           </div>
@@ -747,10 +834,18 @@ function renderDetail(){
 }
 
 /* ========== 敬語详情（按页拆分，与 1-19 卡片同渲染） ========== */
-function renderKeigoDetail(page){
-  const idx = N3_KEIGO.findIndex(p=>p.page===page);
-  const pg = idx>=0 ? N3_KEIGO[idx] : N3_KEIGO[0];
-  const realIdx = idx>=0 ? idx : 0;
+function renderKeigoDetail(seqOrPage){
+  let idx=-1, pg=null;
+  if(typeof seqOrPage==='number' && seqOrPage>=1 && seqOrPage<=N3_KEIGO.length){
+    pg=keigoPageForSeq(seqOrPage);
+    idx=seqOrPage-1;
+  }
+  if(!pg){
+    idx=N3_KEIGO.findIndex(p=>p.page===seqOrPage);
+    pg=idx>=0 ? N3_KEIGO[idx] : null;
+  }
+  if(!pg){ pg=N3_KEIGO[0]; idx=0; }
+  const realIdx=idx;
   document.getElementById('title').textContent = `第20単元 · ${keigoTitle(pg)}`;
   (function(){
     const el=document.getElementById('progress');
@@ -761,7 +856,7 @@ function renderKeigoDetail(page){
     const dropdown=wrap.querySelector('.progress-dropdown');
     const jump=(n)=>{
       const v=parseInt(n,10);
-      if(!isNaN(v)&&v>=1&&v<=total&&v!==cur) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[v-1].page);
+      if(!isNaN(v)&&v>=1&&v<=total&&v!==cur) openDetail(KEIGO_PAGE_PREFIX+v);
       else inp.value=cur;
     };
     const show=()=>{ dropdown.style.display='block'; const curOpt=dropdown.querySelector(`[data-n="${cur}"]`); if(curOpt) curOpt.scrollIntoView({block:'center'}); };
@@ -797,8 +892,8 @@ function renderKeigoDetail(page){
   bindExInteractions();
   document.getElementById('favBtn').setAttribute('aria-pressed','false');
   document.getElementById('prevBtn').disabled = false;
-  document.getElementById('nextBtn').disabled = realIdx>=N3_KEIGO.length-1;
-  // 覆盖上下条的默认行为（在全局绑定之外，此处动态改 disabled 已足够，实际点击由下方的 prev/next 监听处理）
+  document.getElementById('nextBtn').disabled = false;
+  // 下一条可前往第一单元练习第一页，不禁用
 }
 
 /* ========== 単元練習详情（试点：第1単元 5页完整恢复，每页题型对应交互） ========== */
@@ -819,12 +914,14 @@ function renderPracticeDetail(unit){
       if(!partGroups[part]) partGroups[part]=[];
       partGroups[part].push({pg,pi});
     });
+    // 读取上次停留的页签，刷新保持在该问题而非回到 Part1 问题1
+    const initialPi = getPracticeTab(unit, pages.length);
     const tabsHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0">${Object.entries(partGroups).map(([part,list])=>`
       <div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${esc(part)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">${list.map(({pg,pi})=>{
           const label=(pg.title||'').split(' ').pop()||'P.'+pg.page;
-          return `<button class="btn ${pi===0?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
+          return `<button class="btn ${pi===initialPi?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
         }).join('')}</div>
       </div>
     `).join('')}</div>`;
@@ -832,20 +929,38 @@ function renderPracticeDetail(unit){
       let bankBar='';
       if(pg.type==='bank' && pg.bank){
         bankBar = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;padding:8px;background:var(--card);border:1px dashed var(--line);border-radius:10px">${pg.bank.map((b,bi)=>`<span class="bank-card" draggable="true" data-bank="${bi}" data-page="${pi}" style="padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;cursor:grab;user-select:none">${String.fromCharCode(65+bi)}. ${esc(b)}</span>`).join('')}</div><div class="muted" style="font-size:11px">可拖动 A-J 小卡片到空格，或直接在空格内下拉选择</div>`;
+      } else if(pg.type==='reading' && pg.passageHtml){
+        // 文章填空：合适的交互 — 文章内嵌下拉，下方按空逐项解析
+        // 将 passageHtml 中的占位 span 替换为对应题目的 inline select
+        let passageWithSelects = pg.passageHtml;
+        // 建立 cloze 编号 -> globalIdx 映射
+        pg.questions.forEach((q,qi)=>{
+          const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
+          const clozeNum = (q.id.split('-')[1]||'').trim();
+          const opts = q.options.map((o,oi)=>`<option value="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</option>`).join('');
+          const selectHtml = `<select class="blank-select reading-blank" data-qi="${globalIdx}" data-cloze="${esc(clozeNum)}" style="width:72px;min-width:72px;max-width:72px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;vertical-align:middle;text-overflow:ellipsis;overflow:hidden;white-space:nowrap"><option value="">${esc(clozeNum)}</option>${opts}</select>`;
+          // 替换 cloze-ph 占位
+          const re = new RegExp(`<span[^>]*data-cloze=['\"]${clozeNum}['\"][^>]*>[\\s\\S]*?<\\/span>`, 'g');
+          passageWithSelects = passageWithSelects.replace(re, selectHtml);
+        });
+        // 未被替换的占位兜底清理（防止残留）
+        passageWithSelects = passageWithSelects.replace(/<span[^>]*class=['\"]cloze-ph['\"][^>]*>[\s\S]*?<\/span>/g, '＿＿');
+        bankBar = `<div class="reading-passage" style="margin:8px 0;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;line-height:2;word-break:break-word">${passageWithSelects}</div><div class="muted" style="font-size:11px;margin-bottom:6px">在文章空格处直接选择答案，全部选完后显示解析</div>`;
       }
       const qsHtml = pg.questions.map((q,qi)=>{
         const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
         const qHtml = q.qHtml || esc(q.q);
         const qText = q.qHtml ? q.qHtml : esc(q.q);
         if(pg.type==='star'){
+          // Part II 問題2（四空★）加大框体便于置入
           let qWithBlanks = q.qHtml || esc(q.q);
           let blankIdx=0;
-          qWithBlanks = qWithBlanks.replace(/＿/g, ()=>`<span class="blank-drop" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-block;min-width:60px;max-width:100%;padding:2px 8px;margin:0 2px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all">\u00A0</span>`);
-          qWithBlanks = qWithBlanks.replace(/★/g, ()=>`<span class="blank-drop star-blank" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-block;min-width:60px;max-width:100%;padding:2px 8px;margin:0 2px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all"><span style="color:var(--accent)">★</span></span>`);
-          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${qWithBlanks}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${q.options.map((o,oi)=>`<span class="star-card" draggable="true" data-qi="${globalIdx}" data-oi="${oi}" style="padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13px;cursor:grab;user-select:none">${String.fromCharCode(65+oi)}. ${esc(o)}</span>`).join('')}</div>
-            <div style="margin-top:8px"><button class="btn primary" data-star-check="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">确认</button> <button class="btn" data-star-reset="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">重置</button></div>
+          qWithBlanks = qWithBlanks.replace(/＿/g, ()=>`<span class="blank-drop" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;max-width:100%;padding:8px 14px;margin:0 4px;border:1.5px dashed var(--line);border-radius:10px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all;font-size:14px">\u00A0</span>`);
+          qWithBlanks = qWithBlanks.replace(/★/g, ()=>`<span class="blank-drop star-blank" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-flex;align-items:center;justify-content:center;min-width:88px;min-height:44px;max-width:100%;padding:8px 14px;margin:0 4px;border:1.5px dashed var(--accent);border-radius:10px;background:var(--accent-soft);text-align:center;vertical-align:middle;word-break:break-all;font-size:14px"><span style="color:var(--accent);font-weight:700">★</span></span>`);
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}" style="padding:16px 18px;min-height:88px">
+            <div class="q" style="font-size:15px;line-height:1.8">${q.id.split("-")[1]}. ${qWithBlanks}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0">${q.options.map((o,oi)=>`<span class="star-card" draggable="true" data-qi="${globalIdx}" data-oi="${oi}" style="padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:14px;min-height:40px;display:inline-flex;align-items:center;cursor:grab;user-select:none;touch-action:none">${String.fromCharCode(65+oi)}. ${esc(o)}</span>`).join('')}</div>
+            <div style="margin-top:8px"><button class="btn primary" data-star-check="${globalIdx}" style="padding:6px 16px;font-size:13px;height:36px">确认</button> <button class="btn" data-star-reset="${globalIdx}" style="padding:6px 16px;font-size:13px;height:36px">重置</button></div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
@@ -855,13 +970,13 @@ function renderPracticeDetail(unit){
           const src = q.qHtml || esc(q.q);
           const qWithBlank = hasBlank ? src.replace('__', `<select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`) : `${src} <select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`;
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${qWithBlank}</div>
+            <div class="q">${q.id.split("-")[1]}. ${qWithBlank}</div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
         if(pg.type==='ordering'){
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${q.qHtml || esc(q.q)}</div>
+            <div class="q">${q.id.split("-")[1]}. ${q.qHtml || esc(q.q)}</div>
             <div class="ordering-words" data-qi="${globalIdx}" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${q.words.map((w,wi)=>`<span class="ordering-word" draggable="true" data-wi="${wi}" style="padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13px;cursor:grab;user-select:none">${esc(w)}</span>`).join('')}</div>
             <div class="ordering-drop" data-qi="${globalIdx}" style="min-height:44px;border:1px dashed var(--line);border-radius:10px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--bg)"><span class="muted" style="font-size:12px">拖动上方卡片到此处排序</span></div>
             <div style="margin-top:8px"><button class="btn primary" data-order-check="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">确认排序</button> <button class="btn" data-order-reset="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">重置</button></div>
@@ -870,16 +985,20 @@ function renderPracticeDetail(unit){
         }
         if(pg.type==='input'){
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${qHtml}</div>
+            <div class="q">${q.id.split("-")[1]}. ${qHtml}</div>
             <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入变形后形式" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
             <div class="muted" style="font-size:11px;margin-top:6px">智能提示（点选填入）：</div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${q.options.map((o,oi)=>`<button class="practice-opt large" data-qi="${globalIdx}" data-oi="${oi}" data-input-fill="${globalIdx}" style="flex:1 1 calc(50% - 8px);min-width:120px">${esc(o)}</button>`).join('')}</div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
+        if(pg.type==='reading'){
+          // 文章填空：下方 practice-q 卡片已按需求删除，仅保留文章内嵌选框；解析待全部选完再在下方折叠区统一展示
+          return ``;
+        }
         if(q.options){
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${qHtml}</div>
+            <div class="q">${q.id.split("-")[1]}. ${qHtml}</div>
             ${q.passage?`<div class="desc" style="margin:6px 0;padding:8px;background:var(--card);border-radius:8px">${q.passageHtml ? q.passageHtml : esc(q.passage).replace(/\n/g,'<br>')}</div>`:''}
             <div class="practice-opts">
               ${q.options.map((o,oi)=>`<button class="practice-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')}
@@ -888,20 +1007,26 @@ function renderPracticeDetail(unit){
           </div>`;
         } else {
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${qi+1}. ${qHtml}</div>
+            <div class="q">${q.id.split("-")[1]}. ${qHtml}</div>
             <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入答案" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
       }).join('');
-      return `<div class="practice-page" data-practice-page="${pi}" style="${pi===0?'':'display:none'}">
+      // 文章填空：下方折叠的全部解析容器（选完全部后可一览）
+      let readingSummary = '';
+      if(pg.type==='reading'){
+        readingSummary = `<div class="reading-summary" id="reading-summary-${pi}" style="display:none; margin-top:14px; border:1px solid var(--line); border-radius:10px; background:var(--card); padding:0; overflow:hidden"><div style="padding:10px 12px; background:var(--bg); border-bottom:1px solid var(--line); font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px"><span>全部解析</span><span class="reading-progress" id="reading-progress-${pi}" style="font-size:11px; color:var(--muted); font-weight:400"></span></div><div id="reading-summary-inner-${pi}" style="padding:8px 10px"></div></div>`;
+      }
+      return `<div class="practice-page" data-practice-page="${pi}" style="${pi===initialPi?'':'display:none'}">
         ${bankBar}
         ${qsHtml}
+        ${readingSummary}
       </div>`;
     }).join('');
     document.getElementById('detail').innerHTML = `${tabsHtml}${pagesHtml}`;
     const allQs = pages.flatMap(p=>p.questions);
-    // 页签切换
+    // 页签切换 — 保存到 localStorage + hash，刷新保持在当前问题
     document.querySelectorAll('[data-practice-tab]').forEach(b=>{
       b.onclick=()=>{
         const pi=parseInt(b.dataset.practiceTab,10);
@@ -911,6 +1036,8 @@ function renderPracticeDetail(unit){
         document.querySelectorAll('.practice-page').forEach(x=>{
           x.style.display = x.dataset.practicePage===String(pi) ? '' : 'none';
         });
+        setPracticeTab(unit, pi);
+        syncNav(false);
         window.scrollTo(0,0);
       };
     });
@@ -952,15 +1079,206 @@ function renderPracticeDetail(unit){
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       };
     });
-    // A-J  bank：下拉选框 + 拖动小卡片
+    // 文章填空：进度与折叠汇总帮助（删除 practice-q 卡片，追踪改为基于文章内选框；全部选完再显示解析）
+    function getReadingDoneCount(pageIdx){
+      const pageEl=document.querySelector(`.practice-page[data-practice-page="${pageIdx}"]`);
+      if(!pageEl) return 0;
+      // 以已生成的 span 数量为准（按需伸缩的融入态文字）
+      return pageEl.querySelectorAll('.cloze-answered').length;
+    }
+    function updateReadingProgress(pageIdx){
+      const pg=pages[pageIdx];
+      if(!pg || pg.type!=='reading') return;
+      const total=pg.questions.length;
+      const done=getReadingDoneCount(pageIdx);
+      const prog=document.getElementById(`reading-progress-${pageIdx}`);
+      if(prog) prog.textContent = total? `${done}/${total} 完成` : '';
+    }
+    function buildReadingSummary(pageIdx){
+      const pg=pages[pageIdx];
+      if(!pg || pg.type!=='reading') return;
+      const inner=document.getElementById(`reading-summary-inner-${pageIdx}`);
+      const summary=document.getElementById(`reading-summary-${pageIdx}`);
+      if(!inner || !summary) return;
+      const startQi=pages.slice(0,pageIdx).reduce((s,p)=>s+p.questions.length,0);
+      const total=pg.questions.length;
+      const done=getReadingDoneCount(pageIdx);
+      // 未全部完成则不显示解析，保持隐藏；inline保持中性不提示对错
+      if(done < total){
+        summary.style.display='none';
+        const pageElN=document.querySelector(`.practice-page[data-practice-page="${pageIdx}"]`);
+        if(pageElN){
+          pageElN.querySelectorAll('.cloze-answered').forEach(span=>{
+            span.style.borderBottom='1.5px solid var(--line)';
+            span.style.background='transparent';
+            span.style.color='var(--ink)';
+            span.style.borderRadius='0';
+            span.style.padding='0 1px';
+          });
+        }
+        return;
+      }
+      const html=pg.questions.map((q,qi)=>{
+        const globalIdx=startQi+qi;
+        const sel=document.querySelector(`.reading-blank[data-qi="${globalIdx}"]`);
+        const span=document.querySelector(`.cloze-answered[data-qi="${globalIdx}"]`);
+        let chosenOi = NaN;
+        if(sel && sel.value!=='') chosenOi=parseInt(sel.value,10);
+        else if(span && span.dataset && span.dataset.oi!==undefined) chosenOi=parseInt(span.dataset.oi,10);
+        // 兼容 localStorage 恢复
+        if(isNaN(chosenOi)){
+          try{
+            const k='practice_done_'+unit;
+            const saved=JSON.parse(localStorage.getItem(k)||'{}');
+            const v=saved[globalIdx];
+            if(v && typeof v==='object' && typeof v.oi==='number') chosenOi=v.oi;
+          }catch(e){}
+        }
+        const ok = !isNaN(chosenOi) && chosenOi===q.answer;
+        const correctText=q.options[q.answer];
+        // 直接展示，无需折叠：19．✅ 正解 おくる習慣がある「...」
+        return `<div style="padding:8px 10px; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line)">${esc(q.id.split("-")[1])}．${ok?'<span style="color:var(--ok)">✅ 正解</span>':'<span style="color:#e57373">❌ 正解</span>'} <b>${esc(correctText)}</b><span style="color:var(--ink-soft)">${esc(q.explain)}</span></div>`;
+      }).join('');
+      inner.innerHTML = html || '<div style="color:var(--muted); font-size:12px; padding:6px">暂无解析</div>';
+      summary.style.display='block';
+      // 全选完后 inline 文字显示红绿对错效果
+      const pageElC=document.querySelector(`.practice-page[data-practice-page="${pageIdx}"]`);
+      if(pageElC){
+        pageElC.querySelectorAll('.cloze-answered').forEach(span=>{
+          const qi2=parseInt(span.dataset.qi,10);
+          const oi2=parseInt(span.dataset.oi,10);
+          const q2=allQs[qi2];
+          if(!q2 || isNaN(oi2)) return;
+          const ok2=oi2===q2.answer;
+          span.style.borderBottom= ok2 ? '2px solid var(--ok)' : '2px solid #e57373';
+          span.style.background= ok2 ? 'var(--ok-bg)' : '#fdecea';
+          span.style.color= ok2 ? 'var(--ok)' : '#c0392b';
+          span.style.borderRadius='6px';
+          span.style.padding='0 2px';
+        });
+      }
+    }
+    // 刷新后恢复已选文章空格（融入文章的 span，按需伸缩，仅文字；不依赖 practice-q）
+    try{
+      const k='practice_done_'+unit;
+      const saved=JSON.parse(localStorage.getItem(k)||'{}');
+      Object.keys(saved).forEach(qiStr=>{
+        const qi=parseInt(qiStr,10);
+        const val=saved[qiStr];
+        const oi = (val && typeof val==='object' && typeof val.oi==='number') ? val.oi : (typeof val==='number' ? val : null);
+        if(oi===null || isNaN(oi)) return;
+        const sel=document.querySelector(`.reading-blank[data-qi="${qi}"]`);
+        if(!sel || sel.style.display==='none') return;
+        // 校验该 qi 是否属于 reading 页
+        const isReadingQi = pages.some((pg,pi)=>{
+          if(pg.type!=='reading') return false;
+          const start=pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0);
+          const end=start+pg.questions.length;
+          return qi>=start && qi<end;
+        });
+        if(!isReadingQi) return;
+        const q=allQs[qi];
+        if(!q || !q.options || oi<0 || oi>=q.options.length) return;
+        const isOk = oi===q.answer;
+        sel.value=String(oi);
+        sel.disabled=true;
+        sel.style.borderColor = 'var(--line)';
+        const span=document.createElement('span');
+        span.className='cloze-answered';
+        span.dataset.qi=String(qi);
+        span.dataset.oi=String(oi);
+        span.dataset.cloze=sel.dataset.cloze||'';
+        span.textContent=q.options[oi];
+        span.title=`空格${sel.dataset.cloze||''}：${q.options[oi]} ${isOk?'✅':'❌'}（点击可重选）`;
+        span.style.cssText='display:inline; padding:0 1px; margin:0; border-radius:0; font-size:inherit; font-weight:600; vertical-align:baseline; line-height:inherit; max-width:100%; word-break:break-word; cursor:pointer; border-bottom:1.5px solid var(--line); background:transparent; color:var(--ink);';
+        // 点击重选
+        span.addEventListener('click', ()=>{
+          sel.style.display='';
+          sel.value='';
+          sel.disabled=false;
+          sel.style.borderColor='';
+          span.remove();
+          try{ const cur2=JSON.parse(localStorage.getItem(k)||'{}'); delete cur2[qi]; localStorage.setItem(k, JSON.stringify(cur2)); }catch(e){}
+          // 更新该页进度；若未完成则隐藏汇总
+          const pageEl=sel.closest('.practice-page');
+          const pi=pageEl? pageEl.dataset.practicePage : null;
+          if(pi!==null){
+            updateReadingProgress(pi);
+            buildReadingSummary(pi);
+          }
+        });
+        sel.style.display='none';
+        sel.parentNode.insertBefore(span, sel.nextSibling);
+      });
+    }catch(e){}
+    // 初始化进度；仅当全部完成才构建并显示折叠汇总
+    pages.forEach((pg,pi)=>{
+      if(pg.type==='reading'){
+        updateReadingProgress(String(pi));
+        const done=getReadingDoneCount(String(pi));
+        if(done>0 && done>=pg.questions.length) buildReadingSummary(String(pi));
+        else {
+          const s=document.getElementById(`reading-summary-${pi}`);
+          if(s) s.style.display='none';
+        }
+      }
+    });
+    // 选框：bank 与文章填空（reading：3-4字固定宽，选后按需伸缩仅文字融入，全部选完再显示折叠解析；已删除 practice-q 卡片）
     document.querySelectorAll('.blank-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         const qi=parseInt(sel.dataset.qi,10);
         const oi=parseInt(sel.value,10);
         if(isNaN(oi)) return;
         const q=allQs[qi];
-        const box=sel.closest('.practice-q');
-        if(box.dataset.done==='1') return;
+        if(!q) return;
+        // 文章填空：不依赖 practice-q，全部选完再在下方折叠区统一展示解析
+        if(sel.classList.contains('reading-blank')){
+          if(document.querySelector(`.cloze-answered[data-qi="${qi}"]`)) return;
+          const ok = oi===q.answer;
+          sel.disabled=true;
+          sel.style.borderColor = 'var(--line)';
+          const span=document.createElement('span');
+          span.className='cloze-answered';
+          span.dataset.qi=String(qi);
+          span.dataset.oi=String(oi);
+          span.dataset.cloze=sel.dataset.cloze || '';
+          span.textContent=q.options[oi];
+          span.title=`空格${sel.dataset.cloze||''}：${q.options[oi]} ${ok?'✅':'❌'}（点击可重选）`;
+          span.style.cssText='display:inline; padding:0 1px; margin:0; border-radius:0; font-size:inherit; font-weight:600; vertical-align:baseline; line-height:inherit; max-width:100%; word-break:break-word; cursor:pointer; border-bottom:1.5px solid var(--line); background:transparent; color:var(--ink);';
+          span.addEventListener('click', ()=>{
+            sel.style.display='';
+            sel.value='';
+            sel.disabled=false;
+            sel.style.borderColor='';
+            span.remove();
+            try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); delete cur[qi]; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+            const pageEl2=sel.closest('.practice-page');
+            const pi2=pageEl2? pageEl2.dataset.practicePage : null;
+            if(pi2!==null){
+              updateReadingProgress(pi2);
+              buildReadingSummary(pi2);
+            }
+          });
+          sel.style.display='none';
+          sel.parentNode.insertBefore(span, sel.nextSibling);
+          try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]={oi, ok}; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+          const pageEl=sel.closest('.practice-page');
+          const pi=pageEl? pageEl.dataset.practicePage : null;
+          if(pi!==null){
+            updateReadingProgress(pi);
+            buildReadingSummary(pi);
+            const pg=pages[pi];
+            const done=getReadingDoneCount(pi);
+            if(pg && done>=pg.questions.length){
+              setTimeout(()=>{ document.getElementById(`reading-summary-${pi}`)?.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 180);
+            }
+          }
+          return;
+        }
+        // 非文章（bank 等）保持原逻辑：立即显示单题解析
+        let box=sel.closest('.practice-q');
+        if(!box) box=document.querySelector(`.practice-q[data-q="${qi}"]`);
+        if(!box || box.dataset.done==='1') return;
         const exp=box.querySelector('.practice-explain');
         const ok = oi===q.answer;
         exp.style.display='block';
@@ -1156,8 +1474,7 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         if(box.dataset.done==='1') return;
         const blanks=box.querySelectorAll('.blank-drop');
-        const starIdx=2;
-        const starBlank=blanks[starIdx];
+        const starBlank=box.querySelector('.blank-drop.star-blank');
         const filled=starBlank ? starBlank.dataset.filled : null;
         const ok = filled!==undefined && parseInt(filled,10)===q.answer;
         exp.style.display='block';
@@ -1209,12 +1526,10 @@ function renderPracticeDetail(unit){
       };
     });
     document.getElementById('favBtn').setAttribute('aria-pressed','false');
-    // 上一条/下一条 在练习内切换页（分栏）
+    // 上一条/下一条 在练习内切换页（分栏）— 支持跨卡片：上一条可到敬语/上一练习，下一条可到下一练习或首个语法
     const updateNav = ()=>{
-      const cur = document.querySelector('[data-practice-tab].primary');
-      const pi = cur ? parseInt(cur.dataset.practiceTab,10) : 0;
-      document.getElementById('prevBtn').disabled = pi<=0;
-      document.getElementById('nextBtn').disabled = pi>=pages.length-1;
+      document.getElementById('prevBtn').disabled = false;
+      document.getElementById('nextBtn').disabled = false;
     };
     updateNav();
     document.querySelectorAll('[data-practice-tab]').forEach(b=>{
@@ -1253,12 +1568,40 @@ function renderPracticeDetail(unit){
   document.getElementById('nextBtn').disabled = realIdx>=N3_PRACTICE.length-1;
 }
 
-/* ========== 视图切换（支持刷新停留 + 浏览器前进/后退） ========== */
+/* ========== 视图切换（支持刷新停留 + 浏览器前进/后退 + 练习卡内页签保持） ========== */
 let _navLock = false;
 function syncNav(push){
-  // 保存到 localStorage + URL hash，刷新后可恢复
-  try{ localStorage.setItem('n3.nav', JSON.stringify({view:state.view, current:state.current, query:state.query, onlyFav:state.onlyFav})); }catch(e){}
-  const targetHash = state.view==='detail' ? (state.current===KEIGO_ID ? '#keigo' : '#'+state.current) : '#list';
+  // 保存到 localStorage + URL hash，刷新后可恢复（练习卡含 practiceTab）
+  let practiceTab = null;
+  if(typeof state.current==='string' && state.current.startsWith(PRACTICE_PREFIX)){
+    const u=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    const pages = (PRACTICE_DATA && PRACTICE_DATA[u] && PRACTICE_DATA[u].pages) ? PRACTICE_DATA[u].pages.length : 0;
+    if(pages>0){
+      // 优先从 DOM 取当前激活页签，否则从 localStorage
+      const activeTab=document.querySelector('[data-practice-tab].primary');
+      if(activeTab) practiceTab=parseInt(activeTab.dataset.practiceTab,10);
+      else practiceTab=getPracticeTab(u, pages);
+    }
+  }
+  try{
+    const nav={view:state.view, current:state.current, query:state.query, onlyFav:state.onlyFav};
+    if(practiceTab!==null && !isNaN(practiceTab)) nav.practiceTab=practiceTab;
+    localStorage.setItem('n3.nav', JSON.stringify(nav));
+  }catch(e){}
+  let targetHash;
+  if(state.view==='detail'){
+    if(state.current===KEIGO_ID) targetHash='#keigo';
+    else if(typeof state.current==='string' && state.current.startsWith(PRACTICE_PREFIX) && practiceTab!==null){
+      const unitPP=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+      const pp=piToPartProblem(unitPP, practiceTab);
+      if(pp){
+        targetHash='#'+state.current+'/'+pp.part+'/'+pp.problem;
+      } else {
+        targetHash='#'+state.current;
+        if(practiceTab>0) targetHash+='/'+practiceTab;
+      }
+    } else targetHash='#'+state.current;
+  } else targetHash='#list';
   if(location.hash !== targetHash){
     try{
       if(push===false) history.replaceState(null,'', targetHash);
@@ -1337,17 +1680,48 @@ function restoreFromHash(push){
     return true;
   }
   if(raw.startsWith(PRACTICE_PREFIX)){
-    const u=parseInt(raw.slice(PRACTICE_PREFIX.length),10);
+    // 支持新 #practice-1/1/1（unit/part/problem）与旧 #practice-1/2（全局 pi）两种
+    const rest=raw.slice(PRACTICE_PREFIX.length);
+    const firstSlash=rest.indexOf('/');
+    let baseUnitStr, suffix;
+    if(firstSlash>=0){ baseUnitStr=rest.slice(0,firstSlash); suffix=rest.slice(firstSlash+1); }
+    else { baseUnitStr=rest; suffix=''; }
+    const u=parseInt(baseUnitStr,10);
+    const base=PRACTICE_PREFIX+baseUnitStr;
     if(!isNaN(u) && N3_PRACTICE.some(p=>p.unit===u)){
-      openDetail(PRACTICE_PREFIX+u, push);
+      if(suffix){
+        const parts=suffix.split('/').map(x=>parseInt(x,10));
+        if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])){
+          const pi=partProblemToPi(u, parts[0], parts[1]);
+          if(pi!==null) setPracticeTab(u, pi);
+          else {
+            // 容错：若 part/problem 未命中，尝试将第二段视为全局 pi
+            const pi2=parts[1];
+            const pagesLen=(PRACTICE_DATA[u]&&PRACTICE_DATA[u].pages)?PRACTICE_DATA[u].pages.length:0;
+            if(!isNaN(pi2) && pi2>=0 && pi2<pagesLen) setPracticeTab(u, pi2);
+            else if(!isNaN(pi2) && pi2>=1 && pi2<=pagesLen) setPracticeTab(u, pi2-1);
+          }
+        } else if(parts.length===1 && !isNaN(parts[0])){
+          let pi=parts[0];
+          const pagesLen=(PRACTICE_DATA[u]&&PRACTICE_DATA[u].pages)?PRACTICE_DATA[u].pages.length:0;
+          if(pi>=0 && pi<pagesLen) setPracticeTab(u, pi);
+          else if(pi>=1 && pi<=pagesLen) setPracticeTab(u, pi-1);
+        }
+      }
+      openDetail(base, push);
       return true;
     }
   }
   if(raw.startsWith(KEIGO_PAGE_PREFIX)){
-    const pg=parseInt(raw.slice(KEIGO_PAGE_PREFIX.length),10);
-    if(!isNaN(pg) && N3_KEIGO.some(p=>p.page===pg)){
-      openDetail(KEIGO_PAGE_PREFIX+pg, push);
-      return true;
+    const suffix=raw.slice(KEIGO_PAGE_PREFIX.length);
+    const num=parseInt(suffix,10);
+    if(!isNaN(num)){
+      if(num>=1 && num<=N3_KEIGO.length){
+        const pg=keigoPageForSeq(num);
+        if(pg){ openDetail(KEIGO_PAGE_PREFIX+num, push); return true; }
+      }
+      const idx=N3_KEIGO.findIndex(p=>p.page===num);
+      if(idx>=0){ const seq=idx+1; openDetail(KEIGO_PAGE_PREFIX+seq, push); return true; }
     }
   }
   const nid = parseInt(raw,10);
@@ -1378,6 +1752,11 @@ function restoreFromHash(push){
           // 恢复搜索/筛选
           if(typeof nav.query==='string') state.query = nav.query;
           if(typeof nav.onlyFav==='boolean') state.onlyFav = nav.onlyFav;
+          if(typeof nav.current==='string' && nav.current.startsWith(PRACTICE_PREFIX) && typeof nav.practiceTab==='number'){
+            const u=parseInt(nav.current.slice(PRACTICE_PREFIX.length),10);
+            const pages=(PRACTICE_DATA && PRACTICE_DATA[u] && PRACTICE_DATA[u].pages)?PRACTICE_DATA[u].pages.length:0;
+            if(pages>0 && nav.practiceTab>=0 && nav.practiceTab<pages) setPracticeTab(u, nav.practiceTab);
+          }
           openDetail(nav.current, false);
           return true;
         }
@@ -1620,18 +1999,42 @@ document.getElementById('prevBtn').addEventListener('click',()=>{
         const v=document.querySelector('.practice-page:not([style*="display: none"])');
         if(v) curPi=parseInt(v.dataset.practicePage,10);
       }
-      if(curPi>0) document.querySelectorAll('[data-practice-tab]')[curPi-1].click();
+      if(curPi>0){
+        document.querySelectorAll('[data-practice-tab]')[curPi-1].click();
+        return;
+      }
+      // 已在首个 tab，上一条跳到上一个练习卡片或敬语
+      const i=N3_PRACTICE.findIndex(x=>x.unit===u);
+      if(i>0){
+        const prevUnit=N3_PRACTICE[i-1].unit;
+        const prevPages=(PRACTICE_DATA[prevUnit]&&PRACTICE_DATA[prevUnit].pages)?PRACTICE_DATA[prevUnit].pages.length:0;
+        if(prevPages>0){
+          openDetail(PRACTICE_PREFIX+prevUnit);
+          // 打开后跳到其最后一页
+          setTimeout(()=>{ const tabs=document.querySelectorAll('[data-practice-tab]'); if(tabs.length) tabs[tabs.length-1].click(); },30);
+        } else openDetail(PRACTICE_PREFIX+prevUnit);
+        return;
+      }
+      if(typeof N3_KEIGO!=='undefined' && N3_KEIGO.length){
+        openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO.length);
+        return;
+      }
+      if(N3_DATA.length) openDetail(N3_DATA[N3_DATA.length-1].id);
       return;
     }
     const i=N3_PRACTICE.findIndex(x=>x.unit===u);
     if(i>0) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i-1].unit);
+    else if(typeof N3_KEIGO!=='undefined' && N3_KEIGO.length) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO.length);
+    else if(N3_DATA.length) openDetail(N3_DATA[N3_DATA.length-1].id);
     return;
   }
   if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
-    const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
-    const i=N3_KEIGO.findIndex(x=>x.page===p);
-    if(i>0) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[i-1].page);
-    else if(i===0) openDetail(N3_DATA[N3_DATA.length-1].id);
+    const seqOrPage=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
+    let idx=-1;
+    if(seqOrPage>=1 && seqOrPage<=N3_KEIGO.length) idx=seqOrPage-1;
+    else idx=N3_KEIGO.findIndex(x=>x.page===seqOrPage);
+    if(idx>0) openDetail(KEIGO_PAGE_PREFIX+idx);
+    else if(idx===0) openDetail(N3_DATA[N3_DATA.length-1].id);
     return;
   }
   const i = N3_DATA.findIndex(x=>x.id===state.current);
@@ -1652,17 +2055,43 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
         if(v) curPi=parseInt(v.dataset.practicePage,10);
       }
       const pages=PRACTICE_DATA[u].pages;
-      if(curPi>=0&&curPi<pages.length-1) document.querySelectorAll('[data-practice-tab]')[curPi+1].click();
+      if(curPi>=0&&curPi<pages.length-1){
+        document.querySelectorAll('[data-practice-tab]')[curPi+1].click();
+        return;
+      }
+      // 已在末页，下一条跳到下一个练习卡片或回到首个语法卡片
+      const i=N3_PRACTICE.findIndex(x=>x.unit===u);
+      if(i>=0&&i<N3_PRACTICE.length-1){
+        openDetail(PRACTICE_PREFIX+N3_PRACTICE[i+1].unit);
+        return;
+      }
+      if(N3_DATA.length) openDetail(N3_DATA[0].id);
+      else if(typeof N3_KEIGO!=='undefined' && N3_KEIGO.length) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[0].page);
       return;
     }
     const i=N3_PRACTICE.findIndex(x=>x.unit===u);
     if(i>=0&&i<N3_PRACTICE.length-1) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i+1].unit);
+    else if(N3_DATA.length) openDetail(N3_DATA[0].id);
+    else if(typeof N3_KEIGO!=='undefined' && N3_KEIGO.length) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[0].page);
     return;
   }
   if(typeof state.current==='string'&&state.current.startsWith(KEIGO_PAGE_PREFIX)){
-    const p=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
-    const i=N3_KEIGO.findIndex(x=>x.page===p);
-    if(i>=0&&i<N3_KEIGO.length-1) openDetail(KEIGO_PAGE_PREFIX+N3_KEIGO[i+1].page);
+    const seqOrPage=parseInt(state.current.slice(KEIGO_PAGE_PREFIX.length),10);
+    let idx=-1;
+    if(seqOrPage>=1 && seqOrPage<=N3_KEIGO.length) idx=seqOrPage-1;
+    else idx=N3_KEIGO.findIndex(x=>x.page===seqOrPage);
+    if(idx>=0&&idx<N3_KEIGO.length-1) openDetail(KEIGO_PAGE_PREFIX+(idx+2));
+    else if(typeof N3_PRACTICE!=='undefined' && N3_PRACTICE.length){
+      const firstUnit=N3_PRACTICE[0].unit;
+      try{ localStorage.setItem(practiceTabKey(firstUnit), '0'); }catch(e){}
+      try{
+        const nav=JSON.parse(localStorage.getItem('n3.nav')||'{}');
+        nav.practiceTab=0;
+        localStorage.setItem('n3.nav', JSON.stringify(nav));
+      }catch(e){}
+      openDetail(PRACTICE_PREFIX+firstUnit);
+    }
+    else if(N3_DATA.length) openDetail(N3_DATA[0].id);
     return;
   }
   const i = N3_DATA.findIndex(x=>x.id===state.current);
