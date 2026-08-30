@@ -49,9 +49,17 @@ const PRACTICE_DATA = {
         page: 26, title: "パートII 問題1", type: "choice",
         questions: [
           { id:"26-1", q:"食事をしている__、ドアのチャイムが鳴った。", qHtml:"<ruby>食事<rt>しょくじ</rt></ruby>をしている__、ドアのチャイムが<ruby>鳴った<rt>なった</rt></ruby>。", options:["あいだ","あいだに","あいだで","あいだは"], answer:1, explain:"瞬间动作在持续中发生用「あいだに」。" },
+          { id:"26-2", q:"彼は約束を守る__、熱心な人なので皆に信頼されている。", qHtml:"<ruby>彼<rt>かれ</rt></ruby>は<ruby>約束<rt>やくそく</rt></ruby>を<ruby>守る<rt>まもる</rt></ruby>__、<ruby>熱心<rt>ねっしん</rt></ruby>な<ruby>人<rt>ひと</rt></ruby>なので<ruby>皆<rt>みんな</rt></ruby>に<ruby>信頼<rt>しんらい</rt></ruby>されている。", options:["うえで","うえに","ために","うえを"], answer:0, explain:"「守るうえで」在…方面。" },
+          { id:"26-3", q:"ここ数年、住宅の価格が__一方だ。", qHtml:"ここ<ruby>数年<rt>すうねん</rt></ruby>、<ruby>住宅<rt>じゅうたく</rt></ruby>の<ruby>価格<rt>かかく</rt></ruby>が__<ruby>一方<rt>いっぽう</rt></ruby>だ。", options:["上がる","上がった","上がっている","上がりつつある"], answer:0, explain:"「上がる一方だ」持续上升。" },
           { id:"26-4", q:"旅行は視野を広げる__役に立つ。", qHtml:"<ruby>旅行<rt>りょこう</rt></ruby>は<ruby>視野<rt>しや</rt></ruby>を<ruby>広げる<rt>ひろげる</rt></ruby>__<ruby>役<rt>やく</rt></ruby>に<ruby>立つ<rt>たつ</rt></ruby>。", options:["うえで","うえに","ために","うえを"], answer:0, explain:"「〜うえで」在…过程中有帮助。" },
+          { id:"26-5", q:"若い__時間の大切さに気づかなかった。", qHtml:"<ruby>若い<rt>わかい</rt></ruby>__<ruby>時間<rt>じかん</rt></ruby>の<ruby>大切<rt>たいせつ</rt></ruby>さに<ruby>気づか<rt>きづか</rt></ruby>なかった。", options:["うちは","うちに","ために","だけで"], answer:0, explain:"「若いうちは」年轻时。" },
           { id:"26-6", q:"この携帯はボタンが大きくて、お年寄りにも__。", qHtml:"この<ruby>携帯<rt>けいたい</rt></ruby>はボタンが<ruby>大きく<rt>おおきく</rt></ruby>て、お<ruby>年寄り<rt>としより</rt></ruby>にも__。", options:["使いにくい","使いやすい","使いすぎる","使えばいい"], answer:1, explain:"易用「使いやすい」。" },
+          { id:"26-7", q:"本を__、いつの間にか眠ってしまった。", qHtml:"<ruby>本<rt>ほん</rt></ruby>を__、いつの<ruby>間<rt>ま</rt></ruby>にか<ruby>眠って<rt>ねむって</rt></ruby>しまった。", options:["読んでいるうちに","読んだうちに","読むうちに","読んでうちに"], answer:0, explain:"「読んでいるうちに」读着读着。" },
+          { id:"26-8", q:"勉強する時間がない__、ゲームに夢中だ。", qHtml:"<ruby>勉強<rt>べんきょう</rt></ruby>する<ruby>時間<rt>じかん</rt></ruby>がない__、ゲームに<ruby>夢中<rt>むちゅう</rt></ruby>だ。", options:["といいながら","といえば","というと","というのに"], answer:0, explain:"「〜といいながら」嘴上说…却…" },
           { id:"26-9", q:"田中さんに__、楽しい一日を過ごした。", qHtml:"<ruby>田中<rt>たなか</rt></ruby>さんに__、<ruby>楽しい<rt>たのしい</rt></ruby><ruby>一日<rt>いちにち</rt></ruby>を<ruby>過ごした<rt>すごした</rt></ruby>。", options:["誘ってもらったおかげで","誘ってくれたおかげで","誘ってあげたおかげで","誘ってさしあげたおかげで"], answer:1, explain:"受惠用「〜てくれたおかげで」。" },
+          { id:"26-10", q:"日本への留学__、日本語だけでなく文化にも触れたい。", qHtml:"<ruby>日本<rt>にほん</rt></ruby>への<ruby>留学<rt>りゅうがく</rt></ruby>__、<ruby>日本語<rt>にほんご</rt></ruby>だけでなく<ruby>文化<rt>ぶんか</rt></ruby>にも<ruby>触れ<rt>ふれ</rt></ruby>たい。", options:["をきっかけに","が決まった以上","のために","おかげで"], answer:0, explain:"「〜をきっかけに」以…为契机。" },
+          { id:"26-11", q:"先生が__、この論文を完成した。", qHtml:"<ruby>先生<rt>せんせい</rt></ruby>が__、この<ruby>論文<rt>ろんぶん</rt></ruby>を<ruby>完成<rt>かんせい</rt></ruby>した。", options:["指導したおかげで","指導してくれたおかげで","指導してもらったおかげで","指導したおかげで"], answer:1, explain:"尊敬「指導してくれたおかげで」。" },
+          { id:"26-12", q:"この魚は__、値段も安い。", qHtml:"この<ruby>魚<rt>さかな</rt></ruby>は__、<ruby>値段<rt>ねだん</rt></ruby>も<ruby>安い<rt>やすい</rt></ruby>。", options:["新鮮なうえで","新鮮なうえに","新鮮な一方で","新鮮である以上"], answer:1, explain:"「新鮮なうえに」且…" },
           { id:"26-13", q:"映画がまだ__うちに、売店に行ってくる。", qHtml:"<ruby>映画<rt>えいが</rt></ruby>がまだ__うちに、<ruby>売店<rt>ばいてん</rt></ruby>に<ruby>行って<rt>いって</rt></ruby>くる。", options:["始まっている","始まった","始まる","始まっていない"], answer:3, explain:"「始まっていないうちに」未开始前。" }
         ]
       },

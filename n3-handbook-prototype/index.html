@@ -523,14 +523,12 @@ function renderList(){
   const html = [...grouped.entries()].map(([unit, items])=>{
     const cards = items.map(it=>{
       if(it._practice){
-        const pgs = it.pages.map(x=>x.page);
-        return `<div class="card-item" data-id="${PRACTICE_PREFIX+it.unit}" title="第${it.unit}単元 练习">
+        return `<div class="card-item" data-id="${PRACTICE_PREFIX+it.unit}" title="第${it.unit}単元 練習">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="num">P.${pgs[0]}~${pgs[pgs.length-1]}</span>
             <span class="badge">練習</span>
           </div>
-          <div class="pat">${esc(it.title)}</div>
-          <div class="zh">基础+实战练习 · ${pgs.length} 页</div>
+          <div class="pat">${esc(it.title.replace(' 練習問題',' 練習'))}</div>
+          <div class="zh">${it.pages ? it.pages.length+' 页 · 每页对应题型' : ''}</div>
         </div>`;
       }
       if(it._unit){
@@ -813,21 +811,23 @@ function renderPracticeDetail(unit){
     const totalQ = pages.reduce((s,p)=>s+p.questions.length,0);
     document.getElementById('title').textContent = title;
     document.getElementById('progress').textContent = `${totalQ} 問 · ${pages.length} 页`;
-    // 页签：按钮上方按 パート 分类，按钮仅显示 問題
+    // 页签：分栏成 パートI / パートII 两栏，按钮仅 問題
     const partGroups={};
     pages.forEach((pg,pi)=>{
-      const m=(pg.title||'').match(/^(パート[ⅠⅡ]+)/);
+      const m=(pg.title||'').match(/^(パート[^ ]+)/);
       const part=m?m[1]:'その他';
       if(!partGroups[part]) partGroups[part]=[];
       partGroups[part].push({pg,pi});
     });
-    const tabsHtml = Object.entries(partGroups).map(([part,list])=>`
-      <div style="margin:10px 0 4px;font-size:12px;color:var(--muted);letter-spacing:.04em">${esc(part)}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${list.map(({pg,pi})=>{
-        const label=(pg.title||'').split(' ').pop()||'P.'+pg.page;
-        return `<button class="btn ${pi===0?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
-      }).join('')}</div>
-    `).join('');
+    const tabsHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0">${Object.entries(partGroups).map(([part,list])=>`
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${esc(part)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${list.map(({pg,pi})=>{
+          const label=(pg.title||'').split(' ').pop()||'P.'+pg.page;
+          return `<button class="btn ${pi===0?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
+        }).join('')}</div>
+      </div>
+    `).join('')}</div>`;
     const pagesHtml = pages.map((pg,pi)=>{
       let bankBar='';
       if(pg.type==='bank' && pg.bank){
@@ -878,7 +878,7 @@ function renderPracticeDetail(unit){
         ${qsHtml}
       </div>`;
     }).join('');
-    document.getElementById('detail').innerHTML = `<h2>${esc(title)} <span style="font-size:13px;color:var(--muted)">AI补全·每页交互</span></h2>${tabsHtml}${pagesHtml}`;
+    document.getElementById('detail').innerHTML = `${tabsHtml}${pagesHtml}`;
     const allQs = pages.flatMap(p=>p.questions);
     // 页签切换
     document.querySelectorAll('[data-practice-tab]').forEach(b=>{
@@ -1003,8 +1003,17 @@ function renderPracticeDetail(unit){
       };
     });
     document.getElementById('favBtn').setAttribute('aria-pressed','false');
-    document.getElementById('prevBtn').disabled = true;
-    document.getElementById('nextBtn').disabled = true;
+    // 上一条/下一条 在练习内切换页（分栏）
+    const updateNav = ()=>{
+      const cur = document.querySelector('[data-practice-tab].primary');
+      const pi = cur ? parseInt(cur.dataset.practiceTab,10) : 0;
+      document.getElementById('prevBtn').disabled = pi<=0;
+      document.getElementById('nextBtn').disabled = pi>=pages.length-1;
+    };
+    updateNav();
+    document.querySelectorAll('[data-practice-tab]').forEach(b=>{
+      b.addEventListener('click', updateNav);
+    });
     return;
   }
   const idx = N3_PRACTICE.findIndex(p=>p.unit===unit);
@@ -1397,6 +1406,17 @@ document.getElementById('favBtn').addEventListener('click',()=>{
 document.getElementById('prevBtn').addEventListener('click',()=>{
   if(typeof state.current==='string'&&state.current.startsWith(PRACTICE_PREFIX)){
     const u=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    if(PRACTICE_DATA && PRACTICE_DATA[u] && PRACTICE_DATA[u].pages){
+      const curTab=document.querySelector('[data-practice-tab].primary');
+      let curPi=0;
+      if(curTab) curPi=parseInt(curTab.dataset.practiceTab,10);
+      else {
+        const v=document.querySelector('.practice-page:not([style*="display: none"])');
+        if(v) curPi=parseInt(v.dataset.practicePage,10);
+      }
+      if(curPi>0) document.querySelectorAll('[data-practice-tab]')[curPi-1].click();
+      return;
+    }
     const i=N3_PRACTICE.findIndex(x=>x.unit===u);
     if(i>0) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i-1].unit);
     return;
@@ -1417,6 +1437,18 @@ document.getElementById('prevBtn').addEventListener('click',()=>{
 document.getElementById('nextBtn').addEventListener('click',()=>{
   if(typeof state.current==='string'&&state.current.startsWith(PRACTICE_PREFIX)){
     const u=parseInt(state.current.slice(PRACTICE_PREFIX.length),10);
+    if(PRACTICE_DATA && PRACTICE_DATA[u] && PRACTICE_DATA[u].pages){
+      const curTab=document.querySelector('[data-practice-tab].primary');
+      let curPi=0;
+      if(curTab) curPi=parseInt(curTab.dataset.practiceTab,10);
+      else {
+        const v=document.querySelector('.practice-page:not([style*="display: none"])');
+        if(v) curPi=parseInt(v.dataset.practicePage,10);
+      }
+      const pages=PRACTICE_DATA[u].pages;
+      if(curPi>=0&&curPi<pages.length-1) document.querySelectorAll('[data-practice-tab]')[curPi+1].click();
+      return;
+    }
     const i=N3_PRACTICE.findIndex(x=>x.unit===u);
     if(i>=0&&i<N3_PRACTICE.length-1) openDetail(PRACTICE_PREFIX+N3_PRACTICE[i+1].unit);
     return;
