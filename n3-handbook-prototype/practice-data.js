@@ -64,13 +64,13 @@ const PRACTICE_DATA = {
         ]
       },
       {
-        page: 27, title: "パートII 問題2", type: "choice",
+        page: 27, title: "パートII 問題2", type: "star",
         questions: [
-          { id:"27-15", q:"ベッドで__、財布を盗まれた。", qHtml:"ベッドで__、<ruby>財布<rt>さいふ</rt></ruby>を<ruby>盗まれた<rt>ぬすまれた</rt></ruby>。", options:["寝ている間に","寝た間に","寝る間に","寝て間に"], answer:0, explain:"「寝ている間に」熟睡期间被盗。" },
-          { id:"27-16", q:"もう__以上は、誰に勧められても吸わない。", qHtml:"もう__<ruby>以上<rt>いじょう</rt></ruby>は、<ruby>誰<rt>だれ</rt></ruby>に<ruby>勧め<rt>すすめ</rt></ruby>られても<ruby>吸わない<rt>すわない</rt></ruby>。", options:["吸わないと決めた","タバコを吸わないと","決心した","吸わない"], answer:2, explain:"「決心した以上は」既然决心就…" },
-          { id:"27-17", q:"彼女はきれいな__人気が高い。", qHtml:"<ruby>彼女<rt>かのじょ</rt></ruby>はきれいな__<ruby>人気<rt>にんき</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>。", options:["うえに","うえで","なので","から"], answer:0, explain:"「きれいなうえに」漂亮且..." },
-          { id:"27-18", q:"鈴木先生が__おかげで、優勝できた。", qHtml:"<ruby>鈴木<rt>すずき</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>が__おかげで、<ruby>優勝<rt>ゆうしょう</rt></ruby>できた。", options:["熱心に教えてくださった","熱心に教えた","教えてくれた","教えてもらった"], answer:0, explain:"尊敬「教えてくださったおかげで」。" },
-          { id:"27-19", q:"日本には、お盆や正月に物を|19|。", qHtml:"<ruby>日本<rt>にほん</rt></ruby>には、お<ruby>盆<rt>ぼん</rt></ruby>や<ruby>正月<rt>しょうがつ</rt></ruby>が<ruby>近く<rt>ちかく</rt></ruby>なると、<ruby>世話<rt>せわ</rt></ruby>になった<ruby>人<rt>ひと</rt></ruby>や<ruby>目上<rt>めうえ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>に<ruby>物<rt>もの</rt></ruby>を|19|。", options:["あげることがある","おくる習慣がある","かかることがある","くれる習慣がある"], answer:1, explain:"「おくる習慣がある」。" }
+          { id:"27-14", q:"きのう＿ ＿ ★ ＿、眠ってしまった。", qHtml:"きのう＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿、<ruby>眠って<rt>ねむって</rt></ruby>しまった。", options:["うちに","を","見ている","テレビ"], answer:2, explain:"正順：きのうテレビを見ているうちに眠ってしまった。★は「見ている」。" },
+          { id:"27-15", q:"バスの中で＿ ＿ ★ ＿、財布を盗まれた。", qHtml:"バスの<ruby>中<rt>なか</rt></ruby>で＿ ＿ <span style=\"color:var(--accent)\">★</span> ＿、<ruby>財布<rt>さいふ</rt></ruby>を<ruby>盗まれた<rt>ぬすまれた</rt></ruby>。", options:["寝ている","間に","居眠り","をしている"], answer:0, explain:"正順：バスの中で寝ている間に財布を盗まれた。★は「寝ている」。" },
+          { id:"27-16", q:"もう＿ ★ ＿、誰に勧められても吸わない。", qHtml:"もう＿ <span style=\"color:var(--accent)\">★</span> ＿、<ruby>誰<rt>だれ</rt></ruby>に<ruby>勧め<rt>すすめ</rt></ruby>られても<ruby>吸わない<rt>すわない</rt></ruby>。", options:["吸わない","タバコを","決心した","以上は"], answer:2, explain:"正順：もう決心した以上は… ★は「決心した」。" },
+          { id:"27-17", q:"彼女はきれいな＿ ★ ＿人気が高い。", qHtml:"<ruby>彼女<rt>かのじょ</rt></ruby>はきれいな＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>人気<rt>にんき</rt></ruby>が<ruby>高い<rt>たかい</rt></ruby>。", options:["うえに","うえで","なので","から"], answer:0, explain:"「きれいなうえに」。" },
+          { id:"27-18", q:"鈴木先生が＿ ★ ＿優勝できた。", qHtml:"<ruby>鈴木<rt>すずき</rt></ruby><ruby>先生<rt>せんせい</rt></ruby>が＿ <span style=\"color:var(--accent)\">★</span> ＿<ruby>優勝<rt>ゆうしょう</rt></ruby>できた。", options:["おかげで","熱心に","教えてくださった","に"], answer:2, explain:"鈴木先生が熱心に教えてくださったおかげで。★は「教えてくださった」。" }
         ]
       },
       {

@@ -837,19 +837,40 @@ function renderPracticeDetail(unit){
         const globalIdx = pages.slice(0,pi).reduce((s,p)=>s+p.questions.length,0)+qi;
         const qHtml = q.qHtml || esc(q.q);
         const qText = q.qHtml ? q.qHtml : esc(q.q);
+        if(pg.type==='star'){
+          let qWithBlanks = q.qHtml || esc(q.q);
+          let blankIdx=0;
+          qWithBlanks = qWithBlanks.replace(/＿/g, ()=>`<span class="blank-drop" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-block;min-width:60px;max-width:100%;padding:2px 8px;margin:0 2px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all">\u00A0</span>`);
+          qWithBlanks = qWithBlanks.replace(/★/g, ()=>`<span class="blank-drop star-blank" data-qi="${globalIdx}" data-blank="${blankIdx++}" style="display:inline-block;min-width:60px;max-width:100%;padding:2px 8px;margin:0 2px;border:1px dashed var(--line);border-radius:6px;background:var(--bg);text-align:center;vertical-align:middle;word-break:break-all"><span style="color:var(--accent)">★</span></span>`);
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${qi+1}. ${qWithBlanks}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${q.options.map((o,oi)=>`<span class="star-card" draggable="true" data-qi="${globalIdx}" data-oi="${oi}" style="padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13px;cursor:grab;user-select:none">${String.fromCharCode(65+oi)}. ${esc(o)}</span>`).join('')}</div>
+            <div style="margin-top:8px"><button class="btn primary" data-star-check="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">确认</button> <button class="btn" data-star-reset="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">重置</button></div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        }
         if(pg.type==='bank'){
           const bankOptions = pg.bank.map((b,bi)=>`<option value="${bi}">${String.fromCharCode(65+bi)}. ${esc(b)}</option>`).join('');
           const hasBlank = (q.q||'').includes('__') || (q.qHtml||'').includes('__');
           const src = q.qHtml || esc(q.q);
           const qWithBlank = hasBlank ? src.replace('__', `<select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`) : `${src} <select class="blank-select" data-qi="${globalIdx}" style="min-width:90px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:13px"><option value="">--</option>${bankOptions}</select>`;
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${globalIdx+1}. ${qWithBlank}</div>
+            <div class="q">${qi+1}. ${qWithBlank}</div>
+            <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
+          </div>`;
+        }
+        if(pg.type==='ordering'){
+          return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
+            <div class="q">${qi+1}. ${q.qHtml || esc(q.q)}</div>
+            <div class="ordering-words" data-qi="${globalIdx}" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${q.words.map((w,wi)=>`<span class="ordering-word" draggable="true" data-wi="${wi}" style="padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13px;cursor:grab;user-select:none">${esc(w)}</span>`).join('')}</div>
+            <div class="ordering-drop" data-qi="${globalIdx}" style="min-height:44px;border:1px dashed var(--line);border-radius:10px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--bg)"><span class="muted" style="font-size:12px">拖动上方卡片到此处排序</span></div>
+            <div style="margin-top:8px"><button class="btn primary" data-order-check="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">确认排序</button> <button class="btn" data-order-reset="${globalIdx}" style="padding:4px 12px;font-size:12px;height:30px">重置</button></div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
         }
         if(pg.type==='input'){
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            <div class="q">${qi+1}. ${qHtml}</div>
             <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入变形后形式" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
             <div class="muted" style="font-size:11px;margin-top:6px">智能提示（点选填入）：</div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${q.options.map((o,oi)=>`<button class="practice-opt large" data-qi="${globalIdx}" data-oi="${oi}" data-input-fill="${globalIdx}" style="flex:1 1 calc(50% - 8px);min-width:120px">${esc(o)}</button>`).join('')}</div>
@@ -858,7 +879,7 @@ function renderPracticeDetail(unit){
         }
         if(q.options){
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            <div class="q">${qi+1}. ${qHtml}</div>
             ${q.passage?`<div class="desc" style="margin:6px 0;padding:8px;background:var(--card);border-radius:8px">${q.passageHtml ? q.passageHtml : esc(q.passage).replace(/\n/g,'<br>')}</div>`:''}
             <div class="practice-opts">
               ${q.options.map((o,oi)=>`<button class="practice-opt" data-qi="${globalIdx}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${esc(o)}</button>`).join('')}
@@ -867,7 +888,7 @@ function renderPracticeDetail(unit){
           </div>`;
         } else {
           return `<div class="practice-q" data-q="${globalIdx}" data-page="${pi}">
-            <div class="q">${globalIdx+1}. ${qHtml}</div>
+            <div class="q">${qi+1}. ${qHtml}</div>
             <div style="display:flex;gap:8px;margin-top:8px"><input class="inp" data-input="${globalIdx}" placeholder="输入答案" style="flex:1"><button class="btn primary" data-check="${globalIdx}" style="flex:0 0 72px">确认</button></div>
             <div class="practice-explain" id="explain-${globalIdx}" style="display:none"></div>
           </div>`;
@@ -926,7 +947,7 @@ function renderPracticeDetail(unit){
         box.querySelectorAll('.practice-opt.large').forEach(o=>o.disabled=true);
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误选 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
       };
@@ -943,7 +964,7 @@ function renderPracticeDetail(unit){
         const exp=box.querySelector('.practice-explain');
         const ok = oi===q.answer;
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误选 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         sel.disabled=true;
         sel.style.borderColor = ok ? 'var(--ok)' : '#e57373';
@@ -983,6 +1004,191 @@ function renderPracticeDetail(unit){
         sel.dispatchEvent(new Event('change'));
       });
     });
+    // 排序题
+    document.querySelectorAll('.ordering-word').forEach(w=>{
+      w.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', w.dataset.wi);
+        e.dataTransfer.effectAllowed='move';
+      });
+    });
+    document.querySelectorAll('.ordering-drop').forEach(drop=>{
+      drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.style.borderColor='var(--accent)'; drop.style.background='var(--accent-soft)'; });
+      drop.addEventListener('dragleave', ()=>{ drop.style.borderColor=''; drop.style.background='var(--bg)'; });
+      drop.addEventListener('drop', e=>{
+        e.preventDefault(); drop.style.borderColor=''; drop.style.background='var(--bg)';
+        const wi=e.dataTransfer.getData('text/plain');
+        if(wi==='') return;
+        const word=document.querySelector(`.ordering-word[data-wi="${wi}"]`);
+        // 仅当 word 在同一题内
+        const qi=drop.dataset.qi;
+        const box=drop.closest('.practice-q');
+        if(!word || box.dataset.done==='1') return;
+        if(word.closest('.ordering-drop')===drop) return;
+        const ph=drop.querySelector('.muted');
+        if(ph) ph.remove();
+        drop.appendChild(word);
+      });
+      // 点击空白处也可按顺序添加
+      drop.addEventListener('click', ()=>{
+        const qi=drop.dataset.qi;
+        const box=drop.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+      });
+    });
+    document.querySelectorAll('[data-order-check]').forEach(btn=>{
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.orderCheck,10);
+        const q=allQs[qi];
+        const box=btn.closest('.practice-q');
+        const drop=box.querySelector('.ordering-drop');
+        const exp=box.querySelector('.practice-explain');
+        if(box.dataset.done==='1') return;
+        const curOrder=Array.from(drop.querySelectorAll('.ordering-word')).map(w=>parseInt(w.dataset.wi,10));
+        const correct=q.answer;
+        const ok = JSON.stringify(curOrder)===JSON.stringify(correct);
+        exp.style.display='block';
+        const correctText=correct.map(i=>q.words[i]).join(' ');
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(correctText)}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        box.dataset.done='1';
+        drop.style.borderColor = ok ? 'var(--ok)' : '#e57373';
+        try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+      };
+    });
+    document.querySelectorAll('[data-order-reset]').forEach(btn=>{
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.orderReset,10);
+        const box=btn.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+        const drop=box.querySelector('.ordering-drop');
+        const wordsBox=box.querySelector('.ordering-words');
+        // 将已排序的词移回原词库
+        const page=box.dataset.page;
+        const q=allQs[qi];
+        const wordsContainer=box.querySelector('.ordering-words');
+        Array.from(drop.querySelectorAll('.ordering-word')).forEach(w=>{
+          wordsContainer.appendChild(w);
+        });
+        drop.innerHTML='<span class="muted" style="font-size:12px">拖动上方卡片到此处排序</span>';
+      };
+    });
+    // ★排序题：选项拖动到空格，句长随内容自适应
+    document.querySelectorAll('.star-card').forEach(card=>{
+      card.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', card.dataset.oi);
+        e.dataTransfer.setData('application/x-qi', card.dataset.qi);
+        e.dataTransfer.effectAllowed='move';
+      });
+      card.addEventListener('click', ()=>{
+        const qi=card.dataset.qi;
+        const box=card.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+        const blanks=box.querySelectorAll('.blank-drop');
+        for(const b of blanks){
+          if(!b.dataset.filled){
+            b.textContent=card.textContent.replace(/^[A-D]\.\s*/,'');
+            b.dataset.filled=card.dataset.oi;
+            b.style.borderStyle='solid';
+            b.style.background='var(--accent-soft)';
+            b.style.minWidth='auto';
+            card.style.opacity='0.4';
+            card.draggable=false;
+            break;
+          }
+        }
+      });
+    });
+    document.querySelectorAll('.blank-drop').forEach(blank=>{
+      blank.addEventListener('dragover', e=>{ e.preventDefault(); blank.style.borderColor='var(--accent)'; blank.style.background='var(--accent-soft)'; });
+      blank.addEventListener('dragleave', ()=>{ blank.style.borderColor=''; blank.style.background='var(--bg)'; });
+      blank.addEventListener('drop', e=>{
+        e.preventDefault(); blank.style.borderColor=''; blank.style.background='var(--bg)';
+        const oi=e.dataTransfer.getData('text/plain');
+        const qi=e.dataTransfer.getData('application/x-qi');
+        if(oi==='') return;
+        const box=blank.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+        // 已有内容可被新拖入替换
+        if(blank.dataset.filled){
+          const oldOi=blank.dataset.filled;
+          const oldCard=document.querySelector(`.star-card[data-qi="${qi}"][data-oi="${oldOi}"]`);
+          if(oldCard){ oldCard.style.opacity='1'; oldCard.draggable=true; }
+        }
+        const card=document.querySelector(`.star-card[data-qi="${qi}"][data-oi="${oi}"]`);
+        if(!card) return;
+        // 若该选项已在别处占用，先清空原空格
+        document.querySelectorAll(`.blank-drop[data-qi="${qi}"][data-filled="${oi}"]`).forEach(b=>{
+          if(b!==blank){
+            const isStar=b.classList.contains('star-blank');
+            b.innerHTML=isStar?'<span style="color:var(--accent)">★</span>':'\u00A0';
+            delete b.dataset.filled;
+            b.style.borderStyle='dashed';
+            b.style.background='var(--bg)';
+            b.style.minWidth='60px';
+          }
+        });
+        blank.textContent=card.textContent.replace(/^[A-D]\.\s*/,'');
+        blank.dataset.filled=oi;
+        blank.style.borderStyle='solid';
+        blank.style.background='var(--accent-soft)';
+        blank.style.minWidth='auto';
+        card.style.opacity='0.4';
+        card.draggable=false;
+      });
+      blank.addEventListener('click', ()=>{
+        if(blank.dataset.filled){
+          const oi=blank.dataset.filled;
+          const qi=blank.dataset.qi;
+          const card=document.querySelector(`.star-card[data-qi="${qi}"][data-oi="${oi}"]`);
+          if(card){ card.style.opacity='1'; card.draggable=true; }
+          if(blank.classList.contains('star-blank')) blank.innerHTML='<span style="color:var(--accent)">★</span>'; else blank.textContent='\u00A0';
+          delete blank.dataset.filled;
+          blank.style.borderStyle='dashed';
+          blank.style.background='var(--bg)';
+          blank.style.minWidth='60px';
+        }
+      });
+    });
+    document.querySelectorAll('[data-star-check]').forEach(btn=>{
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.starCheck,10);
+        const q=allQs[qi];
+        const box=btn.closest('.practice-q');
+        const exp=box.querySelector('.practice-explain');
+        if(box.dataset.done==='1') return;
+        const blanks=box.querySelectorAll('.blank-drop');
+        const starIdx=2;
+        const starBlank=blanks[starIdx];
+        const filled=starBlank ? starBlank.dataset.filled : null;
+        const ok = filled!==undefined && parseInt(filled,10)===q.answer;
+        exp.style.display='block';
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${String.fromCharCode(65+q.answer)}. ${esc(q.options[q.answer])}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        box.dataset.done='1';
+        box.querySelectorAll('.blank-drop').forEach(b=>b.style.pointerEvents='none');
+        box.querySelectorAll('.star-card').forEach(c=>c.draggable=false);
+        try{ const k='practice_done_'+unit; const cur=JSON.parse(localStorage.getItem(k)||'{}'); cur[qi]=ok; localStorage.setItem(k, JSON.stringify(cur)); }catch(e){}
+      };
+    });
+    document.querySelectorAll('[data-star-reset]').forEach(btn=>{
+      btn.onclick=()=>{
+        const qi=parseInt(btn.dataset.starReset,10);
+        const box=btn.closest('.practice-q');
+        if(box.dataset.done==='1') return;
+        box.querySelectorAll('.blank-drop').forEach(b=>{
+          const oi=b.dataset.filled;
+          if(oi){
+            const card=document.querySelector(`.star-card[data-qi="${qi}"][data-oi="${oi}"]`);
+            if(card){ card.style.opacity='1'; card.draggable=true; }
+          }
+          b.textContent='\u00A0';
+          delete b.dataset.filled;
+          b.style.borderStyle='dashed';
+          b.style.background='var(--bg)';
+          b.style.minWidth='60px';
+          b.style.pointerEvents='';
+        });
+        box.querySelectorAll('.star-card').forEach(c=>{ c.style.opacity='1'; c.draggable=true; });
+      };
+    });
     // 输入型（变形等）兼容
     document.querySelectorAll('[data-check]').forEach(btn=>{
       btn.onclick=()=>{
@@ -996,7 +1202,7 @@ function renderPracticeDetail(unit){
         const correct = q.options ? q.options[q.answer] : String(q.answer);
         const ok = val===correct || val.toLowerCase()===String(correct).toLowerCase();
         exp.style.display='block';
-        exp.innerHTML = `${ok?'✅ 正解：':'❌ 误答 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
+        exp.innerHTML = `${ok?'✅ 正解：':'❌ 正解：'}<b>${esc(String(correct))}</b><br><span style="color:var(--ink-soft)">${esc(q.explain)}</span>`;
         box.dataset.done='1';
         inp.disabled=true; btn.disabled=true;
         if(ok) inp.style.borderColor='var(--ok)'; else inp.style.borderColor='#e57373';
