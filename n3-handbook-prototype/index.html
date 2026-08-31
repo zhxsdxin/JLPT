@@ -956,7 +956,7 @@ function renderPracticeDetail(unit){
       <div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${esc(part)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">${list.map(({pg,pi})=>{
-          const label=(pg.title||'').split(' ').pop()||'P.'+pg.page;
+          const label=(pg.title||'').match(/問題\d+/)?.[0] || (pg.title||'').split(' ').pop() || 'P.'+pg.page;
           return `<button class="btn ${pi===initialPi?'primary':''}" data-practice-tab="${pi}" style="padding:4px 10px;font-size:12px;height:30px">${esc(label)}<span style="margin-left:4px;font-size:10px;opacity:.8">${pg.questions.length}問</span></button>`;
         }).join('')}</div>
       </div>

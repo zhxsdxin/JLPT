@@ -36,21 +36,21 @@
   @media (max-width:600px){
     table{font-size:11px}
     th,td{padding:4px 6px}
-    /* 窄屏：头像隐藏；会话表各字段溢出省略，悬浮显示完整内容 */
+    /* 窄屏：头像隐藏；会话表各字段强制定宽溢出省略，悬浮 title 显示完整 */
     #pane-users th:nth-child(3), #pane-users td:nth-child(3){display:none}
-    #pane-sessions{overflow-x:auto; -webkit-overflow-scrolling:touch}
-    #pane-sessions table{table-layout:fixed; width:100%; min-width:560px}
-    #pane-sessions th, #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0}
-    #pane-sessions th:nth-child(1), #pane-sessions td:nth-child(1){max-width:90px}
-    #pane-sessions th:nth-child(2), #pane-sessions td:nth-child(2){max-width:110px}
-    #pane-sessions th:nth-child(3), #pane-sessions td:nth-child(3){max-width:110px}
-    #pane-sessions th:nth-child(4), #pane-sessions td:nth-child(4){max-width:80px}
-    #pane-sessions th:nth-child(5), #pane-sessions td:nth-child(5){max-width:90px}
-    #pane-sessions th:nth-child(6), #pane-sessions td:nth-child(6){max-width:90px}
-    #pane-sessions th:nth-child(7), #pane-sessions td:nth-child(7){max-width:110px}
+    #pane-sessions{overflow-x:hidden}
+    #pane-sessions table{table-layout:fixed; width:100%;}
+    #pane-sessions th, #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; word-break:normal; max-width:0}
+    #pane-sessions th:nth-child(1), #pane-sessions td:nth-child(1){width:14%; max-width:14%}
+    #pane-sessions th:nth-child(2), #pane-sessions td:nth-child(2){width:18%; max-width:18%}
+    #pane-sessions th:nth-child(3), #pane-sessions td:nth-child(3){width:17%; max-width:17%}
+    #pane-sessions th:nth-child(4), #pane-sessions td:nth-child(4){width:12%; max-width:12%}
+    #pane-sessions th:nth-child(5), #pane-sessions td:nth-child(5){width:13%; max-width:13%}
+    #pane-sessions th:nth-child(6), #pane-sessions td:nth-child(6){width:13%; max-width:13%}
+    #pane-sessions th:nth-child(7), #pane-sessions td:nth-child(7){width:13%; max-width:13%}
   }
   /* 通用：会话表字段溢出省略，hover 显示完整内容（通过 title） */
-  #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #pane-sessions td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; word-break:normal}
   #pane-sessions td[title]{cursor:help}
 </style>
 </head>
