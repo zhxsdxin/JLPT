@@ -77,12 +77,16 @@ export default {
         )
       `).run();
 
-      // 你给的查询：列出全部
+      // 调试查询：已收敛至管理员，前端已注释隐藏；直接调用亦需 admin
       if (pathname === "/api/users" && request.method === "GET") {
+        const admin = await requireAdmin(request, env);
+        if(!admin) return json({ error: "需要管理员权限，请用 admin 账号登录" }, cors, 403);
         const result = await env.DB.prepare("SELECT * FROM users").all();
         return json(result.results, cors);
       }
       if (pathname === "/api/sessions" && request.method === "GET") {
+        const admin = await requireAdmin(request, env);
+        if(!admin) return json({ error: "需要管理员权限，请用 admin 账号登录" }, cors, 403);
         const result = await env.DB.prepare("SELECT * FROM sessions").all();
         return json(result.results, cors);
       }

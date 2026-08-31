@@ -678,13 +678,15 @@ function renderList(){
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 // 振り仮名：将「漢字《かな》」标注转换为 <ruby> 标签；基字为紧邻《》前的连续汉字（不含送假名）
 function furigana(s){return (s||'').replace(/([\u3005\u4e00-\u9fff]+)《([^》]+)》/g,'<ruby>$1<rt>$2</rt></ruby>')}
-// 解析：日语说明与〔中〕中文翻译分行，中文翻译单独成行并加左侧细线，便于阅读
+// 解析：日语说明与中文翻译分行，中文翻译单独成行并加左侧细线，便于阅读。
+// 数据侧分隔标记为「訳：」（历史版本为「〔中〕」），两者都兼容，显示统一用「訳：」
 function explainHtml(t){
   if(!t) return '';
   const e = esc(t);
-  const i = e.indexOf('〔中〕');
-  if(i === -1) return e;
-  return e.slice(0,i) + '<br><span class="cn-tr">〔中〕' + e.slice(i+3) + '</span>';
+  const m = e.match(/〔中〕|訳[:：]?/);
+  if(!m) return e;
+  const i = m.index, len = m[0].length;
+  return e.slice(0,i) + '<br><span class="cn-tr">訳：' + e.slice(i+len) + '</span>';
 }
 // 去掉「漢字《かな》」标注中的振り仮名，仅保留汉字/假名本体（用于 input 题的填入与判定）
 function stripFurigana(s){return (s||'').replace(/《[^》]*》/g,'')}
